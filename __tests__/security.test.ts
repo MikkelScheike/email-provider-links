@@ -499,6 +499,35 @@ describe('Security - Edge Cases & Advanced Tests', () => {
   });
 });
 
+describe('Security - Production File Integrity', () => {
+  test('CRITICAL: production providers file must have correct hash', () => {
+    // This test ensures we never push a compromised providers file to npm
+    const providersPath = join(__dirname, '..', 'providers', 'emailproviders.json');
+    const result = verifyProvidersIntegrity(providersPath);
+    
+    if (!result.isValid) {
+      console.error('🚨🚨🚨 CRITICAL SECURITY FAILURE 🚨🚨🚨');
+      console.error('The production providers file has been tampered with!');
+      console.error('Expected hash:', result.expectedHash);
+      console.error('Actual hash:', result.actualHash);
+      console.error('DO NOT PUBLISH THIS VERSION TO NPM!');
+    }
+    
+    expect(result.isValid).toBe(true);
+    expect(result.reason).toBeUndefined();
+  });
+  
+  test('CRITICAL: secure loader must pass with production file', () => {
+    // This ensures the entire security system works with the real providers file
+    const result = secureLoadProviders();
+    
+    expect(result.success).toBe(true);
+    expect(result.securityReport.hashVerification).toBe(true);
+    expect(result.securityReport.securityLevel).not.toBe('CRITICAL');
+    expect(result.providers.length).toBeGreaterThan(60); // We should have 60+ providers
+  });
+});
+
 describe('Security - Integration Tests', () => {
   test('should provide end-to-end security validation', () => {
     // Test the complete security pipeline with real provider data

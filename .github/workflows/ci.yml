@@ -34,6 +34,13 @@ jobs:
     - name: Run tests
       run: npm test
       
+    - name: 🔒 CRITICAL SECURITY CHECK
+      run: |
+        echo "🚨 Running critical security verification..."
+        echo "This will FAIL if providers file has been tampered with!"
+        npm test -- --testNamePattern="CRITICAL.*production providers file must have correct hash" --verbose
+        echo "✅ Security check passed - providers file integrity verified"
+      
     - name: Run build
       run: npm run build
       
