@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-06-19
+
+### 🧹 Project Organization
+
+- **Professional project structure** with organized directories
+- **Moved documentation** to `/docs/` directory (CHANGELOG, CONTRIBUTING, SECURITY)
+- **Moved examples** to `/examples/` directory with comprehensive README
+- **Cleaned root directory** for professional appearance
+- **Updated all documentation links** to reflect new structure
+- **Added directory READMEs** for better navigation
+
+### 📁 New Structure
+
+```
+/docs/           # All documentation
+/examples/       # Usage examples with guide
+/src/security/   # Security modules
+/scripts/        # Utility scripts
+/providers/      # Provider database
+```
+
+### 🎯 Benefits
+
+- ✅ **Enterprise-ready structure** expected by professional teams
+- ✅ **Improved maintainability** with logical organization
+- ✅ **Better documentation discovery** with dedicated `/docs/` directory
+- ✅ **Enhanced developer experience** with organized examples
+
 ## [1.2.0] - 2025-06-19
 
 ### 🔒 Added - Enterprise Security Features
