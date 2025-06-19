@@ -1,54 +1,69 @@
 # Security Policy
 
-## Supported Versions
+## 🛡️ Security Overview
 
-We actively maintain and provide security updates for the following versions:
+Email Provider Links implements enterprise-grade security measures to protect against malicious redirects and supply chain attacks. This document outlines our security practices, vulnerability reporting process, and security guarantees.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.x.x   | :white_check_mark: |
+## 🔒 Security Features
 
-## Reporting a Vulnerability
+### Multi-Layer Protection
 
-We take the security of our software seriously. If you believe you have found a security vulnerability in this package, please report it to us responsibly.
+1. **HTTPS-Only Enforcement**
+   - All provider URLs must use HTTPS protocol
+   - HTTP URLs are automatically rejected
+   - Prevents protocol downgrade attacks
 
-### How to Report
+2. **Domain Allowlisting**
+   - Only pre-approved domains are allowed
+   - 64+ verified email providers in allowlist
+   - Subdomain validation with precise matching
 
-**Please do NOT report security vulnerabilities through public GitHub issues.**
+3. **Malicious Pattern Detection**
+   - Blocks IP addresses and localhost
+   - Rejects suspicious TLDs (.tk, .ml, .ga, .cf)
+   - Detects random subdomain patterns
+   - Blocks known URL shorteners
 
-Instead, please send an email to: [Your security email - replace this]
+4. **Content Validation**
+   - Path traversal prevention (`../`, `%2e%2e`)
+   - JavaScript injection protection (`javascript:`, `data:`)
+   - Script tag detection (`<script>`, event handlers)
+   - URL encoding attack prevention
 
-Include the following information in your report:
+5. **File Integrity Verification**
+   - SHA-256 hash verification for provider database
+   - Detects unauthorized modifications
+   - Tamper-evident security controls
+
+## 🚨 Vulnerability Reporting
+
+### Reporting Process
+
+If you discover a security vulnerability, please report it responsibly:
+
+1. **GitHub**: Create a private security advisory (preferred)
+2. **Email**: Contact via GitHub profile
+3. **Response Time**: We aim to respond within 48 hours
+
+### What to Include
 
 - Description of the vulnerability
 - Steps to reproduce the issue
-- Potential impact of the vulnerability
-- Any suggested fixes or mitigation strategies
-- Your contact information for follow-up questions
+- Potential impact assessment
+- Suggested mitigation (if available)
 
-### What to Expect
+### What NOT to Include
 
-- **Acknowledgment**: We will acknowledge receipt of your vulnerability report within 48 hours.
-- **Initial Assessment**: We will provide an initial assessment within 5 business days.
-- **Progress Updates**: We will keep you informed of our progress throughout the investigation.
-- **Resolution**: We aim to resolve confirmed vulnerabilities within 30 days.
-
-### Responsible Disclosure
-
-We kindly ask that you:
-
-- Give us reasonable time to investigate and fix the issue before public disclosure
-- Avoid accessing, modifying, or deleting other users' data
-- Do not perform actions that could negatively affect our users or services
-- Act in good faith and avoid violating privacy, destroying data, or interrupting services
+- Do not publicly disclose the vulnerability
+- Do not test on production systems
+- Do not access data that doesn't belong to you
 
 ### Recognition
 
-We believe in recognizing security researchers who help keep our community safe. If you report a valid security vulnerability, we will:
+We appreciate responsible disclosure and may recognize security researchers who help improve our security:
 
-- Acknowledge your contribution in our security advisory (if desired)
-- Work with you on a coordinated disclosure timeline
-- Consider you for our security hall of fame (if we establish one)
+- Public acknowledgment (with permission)
+- Contribution credit in security advisories
 
 ## Security Considerations for Users
 

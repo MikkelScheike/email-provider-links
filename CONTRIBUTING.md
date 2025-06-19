@@ -1,159 +1,143 @@
 # Contributing to Email Provider Links
 
-We welcome contributions! This guide will help you add new email providers to the package.
+Thank you for your interest in contributing! This guide will help you contribute effectively while maintaining our security standards.
 
-## Adding New Email Providers
+## 🤝 Ways to Contribute
 
-Email providers are stored in the `providers/emailproviders.json` file. To add a new provider:
+- 📧 **Add new email providers**
+- 🐛 **Report bugs and issues**
+- 🔒 **Improve security features**
+- 📚 **Enhance documentation**
+- 🧪 **Add tests and improve coverage**
 
-### 1. Edit the JSON File
+## 📧 Adding Email Providers
 
-Open `providers/emailproviders.json` and add your provider to the `providers` array:
+### Security Requirements
 
-```json
-{
-  "companyProvider": "Company Name",
-  "loginUrl": "https://login.provider.com/",
-  "domains": ["provider.com", "mail.provider.com"]
-}
-```
+All new email providers must meet these security criteria:
 
-### 2. Required Fields
+1. **HTTPS-Only**: Provider login URL must use HTTPS
+2. **Legitimate Domain**: Must be a verified email service provider
+3. **Security Validation**: Must pass our allowlist verification
+4. **No Suspicious Patterns**: Domain must not match suspicious patterns
 
-Each provider must have these fields:
+### Step-by-Step Process
 
-- **`companyProvider`** (string): The company name that owns/operates the service
-- **`loginUrl`** (string): Direct URL to the login page 
-- **`domains`** (array): All email domains this provider handles
+1. **Research the Provider**
+   - Verify it's a legitimate email service
+   - Find the correct login/webmail URL
+   - Check if it supports custom domains
 
-### 3. Finding the Right Login URL
-
-The login URL should be the direct link where users sign in to check their email. Here are some tips:
-
-- ✅ **Good**: `https://accounts.google.com/signin` (Google)
-- ✅ **Good**: `https://outlook.live.com/owa/` (Microsoft)
-- ❌ **Avoid**: Homepage URLs like `https://gmail.com`
-- ❌ **Avoid**: Generic company pages
-
-### 4. Domain Guidelines
-
-Include all relevant domains for the provider:
-
-- Main domain (e.g., `gmail.com`)
-- Alternative domains (e.g., `googlemail.com`)
-- Regional variants (e.g., `yahoo.co.uk`, `yahoo.ca`)
-- Legacy domains (e.g., `hotmail.com` for Microsoft)
-
-### 5. Example Addition
-
-Here's how to add a fictional provider:
-
-```json
-{
-  "companyProvider": "Example Corporation",
-  "loginUrl": "https://mail.example.com/login",
-  "domains": ["example.com", "mail.example.com", "example.net"]
-}
-```
-
-### 6. Testing Your Addition
-
-After adding a provider:
-
-1. **Build the package**:
-   ```bash
-   npm run build
+2. **Add to Provider Database**
+   Edit `providers/emailproviders.json`:
+   ```json
+   {
+     "companyProvider": "Provider Name",
+     "loginUrl": "https://mail.provider.com/login",
+     "domains": ["provider.com", "provider.net"],
+     "customDomainDetection": {
+       "mxPatterns": ["mx.provider.com"],
+       "txtPatterns": ["v=spf1 include:spf.provider.com"]
+     }
+   }
    ```
 
-2. **Run tests**:
-   ```bash
-   npm test
+3. **Update Security Allowlist**
+   Add the domain to `ALLOWED_DOMAINS` in `src/security/url-validator.ts`:
+   ```typescript
+   const ALLOWED_DOMAINS = [
+     // ... existing domains
+     'mail.provider.com',  // Add new domain
+   ];
    ```
 
-3. **Test manually**:
+4. **Update Security Hashes**
    ```bash
-   npx tsx example.ts
-   # or
-   node example-js.js
+   npx tsx scripts/recalculate-hashes.ts
+   # Copy the output to src/security/hash-verifier.ts
    ```
 
-### 7. Add Tests (Optional but Appreciated)
+5. **Run Security Tests**
+   ```bash
+   npm test -- __tests__/security.test.ts
+   ```
 
-If you want to add tests for your provider, edit `src/index.test.ts`:
+6. **Create Pull Request**
+   - Include verification that the provider is legitimate
+   - Ensure all security tests pass
+   - Update provider count in README if needed
 
-```typescript
-it('should return correct result for ExampleMail', () => {
-  const result = getEmailProviderLink('user@example.com');
-  expect(result.provider?.companyProvider).toBe('Example Corporation');
-  expect(result.loginUrl).toBe('https://mail.example.com/login');
-});
+## 🛡️ Security Guidelines
+
+### Security Checklist
+
+- [ ] Provider URL uses HTTPS protocol
+- [ ] Domain is added to security allowlist
+- [ ] Security hashes are recalculated
+- [ ] All security tests pass
+- [ ] No suspicious patterns detected
+
+### What We Reject
+
+❌ **URL shorteners** (bit.ly, tinyurl.com, etc.)
+❌ **IP addresses** (192.168.1.1, etc.)
+❌ **Suspicious TLDs** (.tk, .ml, .ga, .cf)
+❌ **Non-HTTPS URLs**
+❌ **Phishing or suspicious domains**
+
+## 🧪 Testing
+
+### Running Tests
+
+```bash
+# All tests
+npm test
+
+# Security tests only
+npm test -- __tests__/security.test.ts
+
+# With coverage
+npm test -- --coverage
 ```
 
-## Package Structure
+## 📋 Pull Request Process
 
-- **`providers/emailproviders.json`**: Contains all email provider data
-- **`src/index.ts`**: Main TypeScript source code
-- **`dist/`**: Compiled JavaScript (auto-generated)
-- **`example.ts`**: TypeScript usage example
-- **`example-js.js`**: JavaScript usage example
+### PR Template
 
-## Pull Request Guidelines
+```markdown
+## Description
+Brief description of changes
 
-When submitting a pull request:
+## Provider Information (if adding provider)
+- **Provider Name**: 
+- **Login URL**: 
+- **Verification**: Link to provider's official website
+- **Security Check**: ✅ Passes all security validation
 
-1. **Clear title**: "Add [Company Name] email provider"
-2. **Description**: Include why this provider should be added
-3. **Test locally**: Ensure tests pass and examples work
-4. **One provider per PR**: Keep changes focused
+## Testing
+- [ ] All existing tests pass
+- [ ] Security tests pass
+- [ ] Hash verification updated (if needed)
 
-## Provider Criteria
-
-We accept providers that are:
-
-- ✅ Legitimate email services
-- ✅ Have a significant user base
-- ✅ Publicly accessible
-- ✅ Have a working login URL
-
-We may decline providers that are:
-
-- ❌ Internal/corporate email systems
-- ❌ Temporary/disposable email services
-- ❌ Have broken or inaccessible login pages
-- ❌ Duplicates of existing providers
-
-## JavaScript & TypeScript Support
-
-This package works with both JavaScript and TypeScript:
-
-**TypeScript:**
-```typescript
-import { getEmailProviderLink } from 'email-provider-links';
-const result = getEmailProviderLink('user@gmail.com');
-console.log(result.provider?.companyProvider); // "Google"
+## Security Checklist
+- [ ] HTTPS-only URL
+- [ ] Domain added to allowlist
+- [ ] No suspicious patterns
+- [ ] Verified legitimate provider
 ```
 
-**JavaScript:**
-```javascript
-const { getEmailProviderLink } = require('email-provider-links');
-const result = getEmailProviderLink('user@gmail.com');
-console.log(result.provider.companyProvider); // "Google"
-```
+## 🚨 Security-Related Contributions
 
-## Questions?
+### Reporting Security Issues
 
-Feel free to open an issue if you:
+- **DO NOT** open public issues for security vulnerabilities
+- Use GitHub's private security advisory feature
+- See [SECURITY.md](SECURITY.md) for detailed reporting guidelines
 
-- Need help finding the right login URL
-- Are unsure about domain variants
-- Want to discuss a provider before adding it
-- Have questions about the contribution process
+## ❓ Questions?
 
-## Code of Conduct
+- **General Questions**: Open a GitHub issue
+- **Security Questions**: See [SECURITY.md](SECURITY.md)
+- **Provider Questions**: Include verification details in your issue
 
-Please be respectful and constructive in all interactions. We want this to be a welcoming project for everyone.
-
----
-
-Thank you for helping make email provider detection better for everyone! 🚀
-
+Thank you for helping make email provider detection secure and reliable! 🔒✨
