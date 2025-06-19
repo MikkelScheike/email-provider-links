@@ -97,7 +97,7 @@ The package can detect when domains are behind proxy services like Cloudflare, w
 
 ## Reporting Other Issues
 
-For non-security related bugs and issues, please use our [GitHub Issues](https://github.com/[username]/email-provider-links/issues) page.
+For non-security related bugs and issues, please use our [GitHub Issues](https://github.com/mikkelscheike/email-provider-links/issues) page.
 
 ## Security Updates
 

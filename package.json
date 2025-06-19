@@ -28,8 +28,16 @@
     "npm",
     "utility"
   ],
-  "author": "",
+  "author": "Mikkel Scheike",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MikkelScheike/Email-provider-links.git"
+  },
+  "homepage": "https://github.com/MikkelScheike/Email-provider-links#readme",
+  "bugs": {
+    "url": "https://github.com/MikkelScheike/Email-provider-links/issues"
+  },
   "packageManager": "pnpm@10.11.1",
   "devDependencies": {
     "@types/jest": "^30.0.0",

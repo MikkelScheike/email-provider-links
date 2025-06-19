@@ -75,6 +75,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test, coverage]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
     
     steps:
     - name: Checkout code
@@ -82,6 +87,7 @@ jobs:
       with:
         # Fetch all history for semantic versioning
         fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Setup Node.js
       uses: actions/setup-node@v4

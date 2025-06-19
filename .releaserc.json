@@ -4,7 +4,17 @@
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     "@semantic-release/npm",
-    "@semantic-release/github"
+    {
+      "name": "@semantic-release/github",
+      "config": {
+        "assets": [
+          {
+            "path": "email-provider-links-*.tgz",
+            "label": "NPM Package"
+          }
+        ]
+      }
+    }
   ],
   "preset": "conventionalcommits",
   "releaseRules": [
