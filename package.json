@@ -1,12 +1,15 @@
 {
   "name": "@mikkelscheike/email-provider-links",
-  "version": "1.3.5",
+  "version": "1.4.0",
   "description": "A TypeScript package that provides direct links to email providers based on email addresses to streamline login and password reset flows",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist/**/*",
-    "providers/**/*"
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "providers/emailproviders.json",
+    "!dist/**/*.map",
+    "!dist/**/security-demo.*"
   ],
   "scripts": {
     "build": "tsc",
@@ -14,7 +17,10 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prepublishOnly": "npm run build",
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "sync-versions": "node scripts/sync-versions.js",
+    "pretest": "node scripts/sync-versions.js",
+    "prebuild": "node scripts/sync-versions.js"
   },
   "keywords": [
     "email",

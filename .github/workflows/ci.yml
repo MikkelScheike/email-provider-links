@@ -28,6 +28,11 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
+    - name: 🔄 Auto-sync versions
+      run: |
+        echo "Syncing package.json version with git tags..."
+        npm run sync-versions
+      
     - name: Security audit
       run: npm audit --audit-level moderate
       
