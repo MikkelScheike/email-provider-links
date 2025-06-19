@@ -2,7 +2,7 @@ import {
   getEmailProviderLink, 
   getEmailProviderLinkWithDNS, 
   detectProviderByDNS 
-} from './src/index';
+} from '../src/index';
 
 /**
  * Example demonstrating DNS-based custom domain detection

@@ -12,7 +12,7 @@ const {
   isEmailProviderSupported, 
   getSupportedProviders,
   isValidEmail 
-} = require('./dist/index.js');
+} = require('../dist/index.js');
 
 console.log('🚀 Email Provider Links - JavaScript Example\n');
 

@@ -12,7 +12,7 @@ import {
   isValidEmail,
   extractDomain,
   findEmailProvider
-} from './src/index';
+} from '../src/index';
 
 console.log('🚀 Email Provider Links - Demo\n');
 

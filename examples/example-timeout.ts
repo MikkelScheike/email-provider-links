@@ -8,7 +8,7 @@
 import { 
   getEmailProviderLinkWithDNS, 
   detectProviderByDNS 
-} from './src/index';
+} from '../src/index';
 
 console.log('🕒 DNS Timeout Configuration Examples\n');
 

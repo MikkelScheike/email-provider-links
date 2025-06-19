@@ -39,8 +39,8 @@ jobs:
       
     - name: Test examples
       run: |
-        node example-js.js
-        npx tsx example.ts
+        node examples/example-js.js
+        npx tsx examples/example.ts
 
   coverage:
     name: Coverage
