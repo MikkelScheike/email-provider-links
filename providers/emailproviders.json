@@ -340,6 +340,150 @@
       "companyProvider": "Link3 Mail",
       "loginUrl": "https://mail.link3.net",
       "domains": ["link3.net"]
-    }
+    },
+    {
+  "companyProvider": "IONOS",
+  "loginUrl": "https://mail.ionos.com",
+  "domains": ["ionos.com", "1and1.com", "ionos.de"],
+  "customDomainDetection": {
+    "mxPatterns": [
+      "mx00.ionos.com",
+      "mx01.ionos.com",
+      "mx00.1and1.com",
+      "mx01.1and1.com",
+      "mx00.kundenserver.de",
+      "mx01.kundenserver.de"
+    ],
+    "txtPatterns": [
+      "v=spf1 include:_spf.perfora.net",
+      "v=spf1 include:_spf.kundenserver.de",
+      "v=spf1 include:_spf.ionos.com",
+      "ionos-domain-verification="
+    ]
+  }
+},
+{
+  "companyProvider": "iCloud Mail",
+  "loginUrl": "https://www.icloud.com/mail",
+  "domains": ["icloud.com", "me.com", "mac.com"],
+  "customDomainDetection": {
+    "mxPatterns": [
+      "mx01.mail.icloud.com",
+      "mx02.mail.icloud.com"
+    ],
+    "txtPatterns": [
+      "apple-domain-verification=",
+      "v=spf1 include:icloud.com"
+    ]
+  }
+},
+{
+  "companyProvider": "Hostinger",
+  "loginUrl": "https://mail.hostinger.com",
+  "domains": ["hostinger.com"],
+  "customDomainDetection": {
+    "mxPatterns": [
+      "mx1.hostinger.com",
+      "mx2.hostinger.com",
+      "mx3.hostinger.com"
+    ],
+    "txtPatterns": [
+      "v=spf1 include:spf.hostinger.com",
+      "hostinger-verification="
+    ]
+  }
+},
+{
+  "companyProvider": "InMotion Hosting",
+  "loginUrl": "https://ngx257.inmotionhosting.com:2096",
+  "domains": ["inmotionhosting.com"],
+  "customDomainDetection": {
+    "mxPatterns": [
+      "mail.inmotionhosting.com",
+      "mx.inmotionhosting.com"
+    ],
+    "txtPatterns": [
+      "v=spf1 include:inmotionhosting.com",
+      "inmotionhosting-verification="
+    ]
+  }
+},
+{
+  "companyProvider": "Namecheap Private Email",
+  "loginUrl": "https://privateemail.com",
+  "domains": ["namecheap.com", "privateemail.com"],
+  "customDomainDetection": {
+    "mxPatterns": [
+      "mx1.privateemail.com",
+      "mx2.privateemail.com"
+    ],
+    "txtPatterns": [
+      "v=spf1 include:spf.privateemail.com"
+    ]
+  }
+},
+{
+  "companyProvider": "Titan Email",
+  "loginUrl": "https://app.titan.email",
+  "domains": ["titan.email"],
+  "customDomainDetection": {
+    "mxPatterns": [
+      "mx1.titan.email",
+      "mx2.titan.email"
+    ],
+    "txtPatterns": [
+      "v=spf1 include:spf.titan.email"
+    ]
+  }
+},
+{
+  "companyProvider": "SiteGround",
+  "loginUrl": "https://tools.siteground.com/email",
+  "domains": ["siteground.com"],
+  "customDomainDetection": {
+    "mxPatterns": [
+      "mx10.mailspamprotection.com",
+      "mx20.mailspamprotection.com",
+      "mx30.mailspamprotection.com"
+    ],
+    "txtPatterns": [
+      "v=spf1 include:_spf.mailspamprotection.com"
+    ]
+  }
+},
+{
+  "companyProvider": "HostGator",
+  "loginUrl": "https://portal.hostgator.com/login",
+  "domains": ["hostgator.com"],
+  "customDomainDetection": {
+    "mxPatterns": [
+      "mail.yourdomain.com"
+    ],
+    "txtPatterns": [
+      "v=spf1 include:websitewelcome.com"
+    ]
+  }
+},
+{
+  "companyProvider": "GoDaddy",
+  "loginUrl": "https://sso.godaddy.com/?realm=pass&app=email",
+  "domains": ["godaddy.com", "secureserver.net"],
+  "customDomainDetection": {
+    "mxPatterns": [
+      "smtp.secureserver.net",
+      "mailstore1.secureserver.net",
+      "mailstore2.secureserver.net",
+      "mx1.secureserver.net",
+      "mx2.secureserver.net",
+      "domain-com.mail.protection.outlook.com"
+    ],
+    "txtPatterns": [
+      "v=spf1 include:secureserver.net",
+      "v=spf1 include:spf.protection.outlook.com",
+      "MS=",
+      "godaddy-verification="
+    ]
+  }
+}   
   ]
 }
