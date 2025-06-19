@@ -164,7 +164,7 @@ try {
   buildDomainMap(); // Build optimized lookup map
 } catch (error) {
   // Fallback to hardcoded providers if JSON file is not found
-  console.warn('Could not load providers from JSON file, using fallback providers');
+  console.warn('Could not load providers from JSON file, using fallback providers', error instanceof Error ? error.message : 'Unknown error');
   EMAIL_PROVIDERS = [
     {
       companyProvider: 'Google',
