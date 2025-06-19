@@ -32,11 +32,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/MikkelScheike/Email-provider-links.git"
+    "url": "git+https://github.com/mikkelscheike/email-provider-links.git"
   },
-  "homepage": "https://github.com/MikkelScheike/Email-provider-links#readme",
+  "homepage": "https://github.com/mikkelscheike/email-provider-links#readme",
   "bugs": {
-    "url": "https://github.com/MikkelScheike/Email-provider-links/issues"
+    "url": "https://github.com/mikkelscheike/email-provider-links/issues"
   },
   "publishConfig": {
     "access": "public"
