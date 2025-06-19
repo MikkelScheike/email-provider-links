@@ -13,13 +13,13 @@ A TypeScript package that provides direct links to email providers based on emai
 ## Installation
 
 ```bash
-npm install @MikkelScheike/Email-provider-links
+npm install @mikkelscheike/email-provider-links
 ```
 
 ## Quick Start
 
 ```typescript
-import { getEmailProviderLinkWithDNS } from '@MikkelScheike/Email-provider-links';
+import { getEmailProviderLinkWithDNS } from '@mikkelscheike/email-provider-links';
 
 // Works for any email address
 const result = await getEmailProviderLinkWithDNS('user@gmail.com');
@@ -77,7 +77,7 @@ async function handlePasswordReset(email: string) {
 const result = await getEmailProviderLinkWithDNS(email, 2000);
 
 // Check if provider is supported
-import { isEmailProviderSupported } from '@MikkelScheike/Email-provider-links';
+import { isEmailProviderSupported } from '@mikkelscheike/email-provider-links';
 const supported = isEmailProviderSupported('user@gmail.com');
 ```
 
