@@ -1,0 +1,30 @@
+# Commit Message Format
+# 
+# <type>(<scope>): <description>
+#
+# [optional body]
+#
+# [optional footer(s)]
+#
+# Types:
+# - feat: A new feature (triggers minor release)
+# - fix: A bug fix (triggers patch release)
+# - docs: Documentation only changes
+# - style: Changes that do not affect the meaning of the code
+# - refactor: A code change that neither fixes a bug nor adds a feature
+# - perf: A code change that improves performance
+# - test: Adding missing tests or correcting existing tests
+# - chore: Changes to the build process or auxiliary tools
+#
+# Breaking Changes:
+# - Add "BREAKING CHANGE:" in footer to trigger major release
+# - Or add "!" after type/scope: "feat!: remove deprecated API"
+#
+# Examples:
+# feat(dns): add timeout configuration for DNS queries
+# fix(proxy): correct Cloudflare detection pattern
+# docs(readme): update timeout configuration examples
+# feat!: remove deprecated getProvider function
+#
+# BREAKING CHANGE: The getProvider function has been removed in favor of getEmailProviderLink
+

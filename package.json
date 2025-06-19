@@ -1,0 +1,42 @@
+{
+  "name": "email-provider-links",
+  "version": "1.0.0",
+  "description": "A TypeScript package that provides direct links to email providers based on email addresses to streamline login and password reset flows",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "providers/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "prepublishOnly": "npm run build",
+    "dev": "tsx src/index.ts"
+  },
+  "keywords": [
+    "email",
+    "provider",
+    "login",
+    "password-reset",
+    "gmail",
+    "outlook",
+    "yahoo",
+    "typescript",
+    "npm",
+    "utility"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.11.1",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.3",
+    "jest": "^30.0.1",
+    "ts-jest": "^29.4.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}
