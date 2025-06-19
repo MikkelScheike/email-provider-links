@@ -1,5 +1,5 @@
 {
-  "name": "email-provider-links",
+  "name": "@MikkelScheike/Email-provider-links",
   "version": "1.0.0",
   "description": "A TypeScript package that provides direct links to email providers based on email addresses to streamline login and password reset flows",
   "main": "dist/index.js",
@@ -37,6 +37,9 @@
   "homepage": "https://github.com/MikkelScheike/Email-provider-links#readme",
   "bugs": {
     "url": "https://github.com/MikkelScheike/Email-provider-links/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "packageManager": "pnpm@10.11.1",
   "devDependencies": {
