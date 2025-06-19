@@ -96,24 +96,19 @@
       }
     },
     {
-      "companyProvider": "Google Workspace",
-      "loginUrl": "https://mail.google.com",
-      "domains": [],
-      "customDomainDetection": {
-        "mxPatterns": ["google.com", "googlemail.com", "aspmx.l.google.com", "aspmx2.googlemail.com", "aspmx3.googlemail.com"],
-        "txtPatterns": ["v=spf1 include:_spf.google.com", "google-site-verification="]
-      }
-    },
-    {
-      "companyProvider": "iCloud Mail",
-      "loginUrl": "https://www.icloud.com/mail",
-      "domains": ["icloud.com", "me.com", "mac.com"]
-    },
-    {
-      "companyProvider": "GMX",
-      "loginUrl": "https://www.gmx.net",
-      "domains": ["gmx.com", "gmx.net", "gmx.de", "gmx.at", "gmx.ch", "gmx.org"]
-    },
+    "companyProvider": "Google Workspace",
+    "loginUrl": "https://mail.google.com",
+    "domains": [],
+    "customDomainDetection": {
+      "mxPatterns": ["google.com", "googlemail.com", "aspmx.l.google.com", "aspmx2.googlemail.com", "aspmx3.googlemail.com"],
+      "txtPatterns": ["v=spf1 include:_spf.google.com", "google-site-verification="]
+    }
+  },
+  {
+    "companyProvider": "GMX",
+    "loginUrl": "https://www.gmx.net",
+    "domains": ["gmx.com", "gmx.net", "gmx.de", "gmx.at", "gmx.ch", "gmx.org"]
+  },
     {
       "companyProvider": "Mail.com",
       "loginUrl": "https://www.mail.com",
