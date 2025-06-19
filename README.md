@@ -5,7 +5,7 @@ A TypeScript package that provides direct links to email providers based on emai
 ## Features
 
 - 🚀 **Fast & Lightweight**: Zero dependencies, minimal footprint
-- 📧 **55+ Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, and more
+- 📧 **60+ Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, and more
 - 🏢 **Business Domain Detection**: DNS-based detection for custom domains
 - 🔒 **Type Safe**: Full TypeScript support
 - ⚡ **Performance Optimized**: Smart DNS fallback with configurable timeouts
@@ -36,7 +36,7 @@ console.log(business.provider?.companyProvider); // "Google Workspace" (if detec
 Gmail, Outlook, Yahoo Mail, iCloud, ProtonMail, Zoho, AOL, GMX, Web.de, Mail.ru, QQ Mail, NetEase, Yandex, and more.
 
 **Business Email (via DNS detection):**
-Microsoft 365, Google Workspace, ProtonMail Business, FastMail, Tutanota, Zoho Workplace, and others.
+Microsoft 365, Google Workspace, ProtonMail Business, Hostinger, FastMail, GoDaddy, Tutanota, Zoho Workplace, and others.
 
 ## API
 
