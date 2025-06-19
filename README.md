@@ -147,13 +147,13 @@ if (result.securityReport.securityLevel === 'CRITICAL') {
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding new email providers.
+We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on adding new email providers.
 
 **Security Note**: All new providers undergo security validation and must pass our allowlist verification.
 
 ## Security
 
-For security concerns or to report vulnerabilities, see our [Security Policy](SECURITY.md).
+For security concerns or to report vulnerabilities, see our [Security Policy](docs/SECURITY.md).
 
 ## License
 
