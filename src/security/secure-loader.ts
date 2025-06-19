@@ -46,11 +46,14 @@ export function secureLoadProviders(
     issues.push(`Hash verification failed: ${hashResult.reason}`);
     
     // In production, you might want to abort here
-    console.error('🚨 SECURITY WARNING: Hash verification failed!');
-    console.error('File:', hashResult.file);
-    console.error('Reason:', hashResult.reason);
-    console.error('Expected:', hashResult.expectedHash);
-    console.error('Actual:', hashResult.actualHash);
+    // Suppress logging during tests to avoid console noise
+    if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+      console.error('🚨 SECURITY WARNING: Hash verification failed!');
+      console.error('File:', hashResult.file);
+      console.error('Reason:', hashResult.reason);
+      console.error('Expected:', hashResult.expectedHash);
+      console.error('Actual:', hashResult.actualHash);
+    }
   }
   
   // Step 2: Load and parse JSON
@@ -79,9 +82,12 @@ export function secureLoadProviders(
   const urlAudit = auditProviderSecurity(providers);
   if (urlAudit.invalid > 0) {
     issues.push(`${urlAudit.invalid} providers have invalid URLs`);
-    console.warn('⚠️  URL validation issues found:');
-    for (const invalid of urlAudit.invalidProviders) {
-      console.warn(`- ${invalid.provider}: ${invalid.validation.reason}`);
+    // Suppress logging during tests to avoid console noise
+    if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+      console.warn('⚠️  URL validation issues found:');
+      for (const invalid of urlAudit.invalidProviders) {
+        console.warn(`- ${invalid.provider}: ${invalid.validation.reason}`);
+      }
     }
   }
   
