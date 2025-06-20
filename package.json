@@ -30,6 +30,11 @@
     "gmail",
     "outlook",
     "yahoo",
+    "alias-detection",
+    "email-normalization",
+    "plus-addressing",
+    "fraud-prevention",
+    "deduplication",
     "typescript",
     "npm",
     "utility"

@@ -159,6 +159,9 @@ describe('Rate Limiting', () => {
       // The count should be a number (could be 0 or higher depending on other tests)
       expect(typeof initialCount).toBe('number');
       expect(initialCount).toBeGreaterThanOrEqual(0);
+      
+      // Test that the limiter actually works
+      expect(typeof limiter.isAllowed()).toBe('boolean');
     });
   });
 

@@ -1,14 +1,14 @@
 # Email Provider Links
 
-🔒 **Enterprise-grade secure email provider detection for login and password reset flows**
+🔒 **Enterprise-grade secure email provider detection with advanced alias normalization**
 
-A TypeScript package that provides direct links to email providers based on email addresses, with comprehensive security features to prevent malicious redirects and supply chain attacks.
+A TypeScript package providing direct links to **93 email providers** (180+ domains) with **email alias detection**, comprehensive security features, and international coverage for login and password reset flows.
 
 ## ✨ Features
 
 - 🚀 **Fast & Lightweight**: Zero dependencies, minimal footprint
-- 📧 **74 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and more
-- 🌐 **147+ Domains Supported**: Comprehensive international coverage
+- 📧 **93 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
+- 🌐 **180+ Domains Supported**: Comprehensive international coverage
 - 🏢 **Business Domain Detection**: DNS-based detection for custom domains (Google Workspace, Microsoft 365, etc.)
 - 🔒 **Enterprise Security**: Multi-layer protection against malicious URLs and supply chain attacks
 - 🛡️ **URL Validation**: HTTPS-only enforcement with domain allowlisting
@@ -16,7 +16,9 @@ A TypeScript package that provides direct links to email providers based on emai
 - 📝 **Type Safe**: Full TypeScript support with comprehensive interfaces
 - ⚡ **Performance Optimized**: Smart DNS fallback with configurable timeouts
 - 🚦 **Rate Limiting**: Built-in DNS query rate limiting to prevent abuse
-- 🧪 **Thoroughly Tested**: 142+ tests with 94.69% code coverage
+- 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
+- 🛡️ **Fraud Prevention**: Detect duplicate accounts through email alias manipulation
+- 🧪 **Thoroughly Tested**: 188+ tests with comprehensive coverage
 
 ## Installation
 
@@ -40,7 +42,7 @@ console.log(business.provider?.companyProvider); // "Google Workspace" (if detec
 
 ## Supported Providers
 
-**📊 Current Coverage: 74 providers supporting 147+ domains**
+**📊 Current Coverage: 93 providers supporting 180+ domains**
 
 **Consumer Email Providers:**
 - **Gmail** (2 domains): gmail.com, googlemail.com
@@ -64,9 +66,10 @@ console.log(business.provider?.companyProvider); // "Google Workspace" (if detec
 - **Mailfence, SimpleLogin, AnonAddy**
 
 **International Providers:**
-- **Europe**: GMX, Web.de, Orange, Free.fr, T-Online, Libero
-- **Asia**: QQ Mail, NetEase, Sina Mail, Rakuten, Nifty, **Naver** (Korea), **Daum** (Korea), **Biglobe** (Japan)
-- **Other Regions**: UOL (Brazil), Telkom (South Africa), Xtra (New Zealand)
+- **Europe**: GMX, Web.de, Orange, Free.fr, T-Online, Libero, Virgilio, Telekom, Tiscali, Skynet, Telenet, Xs4All, Planet.nl, Bluewin, Eircom
+- **Asia**: QQ Mail, NetEase, Sina Mail, Alibaba Mail, Rakuten, Nifty, **Naver** (Korea), **Daum** (Korea), **Biglobe** (Japan), Sify, IndiatTimes (India)
+- **Eastern Europe**: Centrum (Czech/Slovak), Interia, Onet (Poland), Rambler (Russia)
+- **Other Regions**: UOL, Terra (Brazil), Telkom (South Africa), Xtra (New Zealand)
 
 ## API
 
@@ -98,6 +101,94 @@ async function handlePasswordReset(email: string) {
     isSupported: result.provider !== null
   };
 }
+```
+
+## 🔄 Email Alias Detection
+
+**NEW in v1.7.0** - Advanced email alias detection and normalization to prevent duplicate accounts and improve user experience.
+
+### Features
+
+- **Gmail Dot Normalization**: `u.s.e.r@gmail.com` → `user@gmail.com`
+- **Plus Addressing**: `user+newsletter@provider.com` → `user@provider.com`
+- **Provider-Specific Rules**: Different providers have different aliasing capabilities
+- **Fraud Prevention**: Detect when users try to create multiple accounts with aliases
+- **Email Deduplication**: Normalize email lists to get accurate unique user counts
+
+### Quick Start
+
+```typescript
+import { 
+  detectEmailAlias, 
+  normalizeEmail, 
+  emailsMatch 
+} from '@mikkelscheike/email-provider-links';
+
+// Detect and analyze aliases
+const result = detectEmailAlias('u.s.e.r+work@gmail.com');
+console.log(result.canonical);  // 'user@gmail.com'
+console.log(result.isAlias);    // true
+console.log(result.aliasType);  // 'plus'
+console.log(result.aliasPart);  // 'work'
+
+// Normalize any email to canonical form
+const canonical = normalizeEmail('U.S.E.R+Newsletter@GMAIL.COM');
+console.log(canonical); // 'user@gmail.com'
+
+// Check if two emails are the same person
+const match = emailsMatch('user@gmail.com', 'u.s.e.r+work@gmail.com');
+console.log(match); // true
+```
+
+### Provider Support
+
+| Provider | Plus Addressing | Dots Ignored | Example |
+|----------|----------------|--------------|----------|
+| **Gmail** | ✅ Yes | ✅ Yes | `u.s.e.r+tag@gmail.com` → `user@gmail.com` |
+| **Outlook** | ✅ Yes | ❌ No | `user+tag@outlook.com` → `user@outlook.com` |
+| **Yahoo** | ✅ Yes | ❌ No | `user+tag@yahoo.com` → `user@yahoo.com` |
+| **ProtonMail** | ✅ Yes | ❌ No | `user+tag@proton.me` → `user@proton.me` |
+| **AOL** | ❌ No | ❌ No | No aliasing support |
+
+### Advanced Usage
+
+```typescript
+// Prevent duplicate account creation
+async function registerUser(email: string) {
+  const canonical = normalizeEmail(email);
+  const existingUser = await findUserByEmail(canonical);
+  
+  if (existingUser) {
+    throw new Error('Email already registered');
+  }
+  
+  // Store canonical email to prevent future duplicates
+  await createUser({ email: canonical });
+}
+
+// Analyze email list for duplicates
+import { analyzeEmailAliases } from '@mikkelscheike/email-provider-links';
+
+const emailList = [
+  'user@gmail.com',
+  'u.s.e.r@gmail.com',
+  'user+newsletter@gmail.com',
+  'different@gmail.com'
+];
+
+const analysis = analyzeEmailAliases(emailList);
+console.log(analysis.totalEmails);      // 4
+console.log(analysis.uniqueCanonical);  // 2 (actual unique users)
+
+// Generate test aliases
+import { generateAliases } from '@mikkelscheike/email-provider-links';
+
+const aliases = generateAliases('user@gmail.com', {
+  plusAliases: ['work', 'personal'],
+  includeDotVariations: true,
+  maxDotVariations: 3
+});
+// Returns: ['user+work@gmail.com', 'user+personal@gmail.com', 'u.ser@gmail.com', ...]
 ```
 
 ## Configuration

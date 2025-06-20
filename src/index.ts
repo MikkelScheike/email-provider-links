@@ -728,6 +728,14 @@ export const RateLimit = {
   getCurrentLimiter: () => dnsRateLimiter
 };
 
+// Export alias detection module
+export * from './alias-detection';
+
+// Export security modules
+export * from './security/url-validator';
+export * from './security/hash-verifier';
+export * from './security/secure-loader';
+
 // Default export for convenience
 export default {
   getEmailProviderLink,

@@ -9,6 +9,7 @@ This directory contains example usage patterns for the Email Provider Links pack
 - **`example-dns-detection.ts`** - Advanced DNS-based detection examples
 - **`example-timeout.ts`** - Custom timeout configuration examples
 - **`example-rate-limiting.ts`** - Rate limiting configuration and examples
+- **`example-alias-detection.ts`** 🆕 - Email alias detection and normalization examples (v1.7.0)
 
 ## Running Examples
 
@@ -45,7 +46,7 @@ npm run build
 ```typescript
 import { getEmailProviderLink } from '@mikkelscheike/email-provider-links';
 
-// Supports 72 providers with 144+ domains
+// Supports 93 providers with 180+ domains
 const result = getEmailProviderLink('user@gmail.com');
 console.log(result.loginUrl); // https://mail.google.com/mail/
 

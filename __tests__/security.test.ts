@@ -1045,12 +1045,12 @@ describe('Security - Hash Verifier Extended Tests', () => {
         }
       ];
       
-      // Create two manifests with slight delay to ensure different timestamps
+      // Create two manifests with delay to ensure different timestamps
       const manifest1 = createProviderManifest(testProviders);
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise(resolve => setTimeout(resolve, 10)); // Increased delay
       const manifest2 = createProviderManifest(testProviders);
       
-      // Timestamps should be different
+      // Timestamps should be different (with sufficient delay)
       expect(manifest1.timestamp).not.toBe(manifest2.timestamp);
       
       // But URL hashes should be identical

@@ -853,6 +853,161 @@
       "domains": [
         "zoho.eu"
       ]
+    },
+    {
+      "companyProvider": "Alibaba Mail",
+      "loginUrl": "https://mail.aliyun.com",
+      "domains": [
+        "aliyun.com",
+        "alibaba.com",
+        "taobao.com",
+        "tmall.com"
+      ],
+      "customDomainDetection": {
+        "mxPatterns": [
+          "mx1.qiye.aliyun.com",
+          "mx2.qiye.aliyun.com",
+          "mx3.qiye.aliyun.com"
+        ],
+        "txtPatterns": [
+          "v=spf1 include:spf.qiye.aliyun.com"
+        ]
+      }
+    },
+    {
+      "companyProvider": "Sify Mail",
+      "loginUrl": "https://mail.sify.com",
+      "domains": [
+        "sify.com",
+        "sifymail.com"
+      ]
+    },
+    {
+      "companyProvider": "IndiatTimes Mail",
+      "loginUrl": "https://mail.indiatimes.com",
+      "domains": [
+        "indiatimes.com"
+      ]
+    },
+    {
+      "companyProvider": "Virgilio Mail",
+      "loginUrl": "https://mail.virgilio.it",
+      "domains": [
+        "virgilio.it",
+        "alice.it",
+        "tin.it"
+      ]
+    },
+    {
+      "companyProvider": "Telekom Mail",
+      "loginUrl": "https://email.magenta.de",
+      "domains": [
+        "magenta.de",
+        "telekom.de"
+      ]
+    },
+    {
+      "companyProvider": "Tiscali Mail",
+      "loginUrl": "https://mail.tiscali.it",
+      "domains": [
+        "tiscali.it"
+      ]
+    },
+    {
+      "companyProvider": "Skynet Mail",
+      "loginUrl": "https://webmail.skynet.be",
+      "domains": [
+        "skynet.be"
+      ]
+    },
+    {
+      "companyProvider": "Telenet Mail",
+      "loginUrl": "https://webmail.telenet.be",
+      "domains": [
+        "telenet.be"
+      ]
+    },
+    {
+      "companyProvider": "Xs4All",
+      "loginUrl": "https://webmail.xs4all.nl",
+      "domains": [
+        "xs4all.nl"
+      ]
+    },
+    {
+      "companyProvider": "Planet.nl",
+      "loginUrl": "https://webmail.planet.nl",
+      "domains": [
+        "planet.nl"
+      ]
+    },
+    {
+      "companyProvider": "Bluewin Mail",
+      "loginUrl": "https://webmail.bluewin.ch",
+      "domains": [
+        "bluewin.ch"
+      ]
+    },
+    {
+      "companyProvider": "Eircom Mail",
+      "loginUrl": "https://webmail.eircom.net",
+      "domains": [
+        "eircom.net"
+      ]
+    },
+    {
+      "companyProvider": "Centrum Mail",
+      "loginUrl": "https://www.centrum.cz",
+      "domains": [
+        "centrum.cz",
+        "centrum.sk"
+      ]
+    },
+    {
+      "companyProvider": "Interia Mail",
+      "loginUrl": "https://poczta.interia.pl",
+      "domains": [
+        "interia.pl"
+      ]
+    },
+    {
+      "companyProvider": "Onet Mail",
+      "loginUrl": "https://poczta.onet.pl",
+      "domains": [
+        "onet.pl",
+        "poczta.onet.pl",
+        "op.pl"
+      ]
+    },
+    {
+      "companyProvider": "Rambler Mail",
+      "loginUrl": "https://mail.rambler.ru",
+      "domains": [
+        "rambler.ru",
+        "lenta.ru",
+        "autorambler.ru"
+      ]
+    },
+    {
+      "companyProvider": "Nate Mail",
+      "loginUrl": "https://mail.nate.com",
+      "domains": [
+        "nate.com"
+      ]
+    },
+    {
+      "companyProvider": "Hanmail",
+      "loginUrl": "https://mail.hanmail.net",
+      "domains": [
+        "hanmail.net"
+      ]
+    },
+    {
+      "companyProvider": "Live.jp",
+      "loginUrl": "https://login.live.com",
+      "domains": [
+        "live.jp"
+      ]
     }
   ]
 }
