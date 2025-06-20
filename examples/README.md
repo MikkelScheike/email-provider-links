@@ -8,6 +8,7 @@ This directory contains example usage patterns for the Email Provider Links pack
 - **`example-js.js`** - JavaScript usage examples  
 - **`example-dns-detection.ts`** - Advanced DNS-based detection examples
 - **`example-timeout.ts`** - Custom timeout configuration examples
+- **`example-rate-limiting.ts`** - Rate limiting configuration and examples
 
 ## Running Examples
 
@@ -21,6 +22,9 @@ npx tsx examples/example-dns-detection.ts
 
 # Timeout configuration
 npx tsx examples/example-timeout.ts
+
+# Rate limiting examples
+npx tsx examples/example-rate-limiting.ts
 ```
 
 ### JavaScript Example
@@ -41,8 +45,17 @@ npm run build
 ```typescript
 import { getEmailProviderLink } from '@mikkelscheike/email-provider-links';
 
+// Supports 72 providers with 144+ domains
 const result = getEmailProviderLink('user@gmail.com');
 console.log(result.loginUrl); // https://mail.google.com/mail/
+
+// Works with international domains too
+const yahoo = getEmailProviderLink('user@yahoo.co.uk');
+console.log(yahoo.provider?.companyProvider); // 'Yahoo Mail'
+
+// Security-focused providers
+const proton = getEmailProviderLink('user@proton.me');
+console.log(proton.loginUrl); // https://mail.proton.me
 ```
 
 ### Advanced DNS Detection
@@ -51,6 +64,19 @@ import { getEmailProviderLinkWithDNS } from '@mikkelscheike/email-provider-links
 
 const result = await getEmailProviderLinkWithDNS('user@company.com');
 // Automatically detects business email providers like Google Workspace
+```
+
+### Rate Limiting
+```typescript
+import { RateLimit } from '@mikkelscheike/email-provider-links';
+
+// Check current rate limit status
+const limiter = RateLimit.getCurrentLimiter();
+console.log('Current count:', limiter.getCurrentCount());
+console.log('Time until reset:', limiter.getTimeUntilReset());
+
+// Create custom rate limiter
+const customLimiter = new RateLimit.SimpleRateLimiter(20, 120000); // 20 requests per 2 minutes
 ```
 
 ### Error Handling
@@ -63,7 +89,11 @@ try {
     console.log('Provider not detected');
   }
 } catch (error) {
-  console.error('Detection failed:', error);
+  if (error.message.includes('Rate limit exceeded')) {
+    console.log('Rate limited - please wait before retrying');
+  } else {
+    console.error('Detection failed:', error);
+  }
 }
 ```
 

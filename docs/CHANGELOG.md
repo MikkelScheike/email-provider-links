@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-06-20
+
+### 🌍 International Expansion + Performance Features
+
+#### New Email Providers Added
+
+- **Naver** (Korea) - Added with correct login URL https://mail.naver.com/
+- **Daum** (Korea) - Added with DNS detection patterns for hanmail.net MX records
+- **Biglobe** (Japan) - Added with .ne.jp domain support and DNS patterns
+- **Amazon WorkMail** - Added with comprehensive awsapps.com MX pattern detection
+
+#### 🚦 New Rate Limiting System
+
+- **Built-in DNS rate limiting** to prevent abuse and ensure responsible usage
+- **Configurable rate limits**: 10 DNS queries per minute by default
+- **Simple rate limiter class** for custom implementations
+- **Automatic rate limit enforcement** across all DNS-based detection
+- **Thread-safe implementation** for concurrent usage
+
+#### 📊 Enhanced Testing & Coverage
+
+- **142 comprehensive tests** covering all functionality ✅
+- **Improved code coverage** with rate limiting and edge case tests
+- **Enhanced DNS detection testing** with timeout and error scenarios
+- **Security validation tests** for all new providers
+- **Zero test failures** across all modules
+
+#### 🌐 Expanded Coverage
+
+- **74 total email providers** (optimized for quality)
+- **147+ unique domains** supported worldwide
+- **Enhanced Asian market coverage** with major Korean and Japanese providers
+- **AWS WorkMail infrastructure support** for enterprise environments
+- **Multi-part TLD support** (.ne.jp, .co.uk, .com.br, etc.)
+
+### 🎯 Performance & Reliability
+
+This release introduces rate limiting as a core feature to ensure responsible DNS usage while expanding international coverage. The rate limiting system protects both the library users and DNS infrastructure from excessive queries.
+
 ## [1.3.0] - 2025-06-19
 
 ### 🔒 Major Security Release + Professional Organization

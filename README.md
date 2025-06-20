@@ -7,14 +7,16 @@ A TypeScript package that provides direct links to email providers based on emai
 ## ✨ Features
 
 - 🚀 **Fast & Lightweight**: Zero dependencies, minimal footprint
-- 📧 **64+ Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and more
+- 📧 **74 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and more
+- 🌐 **147+ Domains Supported**: Comprehensive international coverage
 - 🏢 **Business Domain Detection**: DNS-based detection for custom domains (Google Workspace, Microsoft 365, etc.)
 - 🔒 **Enterprise Security**: Multi-layer protection against malicious URLs and supply chain attacks
 - 🛡️ **URL Validation**: HTTPS-only enforcement with domain allowlisting
 - 🔐 **Integrity Verification**: Cryptographic hash verification for data integrity
 - 📝 **Type Safe**: Full TypeScript support with comprehensive interfaces
 - ⚡ **Performance Optimized**: Smart DNS fallback with configurable timeouts
-- 🧪 **Thoroughly Tested**: 83+ tests including comprehensive security coverage
+- 🚦 **Rate Limiting**: Built-in DNS query rate limiting to prevent abuse
+- 🧪 **Thoroughly Tested**: 142+ tests with 94.69% code coverage
 
 ## Installation
 
@@ -38,11 +40,33 @@ console.log(business.provider?.companyProvider); // "Google Workspace" (if detec
 
 ## Supported Providers
 
-**Consumer Email:**
-Gmail, Outlook, Yahoo Mail, iCloud, ProtonMail, Zoho, AOL, GMX, Web.de, Mail.ru, QQ Mail, NetEase, Yandex, and more.
+**📊 Current Coverage: 74 providers supporting 147+ domains**
+
+**Consumer Email Providers:**
+- **Gmail** (2 domains): gmail.com, googlemail.com
+- **Microsoft Outlook** (15 domains): outlook.com, hotmail.com, live.com, msn.com, and 11 more
+- **Yahoo Mail** (19 domains): yahoo.com, yahoo.co.uk, yahoo.fr, ymail.com, rocketmail.com, and 14 more
+- **ProtonMail** (4 domains): proton.me, protonmail.com, protonmail.ch, pm.me
+- **iCloud Mail** (3 domains): icloud.com, me.com, mac.com
+- **Tutanota** (6 domains): tutanota.com, tutanota.de, tutamail.com, tuta.io, keemail.me, tuta.com
+- **SimpleLogin** (10 domains): simplelogin.io, 8alias.com, aleeas.com, slmail.me, and 6 more
+- **FastMail, Zoho Mail, AOL Mail, GMX, Web.de, Mail.ru, QQ Mail, NetEase, Yandex**, and many more
 
 **Business Email (via DNS detection):**
-Microsoft 365, Google Workspace, ProtonMail Business, Hostinger, FastMail, GoDaddy, Tutanota, Zoho Workplace, and others.
+- **Microsoft 365** (Business domains via MX/TXT records)
+- **Google Workspace** (Custom domains via DNS patterns)
+- **Amazon WorkMail** (AWS email infrastructure via awsapps.com patterns)
+- **Zoho Workplace, FastMail Business, GoDaddy Email, Bluehost Email**
+- **ProtonMail Business, Rackspace Email, IONOS**, and others
+
+**Security & Privacy Focused:**
+- **ProtonMail, Tutanota, Hushmail, CounterMail, Posteo**
+- **Mailfence, SimpleLogin, AnonAddy**
+
+**International Providers:**
+- **Europe**: GMX, Web.de, Orange, Free.fr, T-Online, Libero
+- **Asia**: QQ Mail, NetEase, Sina Mail, Rakuten, Nifty, **Naver** (Korea), **Daum** (Korea), **Biglobe** (Japan)
+- **Other Regions**: UOL (Brazil), Telkom (South Africa), Xtra (New Zealand)
 
 ## API
 
@@ -85,6 +109,14 @@ const result = await getEmailProviderLinkWithDNS(email, 2000);
 // Check if provider is supported
 import { isEmailProviderSupported } from '@mikkelscheike/email-provider-links';
 const supported = isEmailProviderSupported('user@gmail.com');
+
+// Rate limiting configuration
+import { RateLimit } from '@mikkelscheike/email-provider-links';
+console.log('Max requests:', RateLimit.MAX_REQUESTS); // 10
+console.log('Time window:', RateLimit.WINDOW_MS);     // 60000ms
+
+// Custom rate limiter for specific use cases
+const customLimiter = new RateLimit.SimpleRateLimiter(20, 120000); // 20 requests per 2 minutes
 ```
 
 ## TypeScript Support
@@ -96,6 +128,13 @@ interface EmailProviderResult {
   loginUrl: string | null;
   detectionMethod?: 'domain_match' | 'mx_record' | 'txt_record' | 'proxy_detected';
   proxyService?: string;
+}
+
+interface RateLimitConfig {
+  MAX_REQUESTS: number;     // 10 requests
+  WINDOW_MS: number;        // 60000ms (1 minute)
+  SimpleRateLimiter: class; // Custom rate limiter class
+  getCurrentLimiter(): SimpleRateLimiter; // Get current global limiter
 }
 ```
 

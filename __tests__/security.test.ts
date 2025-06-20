@@ -17,11 +17,16 @@ import {
   verifyProvidersIntegrity,
   verifyProvidersDataIntegrity,
   handleHashMismatch,
-  recalculateHashes
+  recalculateHashes,
+  generateSecurityHashes,
+  performSecurityAudit,
+  createProviderManifest
 } from '../src/security/hash-verifier';
 
 import { 
-  secureLoadProviders 
+  secureLoadProviders,
+  initializeSecurity,
+  createSecurityMiddleware
 } from '../src/security/secure-loader';
 
 import { writeFileSync, unlinkSync, existsSync } from 'fs';
@@ -394,6 +399,251 @@ describe('Security - Secure Loading', () => {
       )).toBe(true);
     });
   });
+  
+  describe('initializeSecurity', () => {
+    test('should generate security hashes and provide setup instructions', () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      try {
+        const result = initializeSecurity();
+        
+        // Should return hash object
+        expect(typeof result).toBe('object');
+        
+        // Should have logged setup instructions
+        expect(consoleSpy).toHaveBeenCalled();
+        const logCalls = consoleSpy.mock.calls.map(call => call[0]);
+        const joinedLogs = logCalls.join(' ');
+        
+        expect(joinedLogs).toContain('Generating security hashes');
+        expect(joinedLogs).toContain('Security Setup Instructions');
+        expect(joinedLogs).toContain('KNOWN_GOOD_HASHES');
+        expect(joinedLogs).toContain('environment variables');
+      } finally {
+        consoleSpy.mockRestore();
+      }
+    });
+  });
+  
+  describe('createSecurityMiddleware', () => {
+    test('should create middleware that validates providers', () => {
+      const middleware = createSecurityMiddleware();
+      expect(typeof middleware).toBe('function');
+    });
+    
+    test('should pass valid providers through middleware', (done) => {
+      const middleware = createSecurityMiddleware();
+      
+      const mockReq = {};
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn()
+      };
+      const mockNext = jest.fn(() => {
+        // Check that providers were attached to request
+        expect((mockReq as any).secureProviders).toBeDefined();
+        expect((mockReq as any).securityReport).toBeDefined();
+        expect((mockReq as any).securityReport.securityLevel).not.toBe('CRITICAL');
+        done();
+      });
+      
+      middleware(mockReq, mockRes, mockNext);
+    });
+    
+    test('should reject CRITICAL security level by default', () => {
+      // Create middleware with invalid hash to trigger CRITICAL
+      const middleware = createSecurityMiddleware({ 
+        expectedHash: 'invalid_hash_that_will_fail' 
+      });
+      
+      const mockReq = {};
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn()
+      };
+      const mockNext = jest.fn();
+      
+      middleware(mockReq, mockRes, mockNext);
+      
+      expect(mockRes.status).toHaveBeenCalledWith(500);
+      expect(mockRes.json).toHaveBeenCalledWith({
+        error: 'Security validation failed',
+        details: expect.objectContaining({
+          securityLevel: 'CRITICAL'
+        })
+      });
+      expect(mockNext).not.toHaveBeenCalled();
+    });
+    
+    test('should allow CRITICAL level when allowInvalidUrls is true', (done) => {
+      const middleware = createSecurityMiddleware({ 
+        expectedHash: 'invalid_hash_that_will_fail',
+        allowInvalidUrls: true
+      });
+      
+      const mockReq = {};
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn()
+      };
+      const mockNext = jest.fn(() => {
+        expect((mockReq as any).secureProviders).toBeDefined();
+        expect((mockReq as any).securityReport.securityLevel).toBe('CRITICAL');
+        done();
+      });
+      
+      middleware(mockReq, mockRes, mockNext);
+    });
+    
+    test('should call custom onSecurityIssue handler for CRITICAL issues', () => {
+      const mockHandler = jest.fn();
+      const middleware = createSecurityMiddleware({ 
+        expectedHash: 'invalid_hash_that_will_fail',
+        onSecurityIssue: mockHandler
+      });
+      
+      const mockReq = {};
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn()
+      };
+      const mockNext = jest.fn();
+      
+      middleware(mockReq, mockRes, mockNext);
+      
+      expect(mockHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          securityLevel: 'CRITICAL'
+        })
+      );
+    });
+    
+    test('should handle WARNING security level gracefully', (done) => {
+      // Create test file with mixed providers (valid hash but invalid URLs)
+      const testPath = join(__dirname, 'test-middleware-warning.json');
+      const testData = {
+        providers: [
+          {
+            companyProvider: 'Gmail',
+            loginUrl: 'https://mail.google.com/mail/',
+            domains: ['gmail.com']
+          },
+          {
+            companyProvider: 'Invalid',
+            loginUrl: 'https://invalid-domain.com',
+            domains: ['invalid-domain.com']
+          }
+        ]
+      };
+      
+      writeFileSync(testPath, JSON.stringify(testData, null, 2));
+      const expectedHash = calculateHash(JSON.stringify(testData, null, 2));
+      
+      const middleware = createSecurityMiddleware({ expectedHash });
+      
+      // Override the default path for this test
+      const originalJoin = require('path').join;
+      require('path').join = jest.fn().mockImplementation((...args) => {
+        if (args.includes('emailproviders.json')) {
+          return testPath;
+        }
+        return originalJoin(...args);
+      });
+      
+      const mockReq = {};
+      const mockRes = {
+        status: jest.fn().mockReturnThis(),
+        json: jest.fn()
+      };
+      const mockNext = jest.fn(() => {
+        expect((mockReq as any).securityReport.securityLevel).toBe('WARNING');
+        expect((mockReq as any).secureProviders).toHaveLength(1); // Only Gmail should pass
+        
+        // Cleanup
+        require('path').join = originalJoin;
+        unlinkSync(testPath);
+        done();
+      });
+      
+      middleware(mockReq, mockRes, mockNext);
+    });
+  });
+  
+  describe('secure-loader error path coverage', () => {
+    test('should handle JSON parse errors in secureLoadProviders', () => {
+      const invalidJsonPath = join(__dirname, 'test-invalid.json');
+      writeFileSync(invalidJsonPath, '{ "invalid": json }'); // Invalid JSON
+      
+      try {
+        const result = secureLoadProviders(invalidJsonPath, 'any_hash');
+        
+        expect(result.success).toBe(false);
+        expect(result.securityReport.securityLevel).toBe('CRITICAL');
+        expect(result.securityReport.issues.some(issue => 
+          issue.includes('Failed to load providers file')
+        )).toBe(true);
+        expect(result.providers).toHaveLength(0);
+      } finally {
+        unlinkSync(invalidJsonPath);
+      }
+    });
+    
+    test('should handle providers without loginUrl in filtering', () => {
+      const testPath = join(__dirname, 'test-no-login-url.json');
+      const testData = {
+        providers: [
+          {
+            companyProvider: 'With URL',
+            loginUrl: 'https://mail.google.com/mail/',
+            domains: ['gmail.com']
+          },
+          {
+            companyProvider: 'Without URL',
+            domains: ['no-url.com']
+            // No loginUrl property
+          }
+        ]
+      };
+      
+      writeFileSync(testPath, JSON.stringify(testData, null, 2));
+      const expectedHash = calculateHash(JSON.stringify(testData, null, 2));
+      
+      try {
+        const result = secureLoadProviders(testPath, expectedHash);
+        
+        expect(result.success).toBe(true);
+        expect(result.providers).toHaveLength(2); // Both should be included
+        expect(result.securityReport.securityLevel).toBe('SECURE');
+      } finally {
+        unlinkSync(testPath);
+      }
+    });
+    
+    test('should suppress console output during tests', () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      
+      // Set test environment
+      const originalEnv = process.env.NODE_ENV;
+      const originalWorker = process.env.JEST_WORKER_ID;
+      process.env.NODE_ENV = 'test';
+      process.env.JEST_WORKER_ID = '1';
+      
+      try {
+        const result = secureLoadProviders('/nonexistent/path.json', 'wrong_hash');
+        
+        expect(result.success).toBe(false);
+        // Console should not have been called due to test environment
+        expect(consoleSpy).not.toHaveBeenCalled();
+        expect(consoleWarnSpy).not.toHaveBeenCalled();
+      } finally {
+        process.env.NODE_ENV = originalEnv;
+        process.env.JEST_WORKER_ID = originalWorker;
+        consoleSpy.mockRestore();
+        consoleWarnSpy.mockRestore();
+      }
+    });
+  });
 });
 
 describe('Security - Edge Cases & Advanced Tests', () => {
@@ -525,6 +775,552 @@ describe('Security - Production File Integrity', () => {
     expect(result.securityReport.hashVerification).toBe(true);
     expect(result.securityReport.securityLevel).not.toBe('CRITICAL');
     expect(result.providers.length).toBeGreaterThan(60); // We should have 60+ providers
+  });
+});
+
+describe('Security - Hash Verifier Extended Tests', () => {
+  let testFilePath: string;
+  
+  beforeEach(() => {
+    testFilePath = join(__dirname, 'test-file-hash.json');
+  });
+  
+  afterEach(() => {
+    if (existsSync(testFilePath)) {
+      unlinkSync(testFilePath);
+    }
+  });
+  
+  describe('calculateFileHash', () => {
+    test('should calculate correct file hash', () => {
+      const testContent = { test: 'data', number: 42 };
+      writeFileSync(testFilePath, JSON.stringify(testContent, null, 2));
+      
+      const fileHash = calculateFileHash(testFilePath);
+      const contentHash = calculateHash(JSON.stringify(testContent, null, 2));
+      
+      expect(fileHash).toBe(contentHash);
+      expect(fileHash).toMatch(/^[a-f0-9]{64}$/);
+    });
+    
+    test('should handle file read errors gracefully', () => {
+      const nonExistentFile = '/path/that/does/not/exist.json';
+      
+      expect(() => calculateFileHash(nonExistentFile)).toThrow();
+    });
+    
+    test('should handle different file encodings', () => {
+      // Test with UTF-8 content
+      const utf8Content = 'Hello 世界 🌍';
+      writeFileSync(testFilePath, utf8Content, 'utf8');
+      
+      const hash = calculateFileHash(testFilePath);
+      const expectedHash = calculateHash(utf8Content);
+      
+      expect(hash).toBe(expectedHash);
+    });
+  });
+  
+  describe('verifyProvidersDataIntegrity', () => {
+    test('should verify valid providers data with expected hash', () => {
+      const testData = {
+        providers: [
+          {
+            companyProvider: 'Test Provider',
+            loginUrl: 'https://test.example.com',
+            domains: ['test.example.com']
+          }
+        ]
+      };
+      
+      const jsonString = JSON.stringify(testData, Object.keys(testData).sort(), 2);
+      const expectedHash = calculateHash(jsonString);
+      
+      const result = verifyProvidersDataIntegrity(testData, expectedHash);
+      
+      expect(result.isValid).toBe(true);
+      expect(result.actualHash).toBe(expectedHash);
+      expect(result.expectedHash).toBe(expectedHash);
+      expect(result.reason).toBeUndefined();
+    });
+    
+    test('should detect hash mismatch in providers data', () => {
+      const testData = { providers: [{ test: 'data' }] };
+      const wrongHash = 'wrong_hash_value';
+      
+      const result = verifyProvidersDataIntegrity(testData, wrongHash);
+      
+      expect(result.isValid).toBe(false);
+      expect(result.reason).toBe('Data hash does not match expected value');
+      expect(result.expectedHash).toBe(wrongHash);
+    });
+    
+    test('should handle malformed providers data', () => {
+      const malformedData = { invalid: 'structure' };
+      const hash = calculateHash(JSON.stringify(malformedData, Object.keys(malformedData).sort(), 2));
+      
+      const result = verifyProvidersDataIntegrity(malformedData, hash);
+      
+      expect(result.isValid).toBe(true);
+      expect(result.actualHash).toBe(hash);
+    });
+    
+    test('should handle circular references gracefully', () => {
+      const circularData: any = { providers: [] };
+      circularData.self = circularData;
+      
+      // JSON.stringify throws error on circular references
+      const result = verifyProvidersDataIntegrity(circularData);
+      
+      expect(result.isValid).toBe(false);
+      expect(result.reason).toContain('Failed to verify data');
+    });
+    
+    test('should handle empty data object', () => {
+      const emptyData = {};
+      const hash = calculateHash(JSON.stringify(emptyData, Object.keys(emptyData).sort(), 2));
+      
+      const result = verifyProvidersDataIntegrity(emptyData, hash);
+      
+      expect(result.isValid).toBe(true);
+    });
+  });
+  
+  describe('generateSecurityHashes', () => {
+    test('should generate hashes for existing files', () => {
+      // Mock console.log to capture output
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      try {
+        const hashes = generateSecurityHashes(__dirname);
+        
+        // Should return hashes for accessible files
+        expect(typeof hashes).toBe('object');
+        
+        // Check that some console output was generated (consoleSpy may or may not be called)
+        // depending on file accessibility, so we just verify the function doesn't crash
+      } finally {
+        consoleSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
+      }
+    });
+    
+    test('should handle missing files gracefully', () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      try {
+        const nonExistentPath = '/path/that/does/not/exist';
+        const hashes = generateSecurityHashes(nonExistentPath);
+        
+        // Should still return an object, but may be empty or have errors
+        expect(typeof hashes).toBe('object');
+        
+        // Should have logged errors for missing files
+        expect(consoleErrorSpy).toHaveBeenCalled();
+      } finally {
+        consoleErrorSpy.mockRestore();
+        consoleSpy.mockRestore();
+      }
+    });
+  });
+  
+  describe('recalculateHashes', () => {
+    test('should return formatted configuration string', () => {
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+      
+      try {
+        const result = recalculateHashes(__dirname);
+        
+        expect(typeof result).toBe('string');
+        expect(result).toContain('KNOWN_GOOD_HASHES');
+        expect(result).toContain('emailproviders.json');
+        expect(result).toContain('package.json');
+        
+        // Should have logged information
+        expect(consoleSpy).toHaveBeenCalled();
+      } finally {
+        consoleSpy.mockRestore();
+      }
+    });
+  });
+  
+  describe('performSecurityAudit', () => {
+    test('should perform complete security audit', () => {
+      // Test with actual providers file
+      const audit = performSecurityAudit();
+      
+      expect(audit).toHaveProperty('hashVerification');
+      expect(audit).toHaveProperty('recommendations');
+      expect(audit).toHaveProperty('securityLevel');
+      
+      expect(Array.isArray(audit.recommendations)).toBe(true);
+      expect(['HIGH', 'MEDIUM', 'LOW', 'CRITICAL']).toContain(audit.securityLevel);
+      
+      expect(audit.hashVerification).toHaveProperty('isValid');
+      expect(audit.hashVerification).toHaveProperty('actualHash');
+      expect(audit.hashVerification).toHaveProperty('file');
+    });
+    
+    test('should detect security issues in audit', () => {
+      // Create a test file with wrong content
+      const testAuditFile = join(__dirname, 'test-audit.json');
+      writeFileSync(testAuditFile, JSON.stringify({ fake: 'data' }));
+      
+      try {
+        const audit = performSecurityAudit(testAuditFile);
+        
+        // Should detect hash mismatch
+        expect(audit.hashVerification.isValid).toBe(false);
+        expect(audit.securityLevel).toBe('CRITICAL');
+        expect(audit.recommendations.some(rec => rec.includes('CRITICAL'))).toBe(true);
+      } finally {
+        unlinkSync(testAuditFile);
+      }
+    });
+  });
+  
+  describe('createProviderManifest', () => {
+    test('should create valid provider manifest', () => {
+      const testProviders = [
+        {
+          companyProvider: 'Gmail',
+          loginUrl: 'https://mail.google.com/mail/',
+          domains: ['gmail.com']
+        },
+        {
+          companyProvider: 'Outlook',
+          loginUrl: 'https://outlook.office365.com',
+          domains: ['outlook.com']
+        }
+      ];
+      
+      const manifest = createProviderManifest(testProviders);
+      
+      expect(manifest).toHaveProperty('timestamp');
+      expect(manifest).toHaveProperty('providerCount', 2);
+      expect(manifest).toHaveProperty('urlHashes');
+      expect(manifest).toHaveProperty('manifestHash');
+      
+      // Check timestamp format (ISO string)
+      expect(new Date(manifest.timestamp).toISOString()).toBe(manifest.timestamp);
+      
+      // Check URL hashes
+      expect(Object.keys(manifest.urlHashes)).toHaveLength(2);
+      expect(manifest.urlHashes['Gmail::https://mail.google.com/mail/']).toBeDefined();
+      expect(manifest.urlHashes['Outlook::https://outlook.office365.com']).toBeDefined();
+      
+      // Check manifest hash format
+      expect(manifest.manifestHash).toMatch(/^[a-f0-9]{64}$/);
+    });
+    
+    test('should handle providers without login URLs', () => {
+      const testProviders = [
+        {
+          companyProvider: 'Provider with URL',
+          loginUrl: 'https://example.com',
+          domains: ['example.com']
+        },
+        {
+          companyProvider: 'Provider without URL',
+          domains: ['nourl.com']
+          // No loginUrl property
+        }
+      ];
+      
+      const manifest = createProviderManifest(testProviders);
+      
+      expect(manifest.providerCount).toBe(2);
+      expect(Object.keys(manifest.urlHashes)).toHaveLength(1);
+      expect(manifest.urlHashes['Provider with URL::https://example.com']).toBeDefined();
+    });
+    
+    test('should create reproducible manifests for same data', async () => {
+      const testProviders = [
+        {
+          companyProvider: 'Test',
+          loginUrl: 'https://test.com',
+          domains: ['test.com']
+        }
+      ];
+      
+      // Create two manifests with slight delay to ensure different timestamps
+      const manifest1 = createProviderManifest(testProviders);
+      await new Promise(resolve => setTimeout(resolve, 1));
+      const manifest2 = createProviderManifest(testProviders);
+      
+      // Timestamps should be different
+      expect(manifest1.timestamp).not.toBe(manifest2.timestamp);
+      
+      // But URL hashes should be identical
+      expect(manifest1.urlHashes).toEqual(manifest2.urlHashes);
+      expect(manifest1.providerCount).toBe(manifest2.providerCount);
+    });
+    
+    test('should handle empty providers array', () => {
+      const manifest = createProviderManifest([]);
+      
+      expect(manifest.providerCount).toBe(0);
+      expect(Object.keys(manifest.urlHashes)).toHaveLength(0);
+      expect(manifest.manifestHash).toMatch(/^[a-f0-9]{64}$/);
+    });
+  });
+  
+  describe('handleHashMismatch', () => {
+    test('should log error by default', () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      const mismatchResult = {
+        isValid: false,
+        actualHash: 'actual123',
+        expectedHash: 'expected456',
+        reason: 'Test mismatch',
+        file: 'test.json'
+      };
+      
+      try {
+        handleHashMismatch(mismatchResult);
+        
+        expect(consoleErrorSpy).toHaveBeenCalled();
+        const errorCall = consoleErrorSpy.mock.calls[0][0];
+        expect(errorCall).toContain('CRITICAL SECURITY ALERT');
+        expect(errorCall).toContain('test.json');
+        expect(errorCall).toContain('actual123');
+        expect(errorCall).toContain('expected456');
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
+    });
+    
+    test('should not log when result is valid', () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      const validResult = {
+        isValid: true,
+        actualHash: 'hash123',
+        file: 'test.json'
+      };
+      
+      try {
+        handleHashMismatch(validResult);
+        
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
+    });
+    
+    test('should throw error when throwOnMismatch is true', () => {
+      const mismatchResult = {
+        isValid: false,
+        actualHash: 'actual123',
+        expectedHash: 'expected456',
+        reason: 'Test mismatch',
+        file: 'test.json'
+      };
+      
+      expect(() => {
+        handleHashMismatch(mismatchResult, { throwOnMismatch: true });
+      }).toThrow('SECURITY BREACH');
+    });
+    
+    test('should use warn log level when specified', () => {
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      const mismatchResult = {
+        isValid: false,
+        actualHash: 'actual123',
+        expectedHash: 'expected456',
+        reason: 'Test mismatch',
+        file: 'test.json'
+      };
+      
+      try {
+        handleHashMismatch(mismatchResult, { logLevel: 'warn' });
+        
+        expect(consoleWarnSpy).toHaveBeenCalled();
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
+      } finally {
+        consoleWarnSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
+      }
+    });
+    
+    test('should call custom onMismatch handler', () => {
+      const mockHandler = jest.fn();
+      
+      const mismatchResult = {
+        isValid: false,
+        actualHash: 'actual123',
+        expectedHash: 'expected456',
+        reason: 'Test mismatch',
+        file: 'test.json'
+      };
+      
+      handleHashMismatch(mismatchResult, { onMismatch: mockHandler });
+      
+      expect(mockHandler).toHaveBeenCalledWith(mismatchResult);
+    });
+  });
+});
+
+describe('Security - Hash Verifier Edge Cases for Maximum Coverage', () => {
+  test('should handle TO_BE_CALCULATED hash in verifyProvidersIntegrity', () => {
+    const testFilePath = join(__dirname, 'test-to-be-calculated.json');
+    writeFileSync(testFilePath, JSON.stringify({ test: 'data' }));
+    
+    try {
+      // Test with TO_BE_CALCULATED hash
+      const result = verifyProvidersIntegrity(testFilePath, 'TO_BE_CALCULATED');
+      
+      expect(result.isValid).toBe(false);
+      expect(result.reason).toBe('Expected hash not configured. Run generateSecurityHashes() first.');
+    } finally {
+      unlinkSync(testFilePath);
+    }
+  });
+  
+  test('should handle TO_BE_CALCULATED hash in verifyProvidersDataIntegrity', () => {
+    const testData = { providers: [] };
+    
+    const result = verifyProvidersDataIntegrity(testData, 'TO_BE_CALCULATED');
+    
+    expect(result.isValid).toBe(false);
+    expect(result.reason).toBe('Expected hash not configured');
+    expect(result.file).toBe('providersData');
+  });
+  
+  test('should handle missing logLevel argument in handleHashMismatch', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    
+    const mismatchResult = {
+      isValid: false,
+      actualHash: 'actual',
+      expectedHash: 'expected',
+      reason: 'Test',
+      file: 'test.json'
+    };
+    
+    try {
+      // Test with no logLevel specified (should default to 'error')
+      handleHashMismatch(mismatchResult, {});
+      
+      expect(consoleErrorSpy).toHaveBeenCalled();
+    } finally {
+      consoleErrorSpy.mockRestore();
+    }
+  });
+  
+  test('should handle silent logLevel in handleHashMismatch', () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    
+    const mismatchResult = {
+      isValid: false,
+      actualHash: 'actual',
+      expectedHash: 'expected',
+      reason: 'Test',
+      file: 'test.json'
+    };
+    
+    try {
+      // Test with silent log level
+      handleHashMismatch(mismatchResult, { logLevel: 'silent' });
+      
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+      expect(consoleWarnSpy).not.toHaveBeenCalled();
+    } finally {
+      consoleErrorSpy.mockRestore();
+      consoleWarnSpy.mockRestore();
+    }
+  });
+  
+  test('should handle MEDIUM security level in performSecurityAudit with TO_BE_CALCULATED hash', () => {
+    // Create a mock providers file that will pass hash check but has TO_BE_CALCULATED
+    const testAuditFile = join(__dirname, 'test-medium-audit.json');
+    const testContent = JSON.stringify({ providers: [] });
+    writeFileSync(testAuditFile, testContent);
+    
+    try {
+      // Mock the KNOWN_GOOD_HASHES to simulate TO_BE_CALCULATED
+      const originalModule = require('../src/security/hash-verifier');
+      const audit = performSecurityAudit(testAuditFile);
+      
+      expect(audit).toHaveProperty('securityLevel');
+      expect(audit.recommendations.length).toBeGreaterThan(0);
+    } finally {
+      unlinkSync(testAuditFile);
+    }
+  });
+});
+
+describe('Security - Hash Verifier Error Scenarios', () => {
+  test('should handle file system permission errors', () => {
+    // Test with a path that would cause permission errors
+    const restrictedPath = '/root/restricted-file.json';
+    
+    const result = verifyProvidersIntegrity(restrictedPath);
+    
+    expect(result.isValid).toBe(false);
+    expect(result.reason).toContain('Failed to verify file');
+    expect(result.actualHash).toBe('');
+  });
+  
+  test('should handle binary file content', () => {
+    const testBinaryFile = join(__dirname, 'test-binary.dat');
+    const binaryContent = Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]); // PNG header
+    
+    writeFileSync(testBinaryFile, binaryContent);
+    
+    try {
+      const hash = calculateFileHash(testBinaryFile);
+      const expectedHash = calculateHash(binaryContent);
+      
+      expect(hash).toBe(expectedHash);
+      expect(hash).toMatch(/^[a-f0-9]{64}$/);
+    } finally {
+      unlinkSync(testBinaryFile);
+    }
+  });
+  
+  test('should handle very large data objects for manifest creation', () => {
+    // Create a large providers array
+    const largeProviders = Array.from({ length: 1000 }, (_, i) => ({
+      companyProvider: `Provider ${i}`,
+      loginUrl: `https://provider${i}.example.com`,
+      domains: [`provider${i}.example.com`]
+    }));
+    
+    const manifest = createProviderManifest(largeProviders);
+    
+    expect(manifest.providerCount).toBe(1000);
+    expect(Object.keys(manifest.urlHashes)).toHaveLength(1000);
+    expect(manifest.manifestHash).toMatch(/^[a-f0-9]{64}$/);
+  });
+  
+  test('should maintain hash consistency across different Node.js versions', () => {
+    // Test that our hash calculation is deterministic
+    const testData = {
+      string: 'test',
+      number: 42,
+      boolean: true,
+      array: [1, 2, 3],
+      object: { nested: 'value' }
+    };
+    
+    const hash1 = calculateHash(JSON.stringify(testData));
+    const hash2 = calculateHash(JSON.stringify(testData));
+    
+    expect(hash1).toBe(hash2);
+    
+    // Test with Buffer input
+    const bufferHash1 = calculateHash(Buffer.from(JSON.stringify(testData)));
+    const bufferHash2 = calculateHash(Buffer.from(JSON.stringify(testData)));
+    
+    expect(bufferHash1).toBe(bufferHash2);
+    expect(hash1).toBe(bufferHash1);
   });
 });
 

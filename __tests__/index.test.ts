@@ -7,7 +7,7 @@ import {
   isEmailProviderSupported,
   EmailProvider,
   EmailProviderResult
-} from './index';
+} from '../src/index';
 
 describe('Email Provider Links', () => {
   describe('isValidEmail', () => {

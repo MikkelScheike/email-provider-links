@@ -18,10 +18,10 @@ import { join } from 'path';
  */
 const KNOWN_GOOD_HASHES = {
   // SHA-256 hash of the legitimate emailproviders.json
-  'emailproviders.json': 'da7a856fe04b11e326230d195fcc3d44f078e481b8929cf4fb5040276e05ffd0',
+  'emailproviders.json': '1c7925d02cc66b487046afdce81f744bd7a42f5a489e16e53a1a979575e4473b',
   
   // You can add hashes for other critical files
-  'package.json': '4fec42bf25d33615a2b19bfe573b6d706404d39bfcdd6464a6958e70fca2a579'
+  'package.json': 'ba2810fd51f2d044890119e6f49926b80d822a4cafedaff25e3f91ba8ec65c2f'
 };
 
 export interface HashVerificationResult {
@@ -241,7 +241,7 @@ export function handleHashMismatch(
     '4. Verify file integrity from trusted source',
     '5. Report security incident if confirmed',
     '',
-    '📧 Consider reporting to: security@[your-domain].com'
+    '📧 Report security issues: https://github.com/mikkelscheike/email-provider-links/security'
   ].join('\n');
   
   if (logLevel === 'error') {

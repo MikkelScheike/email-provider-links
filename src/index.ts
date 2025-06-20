@@ -26,16 +26,94 @@ const resolveTxtAsync = promisify(resolveTxt);
 const DEFAULT_DNS_TIMEOUT = 5000; // 5 seconds
 
 /**
+ * Rate limiting configuration for DNS queries.
+ */
+const RATE_LIMIT_MAX_REQUESTS = 10; // Maximum requests per time window
+const RATE_LIMIT_WINDOW_MS = 60000; // Time window in milliseconds (1 minute)
+
+/**
+ * Simple rate limiter to prevent excessive DNS queries.
+ * Tracks request timestamps and enforces a maximum number of requests per time window.
+ */
+class SimpleRateLimiter {
+  private requestTimestamps: number[] = [];
+  
+  constructor(
+    private maxRequests: number = RATE_LIMIT_MAX_REQUESTS,
+    private windowMs: number = RATE_LIMIT_WINDOW_MS
+  ) {}
+  
+  /**
+   * Checks if a request is allowed under the current rate limit.
+   * @returns true if request is allowed, false if rate limited
+   */
+  isAllowed(): boolean {
+    const now = Date.now();
+    
+    // Remove old timestamps outside the current window
+    this.requestTimestamps = this.requestTimestamps.filter(
+      timestamp => now - timestamp < this.windowMs
+    );
+    
+    // Check if we're under the limit
+    if (this.requestTimestamps.length < this.maxRequests) {
+      this.requestTimestamps.push(now);
+      return true;
+    }
+    
+    return false;
+  }
+  
+  /**
+   * Gets the current number of requests in the window.
+   */
+  getCurrentCount(): number {
+    const now = Date.now();
+    this.requestTimestamps = this.requestTimestamps.filter(
+      timestamp => now - timestamp < this.windowMs
+    );
+    return this.requestTimestamps.length;
+  }
+  
+  /**
+   * Gets the time until the rate limit resets (when oldest request expires).
+   * @returns milliseconds until reset, or 0 if not rate limited
+   */
+  getTimeUntilReset(): number {
+    if (this.requestTimestamps.length === 0) return 0;
+    
+    const oldestTimestamp = Math.min(...this.requestTimestamps);
+    const resetTime = oldestTimestamp + this.windowMs;
+    const now = Date.now();
+    
+    return Math.max(0, resetTime - now);
+  }
+}
+
+// Global rate limiter instance
+const dnsRateLimiter = new SimpleRateLimiter();
+
+/**
  * Creates a Promise that rejects after the specified timeout.
  *
  * @param ms - Timeout in milliseconds
- * @returns Promise that rejects with timeout error
+ * @returns Promise that rejects with timeout error and a cleanup function
  * @internal
  */
-function createTimeout(ms: number): Promise<never> {
-  return new Promise((_, reject) => {
-    setTimeout(() => reject(new Error(`DNS query timeout after ${ms}ms`)), ms);
+function createTimeout(ms: number): { promise: Promise<never>; cleanup: () => void } {
+  let timeoutId: NodeJS.Timeout;
+  
+  const promise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`DNS query timeout after ${ms}ms`)), ms);
   });
+  
+  const cleanup = () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
+  
+  return { promise, cleanup };
 }
 
 /**
@@ -47,7 +125,12 @@ function createTimeout(ms: number): Promise<never> {
  * @internal
  */
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  return Promise.race([promise, createTimeout(timeoutMs)]);
+  const { promise: timeoutPromise, cleanup } = createTimeout(timeoutMs);
+  
+  return Promise.race([
+    promise.finally(() => cleanup()), // Clean up timeout when original promise settles
+    timeoutPromise
+  ]);
 }
 
 /**
@@ -416,12 +499,18 @@ function detectProxyService(mxRecords: { exchange: string; priority: number }[])
  * 
  * @remarks
  * **Detection Algorithm:**
- * 1. Performs MX record lookup for the domain
- * 2. Checks if MX records match known proxy services (Cloudflare, etc.)
- * 3. If proxy detected, returns null provider with proxy info
- * 4. Otherwise, matches MX records against business email provider patterns
- * 5. If no MX match, falls back to TXT record analysis (SPF records, etc.)
- * 6. Returns the first matching provider or null if none found
+ * 1. Checks rate limiting (max 10 requests per minute)
+ * 2. Performs MX record lookup for the domain
+ * 3. Checks if MX records match known proxy services (Cloudflare, etc.)
+ * 4. If proxy detected, returns null provider with proxy info
+ * 5. Otherwise, matches MX records against business email provider patterns
+ * 6. If no MX match, falls back to TXT record analysis (SPF records, etc.)
+ * 7. Returns the first matching provider or null if none found
+ * 
+ * **Rate Limiting:**
+ * - Maximum 10 DNS requests per 60-second window
+ * - Rate limit exceeded returns error with retry information
+ * - Prevents abuse and excessive DNS queries
  * 
  * **Provider Patterns Checked:**
  * - Google Workspace: aspmx.l.google.com, aspmx2.googlemail.com, etc.
@@ -436,6 +525,12 @@ function detectProxyService(mxRecords: { exchange: string; priority: number }[])
  */
 export async function detectProviderByDNS(domain: string, timeoutMs: number = DEFAULT_DNS_TIMEOUT): Promise<DNSDetectionResult> {
   const normalizedDomain = domain.toLowerCase();
+  
+  // Check rate limiting
+  if (!dnsRateLimiter.isAllowed()) {
+    const retryAfter = Math.ceil(dnsRateLimiter.getTimeUntilReset() / 1000);
+    throw new Error(`Rate limit exceeded. DNS queries limited to ${RATE_LIMIT_MAX_REQUESTS} requests per minute. Try again in ${retryAfter} seconds.`);
+  }
   
   // Get providers that support custom domain detection
   const customDomainProviders = EMAIL_PROVIDERS.filter(provider => 
@@ -618,6 +713,21 @@ export async function getEmailProviderLinkWithDNS(email: string, timeoutMs: numb
   };
 }
 
+/**
+ * Rate limiting configuration constants and utilities.
+ * @public
+ */
+export const RateLimit = {
+  MAX_REQUESTS: RATE_LIMIT_MAX_REQUESTS,
+  WINDOW_MS: RATE_LIMIT_WINDOW_MS,
+  SimpleRateLimiter,
+  /**
+   * Gets the current rate limiter instance for inspection or testing.
+   * @internal
+   */
+  getCurrentLimiter: () => dnsRateLimiter
+};
+
 // Default export for convenience
 export default {
   getEmailProviderLink,
@@ -627,6 +737,7 @@ export default {
   extractDomain,
   findEmailProvider,
   getSupportedProviders,
-  isEmailProviderSupported
+  isEmailProviderSupported,
+  RateLimit
 };
 

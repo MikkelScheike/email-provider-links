@@ -4,10 +4,16 @@ import {
   getSupportedProviders,
   DNSDetectionResult,
   EmailProviderResult,
-  EmailProvider
-} from './index';
+  EmailProvider,
+  RateLimit
+} from '../src/index';
 
 describe('DNS-based Provider Detection', () => {
+  beforeEach(() => {
+    // Reset rate limiter for each test to avoid interference
+    const limiter = RateLimit.getCurrentLimiter();
+    (limiter as any).requestTimestamps = [];
+  });
   describe('detectProviderByDNS', () => {
     it('should detect Microsoft 365 from MX records', async () => {
       // Test with microsoft.com which should have outlook.com MX records
