@@ -1,6 +1,6 @@
 {
   "name": "@mikkelscheike/email-provider-links",
-  "version": "1.7.0",
+  "version": "1.6.0",
   "description": "A TypeScript package providing direct links to 93 email providers (180+ domains) with enterprise security features, email alias detection, rate limiting, and comprehensive international coverage for login and password reset flows",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
