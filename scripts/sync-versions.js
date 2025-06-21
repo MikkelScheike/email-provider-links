@@ -77,6 +77,11 @@ function syncVersions() {
 
 // Run if called directly
 if (require.main === module) {
+  // Skip sync if environment variable is set (used during release process)
+  if (process.env.SKIP_VERSION_SYNC === '1') {
+    console.log('🔄 Version sync skipped (SKIP_VERSION_SYNC=1)');
+    process.exit(0);
+  }
   syncVersions();
 }
 

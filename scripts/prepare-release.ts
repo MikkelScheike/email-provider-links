@@ -46,7 +46,7 @@ class ReleaseManager {
       await this.validatePrerequisites();
 
       // Step 2: Update version if needed
-      await this.updateVersion(config.targetVersion);
+      await this.updateVersion(config.targetVersion, 2);
 
       // Step 3: Recalculate security hashes
       await this.updateSecurityHashes();
@@ -57,10 +57,16 @@ class ReleaseManager {
       // Step 5: Verify build
       await this.verifyBuild();
 
-      // Step 6: Generate semantic-release commit
-      await this.generateSemanticCommit(config);
+      // Step 6: Re-update version (in case sync-versions reset it)
+      await this.updateVersion(config.targetVersion, 6);
 
-      // Step 7: Show final instructions
+      // Step 7: Create release commit
+      await this.createReleaseCommit(config);
+
+      // Step 8: Create git tag
+      await this.createGitTag(config.targetVersion);
+
+      // Step 9: Show final instructions
       this.showFinalInstructions(config);
 
     } catch (error) {
@@ -115,8 +121,9 @@ class ReleaseManager {
   /**
    * Update package.json version
    */
-  private async updateVersion(targetVersion: string): Promise<void> {
-    console.log('📦 STEP 2: Updating Version');
+  private async updateVersion(targetVersion: string, stepNumber?: number): Promise<void> {
+    const step = stepNumber ? `STEP ${stepNumber}:` : 'STEP 6:';
+    console.log(`📦 ${step} Updating Version`);
     console.log('-'.repeat(40));
 
     const packagePath = join(this.projectRoot, 'package.json');
@@ -257,13 +264,13 @@ class ReleaseManager {
   }
 
   /**
-   * Generate semantic-release compatible commit
+   * Create release commit with all changes
    */
-  private async generateSemanticCommit(config: ReleaseConfig): Promise<void> {
-    console.log('📝 STEP 6: Generating Semantic Release Commit');
+  private async createReleaseCommit(config: ReleaseConfig): Promise<void> {
+    console.log('📝 STEP 7: Creating Release Commit');
     console.log('-'.repeat(40));
 
-    // Stage all changes
+    // Stage all changes including package.json and hash updates
     execSync('git add .');
 
     // Check if there are changes to commit
@@ -284,13 +291,44 @@ class ReleaseManager {
     // Create commit
     try {
       execSync(`git commit -m "${commitMessage}"`, { encoding: 'utf-8' });
-      console.log('✅ Semantic release commit created');
+      console.log('✅ Release commit created');
     } catch (error) {
       console.log('ℹ️  Commit creation skipped (no changes or already committed)');
     }
 
     console.log('');
   }
+
+  /**
+   * Create git tag for release
+   */
+  private async createGitTag(version: string): Promise<void> {
+    console.log('🏷️  STEP 8: Creating Git Tag');
+    console.log('-'.repeat(40));
+
+    const tagName = `v${version}`;
+    
+    try {
+      // Check if tag already exists
+      try {
+        execSync(`git rev-parse ${tagName}`, { stdio: 'pipe' });
+        console.log(`⚠️  Tag ${tagName} already exists, skipping`);
+        return;
+      } catch {
+        // Tag doesn't exist, continue
+      }
+
+      // Create annotated tag
+      const tagMessage = `Release v${version}`;
+      execSync(`git tag -a ${tagName} -m "${tagMessage}"`, { encoding: 'utf-8' });
+      console.log(`✅ Created git tag: ${tagName}`);
+    } catch (error) {
+      throw new Error(`Failed to create git tag: ${error}`);
+    }
+
+    console.log('');
+  }
+
 
   /**
    * Generate semantic-release compatible commit message
@@ -336,21 +374,28 @@ class ReleaseManager {
    * Show final instructions
    */
   private showFinalInstructions(config: ReleaseConfig): void {
-    console.log('🎯 STEP 7: Final Instructions');
+    console.log('🎯 STEP 9: Final Instructions');
     console.log('-'.repeat(40));
     console.log('✅ Release preparation complete!');
     console.log('');
-    console.log('📋 NEXT STEPS:');
-    console.log('1. Review the changes with: git log --oneline -3');
-    console.log('2. Push to GitHub to trigger semantic-release:');
-    console.log('   • Use GitKraken to push the main branch');
-    console.log('   • OR run: git push origin main');
+    console.log('📋 READY FOR RELEASE:');
+    console.log(`• Version updated to ${config.targetVersion}`);
+    console.log(`• Git tag v${config.targetVersion} created`);
+    console.log('• All tests passing');
+    console.log('• Build verified');
+    console.log('• Security hashes updated');
+    console.log('• Release commit created');
     console.log('');
-    console.log('🤖 SEMANTIC-RELEASE WILL:');
-    console.log(`• Detect ${config.releaseType} version bump`);
-    console.log(`• Create v${config.targetVersion} tag and GitHub release`);
-    console.log(`• Publish to npm automatically`);
-    console.log('• Generate release notes from commits');
+    console.log('📋 NEXT STEPS (Manual):');
+    console.log('1. 🔍 Review changes: git log --oneline -3');
+    console.log('2. 🚀 Push to GitHub using GitKraken (push main + tags)');
+    console.log('');
+    console.log('🤖 GITHUB CI/CD WILL AUTOMATICALLY:');
+    console.log('• Detect the new version and tag');
+    console.log('• Build the project');
+    console.log('• Run all tests');
+    console.log('• Publish to NPM');
+    console.log('• Create GitHub release with notes');
     console.log('');
     console.log('⚠️  IMPORTANT:');
     console.log('• Make sure you have npm publish permissions');
