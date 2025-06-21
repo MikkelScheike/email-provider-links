@@ -7,8 +7,8 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import {
-  OptimizedProvider,
-  OptimizedProvidersData,
+  Provider,
+  ProvidersData,
   decompressTxtPattern
 } from './schema';
 import { EmailProvider } from './index';
@@ -48,26 +48,26 @@ const DEFAULT_CONFIG: LoaderConfig = {
 };
 
 /**
- * Convert optimized provider to EmailProvider format
+ * Convert compressed provider to EmailProvider format
  */
-function convertOptimizedToEmailProvider(optimized: OptimizedProvider): EmailProvider {
+function convertProviderToEmailProvider(compressedProvider: Provider): EmailProvider {
   const provider: EmailProvider = {
-    companyProvider: optimized.name,
-    loginUrl: optimized.url,
-    domains: optimized.domains || []
+    companyProvider: compressedProvider.name,
+    loginUrl: compressedProvider.url,
+    domains: compressedProvider.domains || []
   };
 
   // Convert DNS detection patterns
-  if (optimized.mx?.length || optimized.txt?.length) {
+  if (compressedProvider.mx?.length || compressedProvider.txt?.length) {
     provider.customDomainDetection = {};
     
-    if (optimized.mx?.length) {
-      provider.customDomainDetection.mxPatterns = optimized.mx;
+    if (compressedProvider.mx?.length) {
+      provider.customDomainDetection.mxPatterns = compressedProvider.mx;
     }
     
-    if (optimized.txt?.length) {
+    if (compressedProvider.txt?.length) {
       // Decompress TXT patterns
-      provider.customDomainDetection.txtPatterns = optimized.txt.map(decompressTxtPattern);
+      provider.customDomainDetection.txtPatterns = compressedProvider.txt.map(decompressTxtPattern);
     }
   }
 
@@ -75,9 +75,9 @@ function convertOptimizedToEmailProvider(optimized: OptimizedProvider): EmailPro
 }
 
 /**
- * Load provider data
+ * Internal provider data loader with configuration
  */
-export function loadProviders(config: Partial<LoaderConfig> = {}): {
+function loadProvidersInternal(config: Partial<LoaderConfig> = {}): {
   providers: EmailProvider[];
   stats: LoadingStats;
 } {
@@ -100,14 +100,14 @@ export function loadProviders(config: Partial<LoaderConfig> = {}): {
     if (mergedConfig.debug) console.log('🔄 Loading provider data...');
     
     const content = readFileSync(dataPath, 'utf8');
-    const data: OptimizedProvidersData = JSON.parse(content);
+    const data: ProvidersData = JSON.parse(content);
     
     // Validate format
     if (!data.version || !data.providers || !Array.isArray(data.providers)) {
       throw new Error('Invalid provider data format');
     }
     
-    const providers = data.providers.map(convertOptimizedToEmailProvider);
+    const providers = data.providers.map(convertProviderToEmailProvider);
     const fileSize = content.length;
 
     if (mergedConfig.debug) {
@@ -186,21 +186,21 @@ export function getLoadingStats(): LoadingStats | null {
 }
 
 /**
- * Performance-optimized provider loading for production
+ * Load all providers with optimized domain map for production
  */
-export function loadProvidersOptimized(): {
+export function loadProviders(): {
   providers: EmailProvider[];
   domainMap: Map<string, EmailProvider>;
   stats: LoadingStats;
 } {
-  const { providers, stats } = loadProviders({ debug: false });
+  const { providers, stats } = loadProvidersInternal({ debug: false });
   const domainMap = buildDomainMap(providers);
   
   return { providers, domainMap, stats };
 }
 
 /**
- * Development-friendly loader with debug information
+ * Load providers with debug information
  */
 export function loadProvidersDebug(): {
   providers: EmailProvider[];
@@ -208,7 +208,7 @@ export function loadProvidersDebug(): {
   stats: LoadingStats;
 } {
   clearCache(); // Always reload in debug mode
-  const { providers, stats } = loadProviders({ debug: true });
+  const { providers, stats } = loadProvidersInternal({ debug: true });
   const domainMap = buildDomainMap(providers);
   
   return { providers, domainMap, stats };

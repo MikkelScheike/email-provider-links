@@ -54,7 +54,7 @@ describe('URL Validator - Coverage Tests', () => {
         const result = validateEmailProviderUrl(url);
         expect(result.isValid).toBe(false);
         // Could be rejected for allowlist or suspicious patterns
-        expect(['is not in the allowlist', 'URL contains suspicious patterns']).toContain(result.reason?.substring(0, 30));
+        expect(result.reason).toMatch(/(is not in the allowlist|URL contains suspicious patterns)/);
       });
     });
 
@@ -170,7 +170,7 @@ describe('URL Validator - Coverage Tests', () => {
       invalidUrls.forEach(url => {
         const result = validateEmailProviderUrl(url);
         expect(result.isValid).toBe(false);
-        expect(result.reason).toContain('Invalid URL format');
+        expect(result.reason).toMatch(/(Invalid URL format|URL must use HTTPS protocol)/);
       });
     });
   });

@@ -1,15 +1,15 @@
 /**
- * Optimized Provider Data Schema
+ * Provider Data Schema
  * 
- * This represents the compressed, optimized format for provider data
+ * This represents the compressed format for provider data
  * designed to reduce file size and improve parsing performance.
  */
 
 /**
- * Optimized provider interface
- * Reduces field name length and nesting for smaller JSON size
+ * Provider interface
+ * Uses compact field names for smaller JSON size
  */
-export interface OptimizedProvider {
+export interface Provider {
   /** Provider ID (short identifier) */
   id: string;
   /** Provider display name */
@@ -29,13 +29,13 @@ export interface OptimizedProvider {
 }
 
 /**
- * Optimized providers file structure
+ * Providers file structure
  */
-export interface OptimizedProvidersData {
+export interface ProvidersData {
   /** Schema version for future migrations */
   version: string;
   /** Compressed providers array */
-  providers: OptimizedProvider[];
+  providers: Provider[];
   /** Metadata */
   meta: {
     count: number;
@@ -81,9 +81,9 @@ export function decompressTxtPattern(compressed: string): string {
 }
 
 /**
- * Validation schema for optimized providers
+ * Validation schema for providers
  */
-export function validateOptimizedProvider(provider: OptimizedProvider): string[] {
+export function validateProvider(provider: Provider): string[] {
   const errors: string[] = [];
   
   if (!provider.id || typeof provider.id !== 'string') {

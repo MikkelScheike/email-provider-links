@@ -7,120 +7,28 @@
 
 import {
   loadProviders,
-  loadProvidersOptimized,
+  loadProvidersDebug,
   clearCache,
   getLoadingStats
 } from '../src/loader';
-
-import * as fs from 'fs';
-import * as path from 'path';
 
 describe('Provider Data Loader Edge Cases', () => {
   beforeEach(() => {
     clearCache();
   });
 
-  describe('File system edge cases', () => {
-    it('should handle missing provider file', () => {
-      expect(() => {
-        loadProviders({
-          path: '/nonexistent/path/to/providers.json'
-        });
-      }).toThrow('Failed to load provider data');
-    });
-
-    it('should handle invalid JSON in provider file', () => {
-      const tempDir = '/tmp';
-      const invalidPath = path.join(tempDir, 'invalid-providers.json');
-      
-      try {
-        fs.writeFileSync(invalidPath, '{ invalid json content }');
-        
-        expect(() => {
-          loadProviders({
-            path: invalidPath
-          });
-        }).toThrow('Failed to load provider data');
-      } finally {
-        try {
-          fs.unlinkSync(invalidPath);
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-      }
-    });
-
-    it('should handle provider file with incorrect schema', () => {
-      const tempDir = '/tmp';
-      const invalidSchemaPath = path.join(tempDir, 'invalid-schema.json');
-      
-      try {
-        fs.writeFileSync(invalidSchemaPath, JSON.stringify({
-          version: "1.0",
-          providers: "not an array", // Wrong type
-          meta: { count: 0, domains: 0, generated: "2024-01-01" }
-        }));
-        
-        expect(() => {
-          loadProviders({
-            path: invalidSchemaPath
-          });
-        }).toThrow('Invalid provider data format');
-      } finally {
-        try {
-          fs.unlinkSync(invalidSchemaPath);
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-      }
-    });
-
-    it('should handle provider file with missing required fields', () => {
-      const tempDir = '/tmp';
-      const missingFieldsPath = path.join(tempDir, 'missing-fields.json');
-      
-      try {
-        fs.writeFileSync(missingFieldsPath, JSON.stringify({
-          version: "1.0"
-          // Missing providers field
-        }));
-        
-        expect(() => {
-          loadProviders({
-            path: missingFieldsPath
-          });
-        }).toThrow('Invalid provider data format');
-      } finally {
-        try {
-          fs.unlinkSync(missingFieldsPath);
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-      }
-    });
-  });
-
-  describe('Path resolution edge cases', () => {
-    it('should handle relative paths', () => {
-      const result = loadProviders({
-        path: './providers/emailproviders.json' // Relative path
-      });
-
-      expect(result.providers).toBeDefined();
-    });
-
-    it('should handle absolute paths', () => {
+  describe('Built-in data loading', () => {
+    it('should load built-in provider data successfully', () => {
       const result = loadProviders();
-      
-      // Get the stats that were generated
-      const stats = getLoadingStats();
-      expect(stats).toBeDefined();
-    });
-
-    it('should use default path when none provided', () => {
-      const result = loadProviders({});
       expect(result.providers).toBeDefined();
       expect(result.providers.length).toBeGreaterThan(0);
+    });
+
+    it('should load data without any parameters', () => {
+      const result = loadProviders();
+      expect(result.providers).toBeDefined();
+      expect(result.domainMap).toBeDefined();
+      expect(result.stats).toBeDefined();
     });
   });
 
@@ -134,8 +42,8 @@ describe('Provider Data Loader Edge Cases', () => {
     });
 
     it('should reload data when debug mode is enabled', () => {
-      const first = loadProviders({ debug: false });
-      const second = loadProviders({ debug: true });
+      const first = loadProviders();
+      const second = loadProvidersDebug();
       
       // Debug mode should reload
       expect(first.providers).not.toBe(second.providers);
@@ -187,29 +95,20 @@ describe('Provider Data Loader Edge Cases', () => {
     it('should produce debug output when enabled', () => {
       const logSpy = jest.spyOn(console, 'log').mockImplementation();
       
-      loadProviders({ debug: true });
+      loadProvidersDebug();
       
       expect(logSpy).toHaveBeenCalled();
       
       logSpy.mockRestore();
     });
 
-    it('should not produce debug output when disabled', () => {
-      const logSpy = jest.spyOn(console, 'log').mockImplementation();
-      
-      loadProviders({ debug: false });
-      
-      // Should not have debug output (though may have domain map output)
-      logSpy.mockRestore();
-    });
-
     it('should always reload in debug mode', () => {
       // Load once in normal mode
-      const normal = loadProviders({ debug: false });
+      const normal = loadProviders();
       
       // Load again in debug mode
-      const debug1 = loadProviders({ debug: true });
-      const debug2 = loadProviders({ debug: true });
+      const debug1 = loadProvidersDebug();
+      const debug2 = loadProvidersDebug();
       
       // Debug loads should be different instances
       expect(debug1.providers).not.toBe(debug2.providers);
@@ -266,10 +165,10 @@ describe('Provider Data Loader Edge Cases', () => {
     });
   });
 
-  describe('loadProvidersOptimized edge cases', () => {
+  describe('loadProviders edge cases', () => {
     it('should return consistent results', () => {
-      const first = loadProvidersOptimized();
-      const second = loadProvidersOptimized();
+      const first = loadProviders();
+      const second = loadProviders();
       
       expect(first.providers).toBe(second.providers); // Cached
       expect(first.domainMap).toBe(second.domainMap); // Cached
@@ -277,14 +176,14 @@ describe('Provider Data Loader Edge Cases', () => {
     });
 
     it('should have domain map with correct size', () => {
-      const { providers, domainMap } = loadProvidersOptimized();
+      const { providers, domainMap } = loadProviders();
       const expectedDomains = providers.reduce((sum, p) => sum + p.domains.length, 0);
       
       expect(domainMap.size).toBe(expectedDomains);
     });
 
     it('should provide valid domain lookups', () => {
-      const { domainMap } = loadProvidersOptimized();
+      const { domainMap } = loadProviders();
       
       // Test known domains
       const gmail = domainMap.get('gmail.com');
@@ -297,23 +196,36 @@ describe('Provider Data Loader Edge Cases', () => {
     });
   });
 
-  describe('Error recovery edge cases', () => {
-    it('should provide meaningful error messages', () => {
-      try {
-        loadProviders({ path: '/definitely/does/not/exist.json' });
-        fail('Should have thrown an error');
-      } catch (error: any) {
-        expect(error.message).toContain('Failed to load provider data');
-      }
+  describe('Built-in data integrity', () => {
+    it('should have valid provider data structure', () => {
+      const { providers } = loadProviders();
+      
+      expect(providers.length).toBeGreaterThan(90);
+      
+      providers.forEach(provider => {
+        expect(provider).toHaveProperty('companyProvider');
+        expect(provider).toHaveProperty('loginUrl');
+        expect(provider).toHaveProperty('domains');
+        expect(typeof provider.companyProvider).toBe('string');
+        expect(typeof provider.loginUrl).toBe('string');
+        expect(Array.isArray(provider.domains)).toBe(true);
+      });
     });
 
-    it('should handle file permission errors gracefully', () => {
-      // This test may not work on all systems
-      try {
-        loadProviders({ path: '/root/restricted.json' });
-      } catch (error: any) {
-        expect(error.message).toContain('Failed to load provider data');
-      }
+    it('should have no duplicate domains', () => {
+      const { providers } = loadProviders();
+      const allDomains = providers.flatMap(p => p.domains);
+      const uniqueDomains = new Set(allDomains);
+      
+      expect(allDomains.length).toBe(uniqueDomains.size);
+    });
+
+    it('should have valid URLs for all providers', () => {
+      const { providers } = loadProviders();
+      
+      providers.forEach(provider => {
+        expect(provider.loginUrl).toMatch(/^https:\/\/.+/);
+      });
     });
   });
 });

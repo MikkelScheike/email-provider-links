@@ -5,12 +5,12 @@
  */
 
 import {
-  OptimizedProvider,
-  OptimizedProvidersData,
+  Provider,
+  ProvidersData,
   TXT_PATTERN_COMPRESSION,
   compressTxtPattern,
   decompressTxtPattern,
-  validateOptimizedProvider
+  validateProvider
 } from '../src/schema';
 
 describe('Schema Module', () => {
@@ -107,7 +107,7 @@ describe('Schema Module', () => {
   });
 
   describe('Provider Validation', () => {
-    const validProvider: OptimizedProvider = {
+    const validProvider: Provider = {
       id: 'gmail',
       name: 'Gmail',
       url: 'https://mail.google.com/mail/',
@@ -121,43 +121,43 @@ describe('Schema Module', () => {
     };
 
     it('should validate a valid provider without errors', () => {
-      const errors = validateOptimizedProvider(validProvider);
+      const errors = validateProvider(validProvider);
       expect(errors).toEqual([]);
     });
 
     it('should require provider ID', () => {
       const invalidProvider = { ...validProvider, id: '' };
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors).toContain('Provider ID is required and must be a string');
     });
 
     it('should require provider ID to be string', () => {
       const invalidProvider = { ...validProvider, id: 123 as any };
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors).toContain('Provider ID is required and must be a string');
     });
 
     it('should require provider name', () => {
       const invalidProvider = { ...validProvider, name: '' };
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors).toContain('Provider name is required and must be a string');
     });
 
     it('should require provider name to be string', () => {
       const invalidProvider = { ...validProvider, name: 123 as any };
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors).toContain('Provider name is required and must be a string');
     });
 
     it('should require provider URL', () => {
       const invalidProvider = { ...validProvider, url: '' };
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors).toContain('Provider URL is required and must be a string');
     });
 
     it('should require provider URL to be string', () => {
       const invalidProvider = { ...validProvider, url: 123 as any };
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors).toContain('Provider URL is required and must be a string');
       // Should not crash when checking HTTPS on non-string URL
       expect(errors.length).toBeGreaterThan(0);
@@ -165,35 +165,35 @@ describe('Schema Module', () => {
 
     it('should require HTTPS URLs', () => {
       const invalidProvider = { ...validProvider, url: 'http://mail.google.com/mail/' };
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors).toContain('Provider URL must use HTTPS');
     });
 
     it('should validate domains array', () => {
       const invalidProvider = { ...validProvider, domains: 'gmail.com' as any };
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors).toContain('Domains must be an array');
     });
 
     it('should validate MX patterns array', () => {
       const invalidProvider = { ...validProvider, mx: 'aspmx.l.google.com' as any };
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors).toContain('MX patterns must be an array');
     });
 
     it('should validate TXT patterns array', () => {
       const invalidProvider = { ...validProvider, txt: 'spf:_spf.google.com' as any };
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors).toContain('TXT patterns must be an array');
     });
 
     it('should allow optional fields to be undefined', () => {
-      const minimalProvider: OptimizedProvider = {
+      const minimalProvider: Provider = {
         id: 'test',
         name: 'Test Provider',
         url: 'https://test.com'
       };
-      const errors = validateOptimizedProvider(minimalProvider);
+      const errors = validateProvider(minimalProvider);
       expect(errors).toEqual([]);
     });
 
@@ -207,7 +207,7 @@ describe('Schema Module', () => {
         txt: 'spf1'
       } as any;
 
-      const errors = validateOptimizedProvider(invalidProvider);
+      const errors = validateProvider(invalidProvider);
       expect(errors.length).toBeGreaterThan(3);
       expect(errors).toContain('Provider ID is required and must be a string');
       expect(errors).toContain('Provider name is required and must be a string');
@@ -219,8 +219,8 @@ describe('Schema Module', () => {
   });
 
   describe('Type Definitions', () => {
-    it('should define OptimizedProvider interface correctly', () => {
-      const provider: OptimizedProvider = {
+    it('should define Provider interface correctly', () => {
+      const provider: Provider = {
         id: 'test',
         name: 'Test',
         url: 'https://test.com',
@@ -243,8 +243,8 @@ describe('Schema Module', () => {
       expect(provider.alias?.plus).toBe(false);
     });
 
-    it('should define OptimizedProvidersData interface correctly', () => {
-      const data: OptimizedProvidersData = {
+    it('should define ProvidersData interface correctly', () => {
+      const data: ProvidersData = {
         version: '2.0',
         providers: [{
           id: 'test',

@@ -6,7 +6,6 @@
 
 import {
   loadProviders,
-  loadProvidersOptimized,
   loadProvidersDebug,
   buildDomainMap,
   clearCache,
@@ -41,8 +40,8 @@ describe('Provider Data Loader Tests', () => {
     });
 
     it('should respect debug mode and reload when debug enabled', () => {
-      const first = loadProviders({ debug: false });
-      const second = loadProviders({ debug: true });
+      const first = loadProviders();
+      const second = loadProvidersDebug();
       
       // Debug mode should reload, so different instances
       expect(first.providers).not.toBe(second.providers);
@@ -101,9 +100,9 @@ describe('Provider Data Loader Tests', () => {
     });
   });
 
-  describe('loadProvidersOptimized', () => {
+  describe('loadProviders', () => {
     it('should return providers, domain map, and stats', () => {
-      const result = loadProvidersOptimized();
+      const result = loadProviders();
       
       expect(result.providers).toBeDefined();
       expect(result.domainMap).toBeDefined();
@@ -113,7 +112,7 @@ describe('Provider Data Loader Tests', () => {
     });
 
     it('should use optimized settings', () => {
-      const result = loadProvidersOptimized();
+      const result = loadProviders();
       
       // Should load successfully
       expect(result.providers.length).toBeGreaterThan(90); // We know there are 93+ providers
@@ -264,9 +263,11 @@ describe('Provider Data Loader Tests', () => {
 
   describe('Error handling', () => {
     it('should throw meaningful error for invalid file path', () => {
-      expect(() => {
-        loadProviders({ path: '/invalid/path/that/does/not/exist.json' });
-      }).toThrow('Failed to load provider data');
+      // This test is no longer applicable since loadProviders doesn't accept parameters
+      // The function always loads from the built-in data file
+      const result = loadProviders();
+      expect(result.providers).toBeDefined();
+      expect(result.providers.length).toBeGreaterThan(0);
     });
 
     it('should handle empty providers array gracefully', () => {

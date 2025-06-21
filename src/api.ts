@@ -10,7 +10,7 @@ import {
   ConcurrentDNSConfig,
   ConcurrentDNSResult
 } from './concurrent-dns';
-import { loadProvidersOptimized } from './loader';
+import { loadProviders } from './loader';
 
 // EmailProvider interface
 export interface EmailProvider {
@@ -127,7 +127,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
     }
 
     // Fall back to DNS detection for business domains
-    const { providers } = loadProvidersOptimized();
+    const { providers } = loadProviders();
     const concurrentResult = await detectProviderConcurrent(domain, providers, {
       timeout: timeout || 5000,
       enableParallel: true,
@@ -259,7 +259,7 @@ export function getEmailProviderSync(email: string): EmailProviderResult {
     }
 
     // Load providers and find matching domain
-    const { providers } = loadProvidersOptimized();
+    const { providers } = loadProviders();
     const provider = providers.find(p => 
       p.domains?.some(d => d.toLowerCase() === domain)
     );
@@ -479,7 +479,7 @@ export async function getEmailProviderFast(
     }
 
     // Fall back to concurrent DNS detection for business domains
-    const { providers } = loadProvidersOptimized();
+    const { providers } = loadProviders();
     const concurrentResult = await detectProviderConcurrent(domain, providers, {
       timeout,
       enableParallel,

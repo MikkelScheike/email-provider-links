@@ -33,7 +33,7 @@ export type {
 // ===== ADVANCED FEATURES =====
 // Export utility functions for advanced use cases
 
-export { loadProvidersOptimized } from './loader';
+export { loadProviders } from './loader';
 export { detectProviderConcurrent } from './concurrent-dns';
 
 // Export types for advanced users
@@ -45,7 +45,7 @@ export type {
 // ===== UTILITY FUNCTIONS =====
 // Helper functions for common tasks
 
-import { loadProvidersOptimized } from './loader';
+import { loadProviders } from './loader';
 import { 
   getEmailProvider,
   getEmailProviderSync, 
@@ -60,7 +60,7 @@ import {
  * @returns Array of all email providers in the database
  */
 export function getSupportedProviders() {
-  const { providers } = loadProvidersOptimized();
+  const { providers } = loadProviders();
   return [...providers]; // Return a copy to prevent external mutations
 }
 
