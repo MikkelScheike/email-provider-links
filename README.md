@@ -26,6 +26,20 @@ A TypeScript library providing direct links to **93 email providers** (178 domai
 npm install @mikkelscheike/email-provider-links
 ```
 
+## Requirements
+
+- **Node.js**: `>=18.0.0` (Tested on 18.x, 20.x, 22.x, **24.x**)
+- **TypeScript**: `>=4.0.0` (optional)
+- **Zero runtime dependencies** - No external packages required
+
+### Node.js 24 Support ✨
+
+Fully compatible with the latest Node.js 24.x! The library is tested on:
+- Node.js 18.x (LTS)
+- Node.js 20.x (LTS) 
+- Node.js 22.x (Current)
+- **Node.js 24.x (Latest)** - Full support with latest features
+
 ## Quick Start
 
 **One function handles everything** - consumer emails, business domains, and unknown providers:
