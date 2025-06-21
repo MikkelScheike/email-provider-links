@@ -54,7 +54,8 @@
     "url": "https://github.com/mikkelscheike/email-provider-links/issues"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "comment": "Supports Node.js 18.x, 20.x, 22.x, and 24.x"
   },
   "publishConfig": {
     "access": "public"
