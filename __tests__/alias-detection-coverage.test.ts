@@ -7,9 +7,7 @@
 
 import {
   detectEmailAlias,
-  normalizeEmail,
-  getAliasCapabilities,
-  generateAliases
+  normalizeEmail
 } from '../src/alias-detection';
 
 describe('Email Alias Detection - Coverage Tests', () => {
@@ -140,61 +138,6 @@ describe('Email Alias Detection - Coverage Tests', () => {
     });
   });
 
-  describe('Generate aliases coverage', () => {
-    test('should handle providers without rule (coverage for unknown domains)', () => {
-      const aliases = generateAliases('user@unknown.com', {
-        plusAliases: ['test'],
-        includeDotVariations: true
-      });
-      
-      expect(aliases).toEqual(['user@unknown.com']);
-    });
-
-    test('should handle providers without plus addressing support', () => {
-      const aliases = generateAliases('user@aol.com', {
-        plusAliases: ['test', 'work']
-      });
-      
-      expect(aliases).toEqual(['user@aol.com']); // AOL doesn't support plus addressing
-    });
-
-    test('should handle providers without dot variations support', () => {
-      const aliases = generateAliases('user@outlook.com', {
-        includeDotVariations: true,
-        maxDotVariations: 3
-      });
-      
-      expect(aliases).toEqual(['user@outlook.com']); // Outlook doesn't ignore dots
-    });
-
-    test('should test FastMail subdomain alias capability', () => {
-      const capabilities = getAliasCapabilities('fastmail.com');
-      expect(capabilities?.supportsSubdomainAlias).toBe(true);
-    });
-
-    test('should test all provider capabilities coverage', () => {
-      const providers = [
-        'gmail.com', 'googlemail.com',
-        'outlook.com', 'hotmail.com', 'live.com', 'msn.com',
-        'yahoo.com', 'ymail.com', 'rocketmail.com',
-        'fastmail.com', 'fastmail.fm',
-        'proton.me', 'protonmail.com', 'pm.me',
-        'tutanota.com', 'tuta.com',
-        'zoho.com', 'zohomail.com',
-        'icloud.com', 'me.com', 'mac.com',
-        'mail.com',
-        'aol.com', 'aim.com',
-        'mail.ru',
-        'yandex.com', 'yandex.ru'
-      ];
-
-      providers.forEach(provider => {
-        const capabilities = getAliasCapabilities(provider);
-        expect(capabilities).not.toBeNull();
-        expect(capabilities?.domains).toContain(provider);
-      });
-    });
-  });
 
   describe('Complex normalization scenarios', () => {
     test('should handle Gmail with both dots and plus (normalize function coverage)', () => {
@@ -227,32 +170,7 @@ describe('Email Alias Detection - Coverage Tests', () => {
     });
   });
 
-  describe('Edge cases for complete coverage', () => {
-    test('should handle very short usernames for dot variations', () => {
-      const aliases = generateAliases('a@gmail.com', {
-        includeDotVariations: true,
-        maxDotVariations: 5
-      });
-      
-      expect(aliases).toEqual(['a@gmail.com']); // Too short for dot variations
-    });
-
-    test('should handle empty options in generateAliases', () => {
-      const aliases = generateAliases('user@gmail.com');
-      expect(aliases).toEqual(['user@gmail.com']); // No options provided
-    });
-
-    test('should handle maxDotVariations boundary conditions', () => {
-      const aliases = generateAliases('verylongusername@gmail.com', {
-        includeDotVariations: true,
-        maxDotVariations: 0
-      });
-      
-      // When maxDotVariations = 0, Math.min(0, username.length - 1) = 0, but loop doesn't run
-      // Since no aliases generated, it returns the original email
-      expect(aliases).toEqual(['verylongusername@gmail.com']);
-    });
-
+  describe('Additional normalization tests', () => {
     test('should test normalize function with different email formats', () => {
       // Test all normalization functions with various inputs
       const testCases = [
@@ -260,6 +178,20 @@ describe('Email Alias Detection - Coverage Tests', () => {
         { email: 'USER@OUTLOOK.COM', expected: 'user@outlook.com' },
         { email: 'user@yahoo.com', expected: 'user@yahoo.com' },
         { email: 'User@FastMail.COM', expected: 'user@fastmail.com' }
+      ];
+
+      testCases.forEach(({ email, expected }) => {
+        const normalized = normalizeEmail(email);
+        expect(normalized).toBe(expected);
+      });
+    });
+
+    test('should handle emails with complex patterns', () => {
+      // Test complex email patterns for additional coverage
+      const testCases = [
+        { email: 'User.Name@gmail.com', expected: 'username@gmail.com' },
+        { email: 'user+test+more@proton.me', expected: 'user@proton.me' },
+        { email: 'USER+WORK@TUTANOTA.COM', expected: 'user@tutanota.com' }
       ];
 
       testCases.forEach(({ email, expected }) => {

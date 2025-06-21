@@ -1,14 +1,14 @@
 # Email Provider Links
 
-🔒 **Enterprise-grade secure email provider detection with advanced alias normalization**
+🔒 **Modern email provider detection library with concurrent DNS resolution and enterprise security**
 
-A TypeScript package providing direct links to **93 email providers** (180+ domains) with **email alias detection**, comprehensive security features, and international coverage for login and password reset flows.
+A TypeScript library providing direct links to **93 email providers** (178 domains) with **concurrent DNS resolution**, **optimized performance**, **email alias detection**, and comprehensive security features for login and password reset flows.
 
 ## ✨ Features
 
 - 🚀 **Fast & Lightweight**: Zero dependencies, minimal footprint
 - 📧 **93 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
-- 🌐 **180+ Domains Supported**: Comprehensive international coverage
+- 🌐 **178 Domains Supported**: Comprehensive international coverage
 - 🏢 **Business Domain Detection**: DNS-based detection for custom domains (Google Workspace, Microsoft 365, etc.)
 - 🔒 **Enterprise Security**: Multi-layer protection against malicious URLs and supply chain attacks
 - 🛡️ **URL Validation**: HTTPS-only enforcement with domain allowlisting
@@ -18,7 +18,7 @@ A TypeScript package providing direct links to **93 email providers** (180+ doma
 - 🚦 **Rate Limiting**: Built-in DNS query rate limiting to prevent abuse
 - 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
 - 🛡️ **Fraud Prevention**: Detect duplicate accounts through email alias manipulation
-- 🧪 **Thoroughly Tested**: 188+ tests with comprehensive coverage
+- 🧪 **Thoroughly Tested**: 371 tests with 91.75% code coverage
 
 ## Installation
 
@@ -28,21 +28,28 @@ npm install @mikkelscheike/email-provider-links
 
 ## Quick Start
 
+**One function handles everything** - consumer emails, business domains, and unknown providers:
+
 ```typescript
-import { getEmailProviderLinkWithDNS } from '@mikkelscheike/email-provider-links';
+import { getEmailProvider } from '@mikkelscheike/email-provider-links';
 
-// Works for any email address
-const result = await getEmailProviderLinkWithDNS('user@gmail.com');
-console.log(result.loginUrl); // "https://mail.google.com/mail/"
+// Works for ANY email address - the only function you need
+const result = await getEmailProvider('user@gmail.com');
+console.log(result.loginUrl);                    // "https://mail.google.com/mail/"
+console.log(result.provider?.companyProvider);   // "Gmail"
 
-// Business domains too
-const business = await getEmailProviderLinkWithDNS('user@mycompany.com');
+// Automatically detects business domains too
+const business = await getEmailProvider('user@mycompany.com');
 console.log(business.provider?.companyProvider); // "Google Workspace" (if detected)
+
+// Gracefully handles unknown providers
+const unknown = await getEmailProvider('user@unknown.com');
+console.log(unknown.loginUrl);                   // null
 ```
 
 ## Supported Providers
 
-**📊 Current Coverage: 93 providers supporting 180+ domains**
+**📊 Current Coverage: 93 providers supporting 178 domains**
 
 **Consumer Email Providers:**
 - **Gmail** (2 domains): gmail.com, googlemail.com
@@ -73,19 +80,19 @@ console.log(business.provider?.companyProvider); // "Google Workspace" (if detec
 
 ## API
 
-### `getEmailProviderLinkWithDNS(email, timeout?)`
+### `getEmailProvider(email, timeout?)`
 **Recommended** - Detects any email provider including business domains.
 
 ```typescript
-const result = await getEmailProviderLinkWithDNS('user@gmail.com', 3000);
+const result = await getEmailProvider('user@gmail.com', 3000);
 // Returns: { provider, loginUrl, detectionMethod, email }
 ```
 
-### `getEmailProviderLink(email)`
+### `getEmailProviderSync(email)`
 **Synchronous** - Only checks predefined domains (no DNS lookup).
 
 ```typescript
-const result = getEmailProviderLink('user@gmail.com');
+const result = getEmailProviderSync('user@gmail.com');
 // Returns: { provider, loginUrl, email }
 ```
 
@@ -93,7 +100,7 @@ const result = getEmailProviderLink('user@gmail.com');
 
 ```typescript
 async function handlePasswordReset(email: string) {
-  const result = await getEmailProviderLinkWithDNS(email);
+  const result = await getEmailProvider(email);
   
   return {
     providerUrl: result.loginUrl,
@@ -103,57 +110,85 @@ async function handlePasswordReset(email: string) {
 }
 ```
 
-## 🔄 Email Alias Detection
 
-**NEW in v1.7.0** - Advanced email alias detection and normalization to prevent duplicate accounts and improve user experience.
+## Configuration
 
-### Features
+```typescript
+// Custom DNS timeout (default: 5000ms)
+const result = await getEmailProvider(email, 2000);
 
-- **Gmail Dot Normalization**: `u.s.e.r@gmail.com` → `user@gmail.com`
-- **Plus Addressing**: `user+newsletter@provider.com` → `user@provider.com`
-- **Provider-Specific Rules**: Different providers have different aliasing capabilities
-- **Fraud Prevention**: Detect when users try to create multiple accounts with aliases
-- **Email Deduplication**: Normalize email lists to get accurate unique user counts
+// Rate limiting configuration
+import { Config } from '@mikkelscheike/email-provider-links';
+console.log('Max requests:', Config.MAX_DNS_REQUESTS_PER_MINUTE); // 10
+console.log('Default timeout:', Config.DEFAULT_DNS_TIMEOUT);       // 5000ms
+```
 
-### Quick Start
+## Advanced Usage
+
+<details>
+<summary><strong>📚 Secondary Functions & Specialized Use Cases</strong></summary>
+
+### Synchronous Provider Detection (No DNS)
+
+If you can't use async or don't want DNS lookups:
+
+```typescript
+import { getEmailProviderSync } from '@mikkelscheike/email-provider-links';
+
+// Synchronous - only checks predefined domains
+const result = getEmailProviderSync('user@gmail.com');
+console.log(result.loginUrl); // Works for known domains only
+```
+
+### Provider Support Checking
+
+```typescript
+import { isEmailProviderSupported, getSupportedProviders } from '@mikkelscheike/email-provider-links';
+
+// Check if provider is supported
+const supported = isEmailProviderSupported('user@gmail.com');
+
+// Get all supported providers
+const allProviders = getSupportedProviders();
+console.log(`Supports ${allProviders.length} providers`);
+```
+
+### Advanced Provider Detection
+
+```typescript
+import { getEmailProviderFast, detectProviderConcurrent } from '@mikkelscheike/email-provider-links';
+
+// High-performance detection with concurrent DNS
+const fastResult = await getEmailProviderFast('user@mycompany.com', {
+  enableParallel: true,
+  collectDebugInfo: true
+});
+console.log(fastResult.provider?.companyProvider); // "Google Workspace"
+console.log(fastResult.timing);                    // Performance metrics
+```
+
+### Configuration Options
+
+```typescript
+import { Config } from '@mikkelscheike/email-provider-links';
+
+// Access configuration constants
+console.log(Config.DEFAULT_DNS_TIMEOUT);           // 5000ms
+console.log(Config.MAX_DNS_REQUESTS_PER_MINUTE);   // 10
+console.log(Config.SUPPORTED_PROVIDERS_COUNT);     // 93
+```
+
+### 🔄 Email Alias Detection & Normalization
+
+**Specialized feature** for preventing duplicate accounts and fraud detection:
 
 ```typescript
 import { 
-  detectEmailAlias, 
   normalizeEmail, 
   emailsMatch 
 } from '@mikkelscheike/email-provider-links';
 
-// Detect and analyze aliases
-const result = detectEmailAlias('u.s.e.r+work@gmail.com');
-console.log(result.canonical);  // 'user@gmail.com'
-console.log(result.isAlias);    // true
-console.log(result.aliasType);  // 'plus'
-console.log(result.aliasPart);  // 'work'
-
-// Normalize any email to canonical form
-const canonical = normalizeEmail('U.S.E.R+Newsletter@GMAIL.COM');
-console.log(canonical); // 'user@gmail.com'
-
-// Check if two emails are the same person
-const match = emailsMatch('user@gmail.com', 'u.s.e.r+work@gmail.com');
-console.log(match); // true
-```
-
-### Provider Support
-
-| Provider | Plus Addressing | Dots Ignored | Example |
-|----------|----------------|--------------|----------|
-| **Gmail** | ✅ Yes | ✅ Yes | `u.s.e.r+tag@gmail.com` → `user@gmail.com` |
-| **Outlook** | ✅ Yes | ❌ No | `user+tag@outlook.com` → `user@outlook.com` |
-| **Yahoo** | ✅ Yes | ❌ No | `user+tag@yahoo.com` → `user@yahoo.com` |
-| **ProtonMail** | ✅ Yes | ❌ No | `user+tag@proton.me` → `user@proton.me` |
-| **AOL** | ❌ No | ❌ No | No aliasing support |
-
-### Advanced Usage
-
-```typescript
-// Prevent duplicate account creation
+// Prevent duplicate accounts
 async function registerUser(email: string) {
   const canonical = normalizeEmail(email);
   const existingUser = await findUserByEmail(canonical);
@@ -162,53 +197,24 @@ async function registerUser(email: string) {
     throw new Error('Email already registered');
   }
   
-  // Store canonical email to prevent future duplicates
   await createUser({ email: canonical });
 }
 
-// Analyze email list for duplicates
-import { analyzeEmailAliases } from '@mikkelscheike/email-provider-links';
+// Check if login email matches registration
+const match = emailsMatch('user@gmail.com', 'u.s.e.r+work@gmail.com');
+console.log(match); // true - same person
 
-const emailList = [
-  'user@gmail.com',
-  'u.s.e.r@gmail.com',
-  'user+newsletter@gmail.com',
-  'different@gmail.com'
-];
-
-const analysis = analyzeEmailAliases(emailList);
-console.log(analysis.totalEmails);      // 4
-console.log(analysis.uniqueCanonical);  // 2 (actual unique users)
-
-// Generate test aliases
-import { generateAliases } from '@mikkelscheike/email-provider-links';
-
-const aliases = generateAliases('user@gmail.com', {
-  plusAliases: ['work', 'personal'],
-  includeDotVariations: true,
-  maxDotVariations: 3
-});
-// Returns: ['user+work@gmail.com', 'user+personal@gmail.com', 'u.ser@gmail.com', ...]
+// Simple normalization
+const canonical = normalizeEmail('u.s.e.r+work@gmail.com');
+console.log(canonical);  // 'user@gmail.com'
 ```
 
-## Configuration
+**Supported alias types:**
+- **Gmail dots**: `u.s.e.r@gmail.com` → `user@gmail.com`
+- **Plus addressing**: `user+tag@provider.com` → `user@provider.com`
+- **Provider-specific rules**: Different providers have different capabilities
 
-```typescript
-// Custom DNS timeout (default: 5000ms)
-const result = await getEmailProviderLinkWithDNS(email, 2000);
-
-// Check if provider is supported
-import { isEmailProviderSupported } from '@mikkelscheike/email-provider-links';
-const supported = isEmailProviderSupported('user@gmail.com');
-
-// Rate limiting configuration
-import { RateLimit } from '@mikkelscheike/email-provider-links';
-console.log('Max requests:', RateLimit.MAX_REQUESTS); // 10
-console.log('Time window:', RateLimit.WINDOW_MS);     // 60000ms
-
-// Custom rate limiter for specific use cases
-const customLimiter = new RateLimit.SimpleRateLimiter(20, 120000); // 20 requests per 2 minutes
-```
+</details>
 
 ## TypeScript Support
 
@@ -221,11 +227,11 @@ interface EmailProviderResult {
   proxyService?: string;
 }
 
-interface RateLimitConfig {
-  MAX_REQUESTS: number;     // 10 requests
-  WINDOW_MS: number;        // 60000ms (1 minute)
-  SimpleRateLimiter: class; // Custom rate limiter class
-  getCurrentLimiter(): SimpleRateLimiter; // Get current global limiter
+interface ConfigConstants {
+  DEFAULT_DNS_TIMEOUT: number;          // 5000ms
+  MAX_DNS_REQUESTS_PER_MINUTE: number;  // 10 requests
+  SUPPORTED_PROVIDERS_COUNT: number;    // 93 providers
+  SUPPORTED_DOMAINS_COUNT: number;      // 178 domains
 }
 ```
 
@@ -236,7 +242,7 @@ This package implements **enterprise-grade security** to protect against malicio
 ### ✅ Multi-Layer Protection
 
 - **HTTPS-Only Enforcement**: All provider URLs must use HTTPS protocol
-- **Domain Allowlisting**: Only pre-approved domains are allowed (64+ verified providers)
+- **Domain Allowlisting**: Only pre-approved domains are allowed (93+ verified providers)
 - **Malicious Pattern Detection**: Blocks IP addresses, URL shorteners, suspicious TLDs
 - **Path Traversal Prevention**: Detects and blocks `../` and encoded variants
 - **JavaScript Injection Protection**: Prevents `javascript:`, `data:`, and script injections
@@ -256,7 +262,7 @@ Protects against common attack vectors:
 ### 🧪 Security Testing
 
 - **29 dedicated security tests** covering all attack vectors
-- **94% security code coverage** with edge case testing
+- **96% security module coverage** with edge case testing
 - **Automated security validation** in CI/CD pipeline
 - **Regular security audits** of provider database
 
@@ -279,6 +285,7 @@ if (result.securityReport.securityLevel === 'CRITICAL') {
 
 We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on adding new email providers.
 
+**Quality Assurance**: This project maintains high standards with 371 comprehensive tests achieving 91.75% code coverage.
 **Security Note**: All new providers undergo security validation and must pass our allowlist verification.
 
 ## Security

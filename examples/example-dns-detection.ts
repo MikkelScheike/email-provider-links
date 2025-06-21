@@ -1,7 +1,7 @@
 import { 
-  getEmailProviderLink, 
-  getEmailProviderLinkWithDNS, 
-  detectProviderByDNS 
+  getEmailProviderSync, 
+  getEmailProvider, 
+  getEmailProviderFast 
 } from '../src/index';
 
 /**
@@ -12,7 +12,7 @@ async function demonstrateDNSDetection() {
 
   // Example 1: Standard domain detection (no DNS lookup needed)
   console.log('1. Standard Domain Detection:');
-  const gmailResult = getEmailProviderLink('user@gmail.com');
+  const gmailResult = getEmailProviderSync('user@gmail.com');
   console.log(`   Email: user@gmail.com`);
   console.log(`   Provider: ${gmailResult.provider?.companyProvider}`);
   console.log(`   Login URL: ${gmailResult.loginUrl}\n`);
@@ -20,46 +20,58 @@ async function demonstrateDNSDetection() {
   // Example 2: DNS-based detection for custom business domains
   console.log('2. DNS-based Detection for Custom Domains:');
   
-  // Test domains that might use Microsoft 365
+  // Test domains that might use business email providers
   const testDomains = [
-    'user@contoso.com',        // Example Microsoft 365 domain
-    'user@acme-corp.com',      // Example Google Workspace domain
-    'user@mycompany.org'       // Unknown domain
+    'user@microsoft.com',        // Example Microsoft 365 domain
+    'user@google.com',           // Example Google Workspace domain
+    'user@mycompany.org'         // Unknown domain
   ];
 
   for (const email of testDomains) {
     console.log(`\n   Testing: ${email}`);
     
     // First try standard detection
-    const standardResult = getEmailProviderLink(email);
+    const standardResult = getEmailProviderSync(email);
     console.log(`   Standard detection: ${standardResult.provider ? standardResult.provider.companyProvider : 'Not found'}`);
     
     try {
       // Then try DNS-based detection
-      const dnsResult = await getEmailProviderLinkWithDNS(email);
+      const dnsResult = await getEmailProvider(email);
       console.log(`   DNS detection: ${dnsResult.provider ? dnsResult.provider.companyProvider : 'Not found'}`);
       console.log(`   Detection method: ${dnsResult.detectionMethod || 'none'}`);
       console.log(`   Login URL: ${dnsResult.loginUrl || 'none'}`);
+      if (dnsResult.error) {
+        console.log(`   Error: ${dnsResult.error.message}`);
+      }
     } catch (error) {
-      console.log(`   DNS lookup failed: ${error.message}`);
+      console.log(`   DNS lookup failed: ${(error as Error).message}`);
     }
   }
 
-  // Example 3: Direct DNS detection for a domain
-  console.log('\n3. Direct DNS Detection:');
-  const domain = 'microsoft.com';
-  console.log(`   Checking DNS records for: ${domain}`);
+  // Example 3: High-performance detection with timing metrics
+  console.log('\n3. High-Performance Detection:');
+  const email = 'user@microsoft.com';
+  console.log(`   Testing fast detection for: ${email}`);
   
   try {
-    const dnsDetection = await detectProviderByDNS(domain);
-    if (dnsDetection.provider) {
-      console.log(`   Provider detected: ${dnsDetection.provider.companyProvider}`);
-      console.log(`   Detection method: ${dnsDetection.detectionMethod}`);
+    const fastResult = await getEmailProviderFast(email, {
+      enableParallel: true,
+      collectDebugInfo: true
+    });
+    
+    if (fastResult.provider) {
+      console.log(`   Provider detected: ${fastResult.provider.companyProvider}`);
+      console.log(`   Detection method: ${fastResult.detectionMethod}`);
+      console.log(`   Detection time: ${fastResult.timing?.total}ms`);
+      console.log(`   Confidence: ${fastResult.confidence}`);
     } else {
-      console.log(`   No provider detected via DNS`);
+      console.log(`   No provider detected`);
+      if (fastResult.error) {
+        console.log(`   Error: ${fastResult.error.message}`);
+      }
     }
   } catch (error) {
-    console.log(`   DNS detection failed: ${error.message}`);
+    console.log(`   Fast detection failed: ${(error as Error).message}`);
   }
 
   console.log('\n=== DNS Detection Patterns ===');
@@ -71,9 +83,9 @@ async function demonstrateDNSDetection() {
   console.log('  - MX patterns: google.com, aspmx.l.google.com');
   console.log('  - TXT patterns: _spf.google.com, google-site-verification=');
   
-  console.log('\nZoho Workplace Detection:');
-  console.log('  - MX patterns: zoho.com, mx.zoho.com');
-  console.log('  - TXT patterns: zoho.com, zoho-verification=');
+  console.log('\nAmazon WorkMail Detection:');
+  console.log('  - MX patterns: awsapps.com');
+  console.log('  - TXT patterns: amazonses.com');
 }
 
 // Example usage function for React/frontend
@@ -85,7 +97,7 @@ export function useEmailProviderWithDNS(email: string) {
     if (!email) return;
     
     setLoading(true);
-    getEmailProviderLinkWithDNS(email)
+    getEmailProvider(email)
       .then(setResult)
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -98,4 +110,3 @@ export function useEmailProviderWithDNS(email: string) {
 if (require.main === module) {
   demonstrateDNSDetection().catch(console.error);
 }
-

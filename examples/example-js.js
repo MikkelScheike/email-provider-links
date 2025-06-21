@@ -8,7 +8,8 @@
 // This would be: const { getEmailProviderLink } = require('email-provider-links');
 // For local testing, we'll use the dist build
 const { 
-  getEmailProviderLink, 
+  getEmailProviderSync, 
+  getEmailProvider,
   isEmailProviderSupported, 
   getSupportedProviders,
   isValidEmail 
@@ -29,7 +30,7 @@ const testEmails = [
 console.log('📧 Testing email provider detection in JavaScript:\n');
 
 testEmails.forEach(email => {
-  const result = getEmailProviderLink(email);
+  const result = getEmailProviderSync(email);
   console.log(`Email: ${email}`);
   
   if (result.provider) {
@@ -63,7 +64,12 @@ console.log(`  ... and ${providers.length - 5} more providers`);
 
 console.log('\n✨ JavaScript example completed!');
 console.log('\n💡 Usage in your JavaScript project:');
-console.log('const { getEmailProviderLink } = require("email-provider-links");');
-console.log('const result = getEmailProviderLink("user@gmail.com");');
-console.log('console.log(result.loginUrl); // "https://accounts.google.com/signin"');
+console.log('// Synchronous detection');
+console.log('const { getEmailProviderSync } = require("email-provider-links");');
+console.log('const result = getEmailProviderSync("user@gmail.com");');
+console.log('console.log(result.loginUrl); // "https://mail.google.com/mail/"');
+console.log('');
+console.log('// Async detection with DNS support');
+console.log('const { getEmailProvider } = require("email-provider-links");');
+console.log('const result = await getEmailProvider("user@mycompany.com");');
 

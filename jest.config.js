@@ -10,5 +10,10 @@ module.exports = {
     'src/**/*.ts',
     '!src/**/*.d.ts',
   ],
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '/__tests__/',
+    '/src/security/security-demo.ts',
+  ],
 };
 

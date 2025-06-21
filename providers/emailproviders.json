@@ -1,42 +1,44 @@
 {
+  "version": "2.0",
   "providers": [
     {
-      "companyProvider": "Aamra Mail",
-      "loginUrl": "https://mail.aamra.com.bd",
+      "id": "aamra",
+      "name": "Aamra Mail",
+      "url": "https://mail.aamra.com.bd",
       "domains": [
         "aamra.com.bd"
       ]
     },
     {
-      "companyProvider": "Amazon WorkMail",
-      "loginUrl": "https://workmail.aws.amazon.com/",
-      "domains": [],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "awsapps.com",
-          "inbound-smtp.us-east-1.awsapps.com",
-          "inbound-smtp.us-west-2.awsapps.com",
-          "inbound-smtp.eu-west-1.awsapps.com",
-          "inbound-smtp.ap-southeast-2.awsapps.com",
-          "workmail.amazonaws.com"
-        ],
-        "txtPatterns": [
-          "amazonses:workmail",
-          "v=spf1 include:amazonses.com",
-          "v=spf1 include:workmail.us-east-1.amazonaws.com"
-        ]
-      }
+      "id": "amazon",
+      "name": "Amazon WorkMail",
+      "url": "https://workmail.aws.amazon.com/",
+      "mx": [
+        "awsapps.com",
+        "inbound-smtp.us-east-1.awsapps.com",
+        "inbound-smtp.us-west-2.awsapps.com",
+        "inbound-smtp.eu-west-1.awsapps.com",
+        "inbound-smtp.ap-southeast-2.awsapps.com",
+        "workmail.amazonaws.com"
+      ],
+      "txt": [
+        "amazonses:workmail",
+        "spf:amazonses.com",
+        "spf:workmail.us-east-1.amazonaws.com"
+      ]
     },
     {
-      "companyProvider": "AnonAddy",
-      "loginUrl": "https://anonaddy.com",
+      "id": "anonad",
+      "name": "AnonAddy",
+      "url": "https://anonaddy.com",
       "domains": [
         "anonaddy.com"
       ]
     },
     {
-      "companyProvider": "AOL Mail",
-      "loginUrl": "https://mail.aol.com",
+      "id": "aol",
+      "name": "AOL Mail",
+      "url": "https://mail.aol.com",
       "domains": [
         "aol.com",
         "love.com",
@@ -47,128 +49,136 @@
       ]
     },
     {
-      "companyProvider": "AT&T Mail",
-      "loginUrl": "https://currently.att.yahoo.com",
+      "id": "att",
+      "name": "AT&T Mail",
+      "url": "https://currently.att.yahoo.com",
       "domains": [
         "att.net"
       ]
     },
     {
-      "companyProvider": "BD Mail",
-      "loginUrl": "https://bdmail.net",
+      "id": "bd",
+      "name": "BD Mail",
+      "url": "https://bdmail.net",
       "domains": [
         "bdmail.net"
       ]
     },
     {
-      "companyProvider": "Biglobe",
-      "loginUrl": "https://mail.biglobe.ne.jp",
+      "id": "biglob",
+      "name": "Biglobe",
+      "url": "https://mail.biglobe.ne.jp",
       "domains": [
         "biglobe.ne.jp"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "bgmgate1.biglobe.ne.jp",
-          "bgmgate2.biglobe.ne.jp"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:spf01.biglobe.ne.jp include:spf04.biglobe.ne.jp include:spf06.biglobe.ne.jp ~all"
-        ]
-      }
+      "mx": [
+        "bgmgate1.biglobe.ne.jp",
+        "bgmgate2.biglobe.ne.jp"
+      ],
+      "txt": [
+        "spf:spf01.biglobe.ne.jp include:spf04.biglobe.ne.jp include:spf06.biglobe.ne.jp ~all"
+      ]
     },
     {
-      "companyProvider": "Bluehost Email",
-      "loginUrl": "https://webmail.bluehost.com",
-      "domains": [],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "bluehost.com",
-          "mailchannels.net"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:spf.bluehost.com"
-        ]
-      }
+      "id": "blueho",
+      "name": "Bluehost Email",
+      "url": "https://webmail.bluehost.com",
+      "mx": [
+        "bluehost.com",
+        "mailchannels.net"
+      ],
+      "txt": [
+        "spf:spf.bluehost.com"
+      ]
     },
     {
-      "companyProvider": "BOL Mail",
-      "loginUrl": "https://email.bol.com.br",
+      "id": "bol",
+      "name": "BOL Mail",
+      "url": "https://email.bol.com.br",
       "domains": [
         "bol.com.br"
       ]
     },
     {
-      "companyProvider": "Comcast/Xfinity",
-      "loginUrl": "https://connect.xfinity.com/appsuite/",
+      "id": "comcas",
+      "name": "Comcast/Xfinity",
+      "url": "https://connect.xfinity.com/appsuite/",
       "domains": [
         "comcast.net"
       ]
     },
     {
-      "companyProvider": "CounterMail",
-      "loginUrl": "https://countermail.com",
+      "id": "counte",
+      "name": "CounterMail",
+      "url": "https://countermail.com",
       "domains": [
         "countermail.com"
       ]
     },
     {
-      "companyProvider": "Daum",
-      "loginUrl": "https://mail.daum.net/",
+      "id": "daum",
+      "name": "Daum",
+      "url": "https://mail.daum.net/",
       "domains": [
         "daum.net"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "hanmail.net"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:_spf.daum.net ~all"
-        ]
-      }
+      "mx": [
+        "hanmail.net"
+      ],
+      "txt": [
+        "spf:_spf.daum.net ~all"
+      ]
     },
     {
-      "companyProvider": "FastMail",
-      "loginUrl": "https://www.fastmail.com",
+      "id": "fast",
+      "name": "FastMail",
+      "url": "https://www.fastmail.com",
       "domains": [
         "fastmail.com",
         "fastmail.fm"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "messagingengine.com",
-          "in1-smtp.messagingengine.com",
-          "in2-smtp.messagingengine.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:spf.messagingengine.com"
-        ]
-      }
+      "mx": [
+        "messagingengine.com",
+        "in1-smtp.messagingengine.com",
+        "in2-smtp.messagingengine.com"
+      ],
+      "txt": [
+        "spf:spf.messagingengine.com"
+      ]
     },
     {
-      "companyProvider": "Free.fr",
-      "loginUrl": "https://webmail.free.fr/",
+      "id": "freefr",
+      "name": "Free.fr",
+      "url": "https://webmail.free.fr/",
       "domains": [
         "free.fr"
       ]
     },
     {
-      "companyProvider": "Globo Mail",
-      "loginUrl": "https://email.globo.com",
+      "id": "globo",
+      "name": "Globo Mail",
+      "url": "https://email.globo.com",
       "domains": [
         "globo.com"
       ]
     },
     {
-      "companyProvider": "Gmail",
-      "loginUrl": "https://mail.google.com/mail/",
+      "id": "g",
+      "name": "Gmail",
+      "url": "https://mail.google.com/mail/",
       "domains": [
         "gmail.com",
         "googlemail.com"
-      ]
+      ],
+      "alias": {
+        "dots": true,
+        "plus": true
+      }
     },
     {
-      "companyProvider": "GMX",
-      "loginUrl": "https://www.gmx.net",
+      "id": "gmx",
+      "name": "GMX",
+      "url": "https://www.gmx.net",
       "domains": [
         "gmx.com",
         "gmx.net",
@@ -179,259 +189,254 @@
       ]
     },
     {
-      "companyProvider": "GoDaddy",
-      "loginUrl": "https://sso.godaddy.com/?realm=pass&app=email",
+      "id": "godadd",
+      "name": "GoDaddy",
+      "url": "https://sso.godaddy.com/?realm=pass&app=email",
       "domains": [
         "godaddy.com",
         "secureserver.net"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "smtp.secureserver.net",
-          "mailstore1.secureserver.net",
-          "mailstore2.secureserver.net",
-          "mx1.secureserver.net",
-          "mx2.secureserver.net",
-          "domain-com.mail.protection.outlook.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:secureserver.net",
-          "v=spf1 include:spf.protection.outlook.com",
-          "godaddy-verification="
-        ]
-      }
+      "mx": [
+        "smtp.secureserver.net",
+        "mailstore1.secureserver.net",
+        "mailstore2.secureserver.net",
+        "mx1.secureserver.net",
+        "mx2.secureserver.net",
+        "domain-com.mail.protection.outlook.com"
+      ],
+      "txt": [
+        "spf:secureserver.net",
+        "spf:spf.protection.outlook.com",
+        "godaddy-verification="
+      ]
     },
     {
-      "companyProvider": "Google Workspace",
-      "loginUrl": "https://mail.google.com",
-      "domains": [],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "google.com",
-          "googlemail.com",
-          "aspmx.l.google.com",
-          "aspmx2.googlemail.com",
-          "aspmx3.googlemail.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:_spf.google.com",
-          "google-site-verification="
-        ]
-      }
+      "id": "gworks",
+      "name": "Google Workspace",
+      "url": "https://mail.google.com",
+      "mx": [
+        "google.com",
+        "googlemail.com",
+        "aspmx.l.google.com",
+        "aspmx2.googlemail.com",
+        "aspmx3.googlemail.com"
+      ],
+      "txt": [
+        "spf:_spf.google.com",
+        "gsv:"
+      ]
     },
     {
-      "companyProvider": "HostGator",
-      "loginUrl": "https://portal.hostgator.com/login",
+      "id": "hostga",
+      "name": "HostGator",
+      "url": "https://portal.hostgator.com/login",
       "domains": [
         "hostgator.com"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "mail.yourdomain.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:websitewelcome.com"
-        ]
-      }
+      "mx": [
+        "mail.yourdomain.com"
+      ],
+      "txt": [
+        "spf:websitewelcome.com"
+      ]
     },
     {
-      "companyProvider": "Hostinger",
-      "loginUrl": "https://mail.hostinger.com",
+      "id": "hostin",
+      "name": "Hostinger",
+      "url": "https://mail.hostinger.com",
       "domains": [
         "hostinger.com"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "mx1.hostinger.com",
-          "mx2.hostinger.com",
-          "mx3.hostinger.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:spf.hostinger.com",
-          "hostinger-verification="
-        ]
-      }
+      "mx": [
+        "mx1.hostinger.com",
+        "mx2.hostinger.com",
+        "mx3.hostinger.com"
+      ],
+      "txt": [
+        "spf:spf.hostinger.com",
+        "hostinger-verification="
+      ]
     },
     {
-      "companyProvider": "Hushmail",
-      "loginUrl": "https://www.hushmail.com/signin/",
+      "id": "hush",
+      "name": "Hushmail",
+      "url": "https://www.hushmail.com/signin/",
       "domains": [
         "hushmail.com"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "plsmtp1.hushmail.com",
-          "plsmtp2.hushmail.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:4429584.spf01.hubspotemail.net ip4:65.39.178.0/24 ip4:64.69.70.192/28 -all"
-        ]
-      }
+      "mx": [
+        "plsmtp1.hushmail.com",
+        "plsmtp2.hushmail.com"
+      ],
+      "txt": [
+        "spf:4429584.spf01.hubspotemail.net ip4:65.39.178.0/24 ip4:64.69.70.192/28 -all"
+      ]
     },
     {
-      "companyProvider": "iCloud Mail",
-      "loginUrl": "https://www.icloud.com/mail",
+      "id": "icloud",
+      "name": "iCloud Mail",
+      "url": "https://www.icloud.com/mail",
       "domains": [
         "icloud.com",
         "me.com",
         "mac.com"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "mx01.mail.icloud.com",
-          "mx02.mail.icloud.com"
-        ],
-        "txtPatterns": [
-          "apple-domain-verification=",
-          "v=spf1 include:icloud.com"
-        ]
-      }
+      "mx": [
+        "mx01.mail.icloud.com",
+        "mx02.mail.icloud.com"
+      ],
+      "txt": [
+        "apple-domain-verification=",
+        "spf:icloud.com"
+      ]
     },
     {
-      "companyProvider": "IIJ",
-      "loginUrl": "https://mail.iij.ad.jp",
+      "id": "iij",
+      "name": "IIJ",
+      "url": "https://mail.iij.ad.jp",
       "domains": [
         "iij.ad.jp"
       ]
     },
     {
-      "companyProvider": "InMotion Hosting",
-      "loginUrl": "https://ngx257.inmotionhosting.com:2096",
+      "id": "inmoti",
+      "name": "InMotion Hosting",
+      "url": "https://ngx257.inmotionhosting.com:2096",
       "domains": [
         "inmotionhosting.com"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "mail.inmotionhosting.com",
-          "mx.inmotionhosting.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:inmotionhosting.com",
-          "inmotionhosting-verification="
-        ]
-      }
+      "mx": [
+        "mail.inmotionhosting.com",
+        "mx.inmotionhosting.com"
+      ],
+      "txt": [
+        "spf:inmotionhosting.com",
+        "inmotionhosting-verification="
+      ]
     },
     {
-      "companyProvider": "IONOS",
-      "loginUrl": "https://mail.ionos.com",
+      "id": "ionos",
+      "name": "IONOS",
+      "url": "https://mail.ionos.com",
       "domains": [
         "ionos.com",
         "1and1.com",
         "ionos.de"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "mx00.ionos.com",
-          "mx01.ionos.com",
-          "mx00.1and1.com",
-          "mx01.1and1.com",
-          "mx00.kundenserver.de",
-          "mx01.kundenserver.de"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:_spf.perfora.net",
-          "v=spf1 include:_spf.kundenserver.de",
-          "v=spf1 include:_spf.ionos.com",
-          "ionos-domain-verification="
-        ]
-      }
+      "mx": [
+        "mx00.ionos.com",
+        "mx01.ionos.com",
+        "mx00.1and1.com",
+        "mx01.1and1.com",
+        "mx00.kundenserver.de",
+        "mx01.kundenserver.de"
+      ],
+      "txt": [
+        "spf:_spf.perfora.net",
+        "spf:_spf.kundenserver.de",
+        "spf:_spf.ionos.com",
+        "ionos-domain-verification="
+      ]
     },
     {
-      "companyProvider": "Kolab Now",
-      "loginUrl": "https://kolabnow.com",
+      "id": "kolabn",
+      "name": "Kolab Now",
+      "url": "https://kolabnow.com",
       "domains": [
         "kolabnow.com"
       ]
     },
     {
-      "companyProvider": "La Poste",
-      "loginUrl": "https://laposte.net/",
+      "id": "lapost",
+      "name": "La Poste",
+      "url": "https://laposte.net/",
       "domains": [
         "laposte.net"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "smtpz4.laposte.net"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:_spfbloc2.laposte.net include:_spf.lpn.as8677.net -all"
-        ]
-      }
+      "mx": [
+        "smtpz4.laposte.net"
+      ],
+      "txt": [
+        "spf:_spfbloc2.laposte.net include:_spf.lpn.as8677.net -all"
+      ]
     },
     {
-      "companyProvider": "Libero",
-      "loginUrl": "https://login.libero.it/",
+      "id": "libero",
+      "name": "Libero",
+      "url": "https://login.libero.it/",
       "domains": [
         "libero.it"
       ]
     },
     {
-      "companyProvider": "Link3 Mail",
-      "loginUrl": "https://mail.link3.net",
+      "id": "link3",
+      "name": "Link3 Mail",
+      "url": "https://mail.link3.net",
       "domains": [
         "link3.net"
       ]
     },
     {
-      "companyProvider": "Mail.bg",
-      "loginUrl": "https://www.mail.bg",
+      "id": "bg",
+      "name": "Mail.bg",
+      "url": "https://www.mail.bg",
       "domains": [
         "mail.bg"
       ]
     },
     {
-      "companyProvider": "Mail.com",
-      "loginUrl": "https://www.mail.com",
+      "id": "com",
+      "name": "Mail.com",
+      "url": "https://www.mail.com",
       "domains": [
         "mail.com"
       ]
     },
     {
-      "companyProvider": "Mail.ru",
-      "loginUrl": "https://mail.ru/",
+      "id": "ru",
+      "name": "Mail.ru",
+      "url": "https://mail.ru/",
       "domains": [
         "mail.ru"
       ]
     },
     {
-      "companyProvider": "Mailfence",
-      "loginUrl": "https://mailfence.com",
+      "id": "fence",
+      "name": "Mailfence",
+      "url": "https://mailfence.com",
       "domains": [
         "mailfence.com"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "mailfence.com",
-          "smtp1.mailfence.com",
-          "smtp2.mailfence.com"
-        ],
-        "txtPatterns": [
-          "mailfence-verification"
-        ]
-      }
+      "mx": [
+        "mailfence.com",
+        "smtp1.mailfence.com",
+        "smtp2.mailfence.com"
+      ],
+      "txt": [
+        "mailfence-verification"
+      ]
     },
     {
-      "companyProvider": "Microsoft 365 (Business)",
-      "loginUrl": "https://outlook.office365.com",
-      "domains": [],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "outlook.com",
-          "microsoft.com",
-          "office365.com",
-          "protection.outlook.com",
-          "mail.protection.outlook.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:spf.protection.outlook.com",
-          "MS=ms",
-          "microsoft-domain-verification"
-        ]
-      }
+      "id": "ms365b",
+      "name": "Microsoft 365 (Business)",
+      "url": "https://outlook.office365.com",
+      "mx": [
+        "outlook.com",
+        "microsoft.com",
+        "office365.com",
+        "protection.outlook.com",
+        "mail.protection.outlook.com"
+      ],
+      "txt": [
+        "spf:spf.protection.outlook.com",
+        "ms",
+        "microsoft-domain-verification"
+      ]
     },
     {
-      "companyProvider": "Microsoft Outlook",
-      "loginUrl": "https://outlook.office365.com",
+      "id": "msol",
+      "name": "Microsoft Outlook",
+      "url": "https://outlook.office365.com",
       "domains": [
         "outlook.com",
         "hotmail.com",
@@ -448,73 +453,79 @@
         "live.nl",
         "live.com.au",
         "live.ca"
-      ]
+      ],
+      "alias": {
+        "plus": true
+      }
     },
     {
-      "companyProvider": "Migadu",
-      "loginUrl": "https://migadu.com",
+      "id": "migadu",
+      "name": "Migadu",
+      "url": "https://migadu.com",
       "domains": [
         "migadu.com"
       ]
     },
     {
-      "companyProvider": "Movistar Mail",
-      "loginUrl": "https://webmail.movistar.es",
+      "id": "movist",
+      "name": "Movistar Mail",
+      "url": "https://webmail.movistar.es",
       "domains": [
         "movistar.es"
       ]
     },
     {
-      "companyProvider": "MTN Mail",
-      "loginUrl": "https://webmail.mtnonline.com",
+      "id": "mtn",
+      "name": "MTN Mail",
+      "url": "https://webmail.mtnonline.com",
       "domains": [
         "mtnonline.com"
       ]
     },
     {
-      "companyProvider": "Namecheap Private Email",
-      "loginUrl": "https://privateemail.com",
+      "id": "namech",
+      "name": "Namecheap Private Email",
+      "url": "https://privateemail.com",
       "domains": [
         "namecheap.com",
         "privateemail.com"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "mx1.privateemail.com",
-          "mx2.privateemail.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:spf.privateemail.com"
-        ]
-      }
+      "mx": [
+        "mx1.privateemail.com",
+        "mx2.privateemail.com"
+      ],
+      "txt": [
+        "spf:spf.privateemail.com"
+      ]
     },
     {
-      "companyProvider": "Naver",
-      "loginUrl": "https://mail.naver.com/",
+      "id": "naver",
+      "name": "Naver",
+      "url": "https://mail.naver.com/",
       "domains": [
         "naver.com"
       ]
     },
     {
-      "companyProvider": "Neo.space Email",
-      "loginUrl": "https://neo.space/mail",
+      "id": "neospa",
+      "name": "Neo.space Email",
+      "url": "https://neo.space/mail",
       "domains": [
         "neo.space"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "neo.space",
-          "mx0001.neo.space",
-          "mx0002.neo.space"
-        ],
-        "txtPatterns": [
-          "neo-space-verification"
-        ]
-      }
+      "mx": [
+        "neo.space",
+        "mx0001.neo.space",
+        "mx0002.neo.space"
+      ],
+      "txt": [
+        "neo-space-verification"
+      ]
     },
     {
-      "companyProvider": "NetEase Mail",
-      "loginUrl": "https://mail.126.com",
+      "id": "neteas",
+      "name": "NetEase Mail",
+      "url": "https://mail.126.com",
       "domains": [
         "126.com",
         "163.com",
@@ -523,133 +534,139 @@
       ]
     },
     {
-      "companyProvider": "Nifty Mail",
-      "loginUrl": "https://mail.nifty.com",
+      "id": "nifty",
+      "name": "Nifty Mail",
+      "url": "https://mail.nifty.com",
       "domains": [
         "nifty.com"
       ]
     },
     {
-      "companyProvider": "OCN",
-      "loginUrl": "https://mail.ocn.jp/",
+      "id": "ocn",
+      "name": "OCN",
+      "url": "https://mail.ocn.jp/",
       "domains": [
         "ocn.ne.jp"
       ]
     },
     {
-      "companyProvider": "One.com Email",
-      "loginUrl": "https://www.one.com/mail/",
-      "domains": [],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "one.com",
-          "mailpod12-cph3.one.com",
-          "pub.mailpod12-cph3.one.com"
-        ],
-        "txtPatterns": [
-          "include:_spf.one.com"
-        ]
-      }
+      "id": "onecom",
+      "name": "One.com Email",
+      "url": "https://www.one.com/mail/",
+      "mx": [
+        "one.com",
+        "mailpod12-cph3.one.com",
+        "pub.mailpod12-cph3.one.com"
+      ],
+      "txt": [
+        "include:_spf.one.com"
+      ]
     },
     {
-      "companyProvider": "Ono Mail",
-      "loginUrl": "https://webmail.ono.com",
+      "id": "ono",
+      "name": "Ono Mail",
+      "url": "https://webmail.ono.com",
       "domains": [
         "ono.com"
       ]
     },
     {
-      "companyProvider": "Orange",
-      "loginUrl": "https://login.orange.fr/",
+      "id": "orange",
+      "name": "Orange",
+      "url": "https://login.orange.fr/",
       "domains": [
         "wanadoo.fr"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "orange.fr"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:_spf_gp.wanadoo.fr include:spffed-ip.orange.com include:_spf_other.wanadoo.fr ~all"
-        ]
-      }
+      "mx": [
+        "orange.fr"
+      ],
+      "txt": [
+        "spf:_spf_gp.wanadoo.fr include:spffed-ip.orange.com include:_spf_other.wanadoo.fr ~all"
+      ]
     },
     {
-      "companyProvider": "Posteo",
-      "loginUrl": "https://posteo.de",
+      "id": "posteo",
+      "name": "Posteo",
+      "url": "https://posteo.de",
       "domains": [
         "posteo.de",
         "posteo.net"
       ]
     },
     {
-      "companyProvider": "ProtonMail",
-      "loginUrl": "https://mail.proton.me",
+      "id": "proton",
+      "name": "ProtonMail",
+      "url": "https://mail.proton.me",
       "domains": [
         "proton.me",
         "protonmail.com",
         "protonmail.ch",
         "pm.me"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "protonmail.ch",
-          "mail.protonmail.ch",
-          "mailsec.protonmail.ch"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:_spf.protonmail.ch",
-          "protonmail-verification="
-        ]
+      "mx": [
+        "protonmail.ch",
+        "mail.protonmail.ch",
+        "mailsec.protonmail.ch"
+      ],
+      "txt": [
+        "spf:_spf.protonmail.ch",
+        "protonmail-verification="
+      ],
+      "alias": {
+        "plus": true
       }
     },
     {
-      "companyProvider": "QQ Mail",
-      "loginUrl": "https://mail.qq.com",
+      "id": "qq",
+      "name": "QQ Mail",
+      "url": "https://mail.qq.com",
       "domains": [
         "qq.com",
         "foxmail.com"
       ]
     },
     {
-      "companyProvider": "Rackspace Email",
-      "loginUrl": "https://apps.rackspace.com/index.php",
-      "domains": [],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "emailsrvr.com",
-          "rackspace.com",
-          "rackspacecloud.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:emailsrvr.com"
-        ]
-      }
+      "id": "racksp",
+      "name": "Rackspace Email",
+      "url": "https://apps.rackspace.com/index.php",
+      "mx": [
+        "emailsrvr.com",
+        "rackspace.com",
+        "rackspacecloud.com"
+      ],
+      "txt": [
+        "spf:emailsrvr.com"
+      ]
     },
     {
-      "companyProvider": "Rakuten Mail",
-      "loginUrl": "https://mail.rakuten.co.jp",
+      "id": "rakute",
+      "name": "Rakuten Mail",
+      "url": "https://mail.rakuten.co.jp",
       "domains": [
         "rakuten.co.jp"
       ]
     },
     {
-      "companyProvider": "Rediffmail",
-      "loginUrl": "https://mail.rediff.com",
+      "id": "rediff",
+      "name": "Rediffmail",
+      "url": "https://mail.rediff.com",
       "domains": [
         "rediffmail.com",
         "rediff.com"
       ]
     },
     {
-      "companyProvider": "Runbox",
-      "loginUrl": "https://runbox.com/mail",
+      "id": "runbox",
+      "name": "Runbox",
+      "url": "https://runbox.com/mail",
       "domains": [
         "runbox.com"
       ]
     },
     {
-      "companyProvider": "Seznam.cz",
-      "loginUrl": "https://email.seznam.cz",
+      "id": "seznam",
+      "name": "Seznam.cz",
+      "url": "https://email.seznam.cz",
       "domains": [
         "seznam.cz",
         "email.cz",
@@ -657,8 +674,9 @@
       ]
     },
     {
-      "companyProvider": "SimpleLogin",
-      "loginUrl": "https://app.simplelogin.io",
+      "id": "simple",
+      "name": "SimpleLogin",
+      "url": "https://app.simplelogin.io",
       "domains": [
         "8alias.com",
         "8shield.net",
@@ -673,22 +691,21 @@
       ]
     },
     {
-      "companyProvider": "Simply.com Email",
-      "loginUrl": "https://www.simply.com/en/email",
-      "domains": [],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "spamfilter.io",
-          "mx.spamfilter.io"
-        ],
-        "txtPatterns": [
-          "include:spf.key-systems.net"
-        ]
-      }
+      "id": "simply",
+      "name": "Simply.com Email",
+      "url": "https://www.simply.com/en/email",
+      "mx": [
+        "spamfilter.io",
+        "mx.spamfilter.io"
+      ],
+      "txt": [
+        "include:spf.key-systems.net"
+      ]
     },
     {
-      "companyProvider": "Sina Mail",
-      "loginUrl": "https://mail.sina.com.cn",
+      "id": "sina",
+      "name": "Sina Mail",
+      "url": "https://mail.sina.com.cn",
       "domains": [
         "sina.com",
         "sina.cn",
@@ -696,63 +713,65 @@
       ]
     },
     {
-      "companyProvider": "SiteGround",
-      "loginUrl": "https://tools.siteground.com/email",
+      "id": "sitegr",
+      "name": "SiteGround",
+      "url": "https://tools.siteground.com/email",
       "domains": [
         "siteground.com"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "mx10.mailspamprotection.com",
-          "mx20.mailspamprotection.com",
-          "mx30.mailspamprotection.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:_spf.mailspamprotection.com"
-        ]
-      }
+      "mx": [
+        "mx10.mailspamprotection.com",
+        "mx20.mailspamprotection.com",
+        "mx30.mailspamprotection.com"
+      ],
+      "txt": [
+        "spf:_spf.mailspamprotection.com"
+      ]
     },
     {
-      "companyProvider": "T-Online",
-      "loginUrl": "https://email.t-online.de/",
+      "id": "tonlin",
+      "name": "T-Online",
+      "url": "https://email.t-online.de/",
       "domains": [
         "t-online.de"
       ]
     },
     {
-      "companyProvider": "Telkom Mail",
-      "loginUrl": "https://webmail.telkom.co.za",
+      "id": "telkom",
+      "name": "Telkom Mail",
+      "url": "https://webmail.telkom.co.za",
       "domains": [
         "telkom.co.za"
       ]
     },
     {
-      "companyProvider": "Terra Mail",
-      "loginUrl": "https://webmail.terra.com.br",
+      "id": "terra",
+      "name": "Terra Mail",
+      "url": "https://webmail.terra.com.br",
       "domains": [
         "terra.com.br",
         "terra.es"
       ]
     },
     {
-      "companyProvider": "Titan Email",
-      "loginUrl": "https://app.titan.email",
+      "id": "titan",
+      "name": "Titan Email",
+      "url": "https://app.titan.email",
       "domains": [
         "titan.email"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "mx1.titan.email",
-          "mx2.titan.email"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:spf.titan.email"
-        ]
-      }
+      "mx": [
+        "mx1.titan.email",
+        "mx2.titan.email"
+      ],
+      "txt": [
+        "spf:spf.titan.email"
+      ]
     },
     {
-      "companyProvider": "Tutanota",
-      "loginUrl": "https://mail.tutanota.com",
+      "id": "tutano",
+      "name": "Tutanota",
+      "url": "https://mail.tutanota.com",
       "domains": [
         "tutanota.com",
         "tutanota.de",
@@ -761,54 +780,58 @@
         "keemail.me",
         "tuta.com"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "tutanota.de",
-          "mail.tutanota.de"
-        ],
-        "txtPatterns": [
-          "tutanota-verification="
-        ]
-      }
+      "mx": [
+        "tutanota.de",
+        "mail.tutanota.de"
+      ],
+      "txt": [
+        "tutanota-verification="
+      ]
     },
     {
-      "companyProvider": "UOL Mail",
-      "loginUrl": "https://email.uol.com.br",
+      "id": "uol",
+      "name": "UOL Mail",
+      "url": "https://email.uol.com.br",
       "domains": [
         "uol.com.br"
       ]
     },
     {
-      "companyProvider": "Verizon",
-      "loginUrl": "https://login.verizon.com/",
+      "id": "verizo",
+      "name": "Verizon",
+      "url": "https://login.verizon.com/",
       "domains": [
         "verizon.net"
       ]
     },
     {
-      "companyProvider": "Vodacom Mail",
-      "loginUrl": "https://webmail.vodacom.co.za",
+      "id": "vodaco",
+      "name": "Vodacom Mail",
+      "url": "https://webmail.vodacom.co.za",
       "domains": [
         "vodacom.co.za"
       ]
     },
     {
-      "companyProvider": "Web.de",
-      "loginUrl": "https://web.de/",
+      "id": "webde",
+      "name": "Web.de",
+      "url": "https://web.de/",
       "domains": [
         "web.de"
       ]
     },
     {
-      "companyProvider": "Xtra Mail",
-      "loginUrl": "https://www.xtra.co.nz/email",
+      "id": "xtra",
+      "name": "Xtra Mail",
+      "url": "https://www.xtra.co.nz/email",
       "domains": [
         "xtra.co.nz"
       ]
     },
     {
-      "companyProvider": "Yahoo Mail",
-      "loginUrl": "https://login.yahoo.com",
+      "id": "y",
+      "name": "Yahoo Mail",
+      "url": "https://login.yahoo.com",
       "domains": [
         "yahoo.com",
         "yahoo.co.uk",
@@ -829,69 +852,77 @@
         "ymail.com",
         "rocketmail.com",
         "myyahoo.com"
-      ]
+      ],
+      "alias": {
+        "plus": true
+      }
     },
     {
-      "companyProvider": "Yandex Mail",
-      "loginUrl": "https://mail.yandex.com",
+      "id": "yandex",
+      "name": "Yandex Mail",
+      "url": "https://mail.yandex.com",
       "domains": [
         "yandex.ru",
         "yandex.com"
       ]
     },
     {
-      "companyProvider": "Zoho Mail",
-      "loginUrl": "https://mail.zoho.com",
+      "id": "zoho",
+      "name": "Zoho Mail",
+      "url": "https://mail.zoho.com",
       "domains": [
         "zohomail.com",
         "zoho.com"
       ]
     },
     {
-      "companyProvider": "Zoho Mail EU",
-      "loginUrl": "https://mail.zoho.eu",
+      "id": "zohoeu",
+      "name": "Zoho Mail EU",
+      "url": "https://mail.zoho.eu",
       "domains": [
         "zoho.eu"
       ]
     },
     {
-      "companyProvider": "Alibaba Mail",
-      "loginUrl": "https://mail.aliyun.com",
+      "id": "alibab",
+      "name": "Alibaba Mail",
+      "url": "https://mail.aliyun.com",
       "domains": [
         "aliyun.com",
         "alibaba.com",
         "taobao.com",
         "tmall.com"
       ],
-      "customDomainDetection": {
-        "mxPatterns": [
-          "mx1.qiye.aliyun.com",
-          "mx2.qiye.aliyun.com",
-          "mx3.qiye.aliyun.com"
-        ],
-        "txtPatterns": [
-          "v=spf1 include:spf.qiye.aliyun.com"
-        ]
-      }
+      "mx": [
+        "mx1.qiye.aliyun.com",
+        "mx2.qiye.aliyun.com",
+        "mx3.qiye.aliyun.com"
+      ],
+      "txt": [
+        "spf:spf.qiye.aliyun.com"
+      ]
     },
     {
-      "companyProvider": "Sify Mail",
-      "loginUrl": "https://mail.sify.com",
+      "id": "sify",
+      "name": "Sify Mail",
+      "url": "https://mail.sify.com",
       "domains": [
         "sify.com",
         "sifymail.com"
       ]
     },
     {
-      "companyProvider": "IndiatTimes Mail",
-      "loginUrl": "https://mail.indiatimes.com",
+      "id": "indiat",
+      "name": "IndiatTimes Mail",
+      "url": "https://mail.indiatimes.com",
       "domains": [
         "indiatimes.com"
       ]
     },
     {
-      "companyProvider": "Virgilio Mail",
-      "loginUrl": "https://mail.virgilio.it",
+      "id": "virgil",
+      "name": "Virgilio Mail",
+      "url": "https://mail.virgilio.it",
       "domains": [
         "virgilio.it",
         "alice.it",
@@ -899,80 +930,91 @@
       ]
     },
     {
-      "companyProvider": "Telekom Mail",
-      "loginUrl": "https://email.magenta.de",
+      "id": "teleko",
+      "name": "Telekom Mail",
+      "url": "https://email.magenta.de",
       "domains": [
         "magenta.de",
         "telekom.de"
       ]
     },
     {
-      "companyProvider": "Tiscali Mail",
-      "loginUrl": "https://mail.tiscali.it",
+      "id": "tiscal",
+      "name": "Tiscali Mail",
+      "url": "https://mail.tiscali.it",
       "domains": [
         "tiscali.it"
       ]
     },
     {
-      "companyProvider": "Skynet Mail",
-      "loginUrl": "https://webmail.skynet.be",
+      "id": "skynet",
+      "name": "Skynet Mail",
+      "url": "https://webmail.skynet.be",
       "domains": [
         "skynet.be"
       ]
     },
     {
-      "companyProvider": "Telenet Mail",
-      "loginUrl": "https://webmail.telenet.be",
+      "id": "telene",
+      "name": "Telenet Mail",
+      "url": "https://webmail.telenet.be",
       "domains": [
         "telenet.be"
       ]
     },
     {
-      "companyProvider": "Xs4All",
-      "loginUrl": "https://webmail.xs4all.nl",
+      "id": "xs4all",
+      "name": "Xs4All",
+      "url": "https://webmail.xs4all.nl",
       "domains": [
         "xs4all.nl"
       ]
     },
     {
-      "companyProvider": "Planet.nl",
-      "loginUrl": "https://webmail.planet.nl",
+      "id": "planet",
+      "name": "Planet.nl",
+      "url": "https://webmail.planet.nl",
       "domains": [
         "planet.nl"
       ]
     },
     {
-      "companyProvider": "Bluewin Mail",
-      "loginUrl": "https://webmail.bluewin.ch",
+      "id": "bluewi",
+      "name": "Bluewin Mail",
+      "url": "https://webmail.bluewin.ch",
       "domains": [
         "bluewin.ch"
       ]
     },
     {
-      "companyProvider": "Eircom Mail",
-      "loginUrl": "https://webmail.eircom.net",
+      "id": "eircom",
+      "name": "Eircom Mail",
+      "url": "https://webmail.eircom.net",
       "domains": [
         "eircom.net"
       ]
     },
     {
-      "companyProvider": "Centrum Mail",
-      "loginUrl": "https://www.centrum.cz",
+      "id": "centru",
+      "name": "Centrum Mail",
+      "url": "https://www.centrum.cz",
       "domains": [
         "centrum.cz",
         "centrum.sk"
       ]
     },
     {
-      "companyProvider": "Interia Mail",
-      "loginUrl": "https://poczta.interia.pl",
+      "id": "interi",
+      "name": "Interia Mail",
+      "url": "https://poczta.interia.pl",
       "domains": [
         "interia.pl"
       ]
     },
     {
-      "companyProvider": "Onet Mail",
-      "loginUrl": "https://poczta.onet.pl",
+      "id": "onet",
+      "name": "Onet Mail",
+      "url": "https://poczta.onet.pl",
       "domains": [
         "onet.pl",
         "poczta.onet.pl",
@@ -980,8 +1022,9 @@
       ]
     },
     {
-      "companyProvider": "Rambler Mail",
-      "loginUrl": "https://mail.rambler.ru",
+      "id": "ramble",
+      "name": "Rambler Mail",
+      "url": "https://mail.rambler.ru",
       "domains": [
         "rambler.ru",
         "lenta.ru",
@@ -989,25 +1032,33 @@
       ]
     },
     {
-      "companyProvider": "Nate Mail",
-      "loginUrl": "https://mail.nate.com",
+      "id": "nat",
+      "name": "Nate Mail",
+      "url": "https://mail.nate.com",
       "domains": [
         "nate.com"
       ]
     },
     {
-      "companyProvider": "Hanmail",
-      "loginUrl": "https://mail.hanmail.net",
+      "id": "han",
+      "name": "Hanmail",
+      "url": "https://mail.hanmail.net",
       "domains": [
         "hanmail.net"
       ]
     },
     {
-      "companyProvider": "Live.jp",
-      "loginUrl": "https://login.live.com",
+      "id": "livejp",
+      "name": "Live.jp",
+      "url": "https://login.live.com",
       "domains": [
         "live.jp"
       ]
     }
-  ]
+  ],
+  "meta": {
+    "count": 93,
+    "domains": 178,
+    "generated": "2025-06-21T09:13:42.091Z"
+  }
 }
