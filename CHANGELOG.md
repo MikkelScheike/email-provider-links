@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **URL Validation**: HTTPS enforcement with domain allowlisting
 - **Attack Prevention**: Protection against typosquatting, URL injection, and script injection
 - **Integrity Verification**: SHA-256 hash verification for data integrity
-- **96% Security Coverage**: Comprehensive security testing with edge cases
+- **92 Security Tests**: Comprehensive security testing covering all attack vectors
 
 ### 🧪 Testing & Quality
 - **91.75% Test Coverage**: 371 comprehensive tests covering all functionality

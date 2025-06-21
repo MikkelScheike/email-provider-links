@@ -412,7 +412,7 @@ Options:
     securityUpdates: [
       'Updated security hashes for data integrity verification',
       'Enhanced URL validation and attack prevention',
-      'Comprehensive security testing coverage'
+      '92 comprehensive security tests covering all attack vectors'
     ]
   };
 
