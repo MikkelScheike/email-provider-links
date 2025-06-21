@@ -84,8 +84,23 @@ console.log(unknown.loginUrl);                   // null
 **Recommended** - Detects any email provider including business domains.
 
 ```typescript
-const result = await getEmailProvider('user@gmail.com', 3000);
-// Returns: { provider, loginUrl, detectionMethod, email }
+// 🚀 SAME CALL, DIFFERENT SCENARIOS:
+
+// ✅ For known providers (Gmail, Yahoo, etc.) - INSTANT response
+const gmail1 = await getEmailProvider('user@gmail.com');        // No timeout needed
+const gmail2 = await getEmailProvider('user@gmail.com', 3000);  // Same speed - timeout ignored
+// Both return instantly: { provider: "Gmail", loginUrl: "https://mail.google.com/mail/" }
+
+// 🔍 For business domains - DNS lookup required, timeout matters
+const biz1 = await getEmailProvider('user@mycompany.com');        // 5000ms timeout (default)
+const biz2 = await getEmailProvider('user@mycompany.com', 2000);  // 2000ms timeout (faster fail)
+const biz3 = await getEmailProvider('user@mycompany.com', 10000); // 10000ms timeout (slower networks)
+// All may detect: { provider: "Google Workspace", detectionMethod: "mx_record" }
+
+// 🎯 WHY USE CUSTOM TIMEOUT?
+// - Faster apps: Use 2000ms to fail fast on unknown domains
+// - Slower networks: Use 10000ms to avoid premature timeouts
+// - Enterprise: Use 1000ms for strict SLA requirements
 ```
 
 ### `getEmailProviderSync(email)`
