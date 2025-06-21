@@ -1,473 +1,195 @@
 #!/usr/bin/env tsx
 /**
- * Release Preparation Script
+ * Simple Release Preparation Script
  * 
- * Automates the complete release process including:
- * - Version validation and updates
- * - Security hash recalculation
- * - Test execution and coverage verification
- * - Build verification
- * - Semantic-release commit formatting
- * - Pre-push validation
+ * This script prepares code for semantic-release by:
+ * 1. Running tests to ensure everything works
+ * 2. Creating a semantic commit
+ * 3. Letting semantic-release handle everything else
+ * 
+ * Usage:
+ *   npx tsx scripts/prepare-release.ts --patch
+ *   npx tsx scripts/prepare-release.ts --minor  
+ *   npx tsx scripts/prepare-release.ts --major
  */
 
-import { execSync } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import { createHash } from 'crypto';
+import { execSync } from "child_process";
 
 interface ReleaseConfig {
-  targetVersion: string;
-  releaseType: 'patch' | 'minor' | 'major';
-  features: string[];
-  breakingChanges: string[];
-  securityUpdates: string[];
+    releaseType: "major" | "minor" | "patch";
 }
 
-class ReleaseManager {
-  private projectRoot: string;
-  
-  constructor() {
-    this.projectRoot = process.cwd();
-  }
-
-  /**
-   * Main release preparation workflow
-   */
-  async prepareRelease(config: ReleaseConfig): Promise<void> {
-    console.log('🚀 EMAIL PROVIDER LINKS - RELEASE PREPARATION');
-    console.log('=' .repeat(60));
-    console.log(`📦 Target Version: ${config.targetVersion}`);
-    console.log(`🔄 Release Type: ${config.releaseType}`);
-    console.log('');
-
-    try {
-      // Step 1: Validate prerequisites
-      await this.validatePrerequisites();
-
-      // Step 2: Update version if needed
-      await this.updateVersion(config.targetVersion, 2);
-
-      // Step 3: Recalculate security hashes
-      await this.updateSecurityHashes();
-
-      // Step 4: Run comprehensive tests
-      await this.runTests();
-
-      // Step 5: Verify build
-      await this.verifyBuild();
-
-      // Step 6: Re-update version (in case sync-versions reset it)
-      await this.updateVersion(config.targetVersion, 6);
-
-      // Step 7: Create release commit
-      await this.createReleaseCommit(config);
-
-      // Step 8: Create git tag
-      await this.createGitTag(config.targetVersion);
-
-      // Step 9: Show final instructions
-      this.showFinalInstructions(config);
-
-    } catch (error) {
-      console.error('❌ Release preparation failed:', error);
-      process.exit(1);
-    }
-  }
-
-  /**
-   * Validate that all prerequisites are met
-   */
-  private async validatePrerequisites(): Promise<void> {
-    console.log('🔍 STEP 1: Validating Prerequisites');
-    console.log('-'.repeat(40));
-
-    // Check if we're on main branch
-    try {
-      const branch = execSync('git branch --show-current', { encoding: 'utf-8' }).trim();
-      if (branch !== 'main') {
-        throw new Error(`Must be on main branch, currently on: ${branch}`);
-      }
-      console.log('✅ On main branch');
-    } catch (error) {
-      throw new Error('Failed to check git branch');
-    }
-
-    // Check for uncommitted changes
-    try {
-      const status = execSync('git status --porcelain', { encoding: 'utf-8' }).trim();
-      if (status) {
-        console.log('⚠️  Uncommitted changes detected:');
-        console.log(status);
-        console.log('ℹ️  These will be included in the release commit');
-      } else {
-        console.log('✅ Working directory clean');
-      }
-    } catch (error) {
-      throw new Error('Failed to check git status');
-    }
-
-    // Check npm authentication
-    try {
-      execSync('npm whoami', { encoding: 'utf-8', stdio: 'pipe' });
-      console.log('✅ npm authenticated');
-    } catch (error) {
-      console.log('⚠️  npm not authenticated - you\'ll need to run `npm login` before publishing');
-    }
-
-    console.log('');
-  }
-
-  /**
-   * Update package.json version
-   */
-  private async updateVersion(targetVersion: string, stepNumber?: number): Promise<void> {
-    const step = stepNumber ? `STEP ${stepNumber}:` : 'STEP 6:';
-    console.log(`📦 ${step} Updating Version`);
-    console.log('-'.repeat(40));
-
-    const packagePath = join(this.projectRoot, 'package.json');
-    const packageJson = JSON.parse(readFileSync(packagePath, 'utf-8'));
-    const currentVersion = packageJson.version;
-
-    if (currentVersion === targetVersion) {
-      console.log(`✅ Version already set to ${targetVersion}`);
-    } else {
-      packageJson.version = targetVersion;
-      writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + '\n');
-      console.log(`✅ Updated version: ${currentVersion} → ${targetVersion}`);
-    }
-
-    console.log('');
-  }
-
-  /**
-   * Recalculate and update security hashes
-   */
-  private async updateSecurityHashes(): Promise<void> {
-    console.log('🔐 STEP 3: Updating Security Hashes');
-    console.log('-'.repeat(40));
-
-    // Calculate new hashes
-    const hashes = this.calculateHashes();
+class SimpleReleaseManager {
     
-    // Update hash-verifier.ts
-    await this.updateHashVerifier(hashes);
-    
-    console.log('✅ Security hashes updated');
-    console.log('');
-  }
+    async prepareRelease(config: ReleaseConfig): Promise<void> {
+        console.log("🚀 SIMPLE SEMANTIC RELEASE PREPARATION");
+        console.log("=".repeat(60));
+        console.log(`🔄 Release Type: ${config.releaseType}`);
+        console.log("🤖 Semantic-release will handle ALL version management\n");
 
-  /**
-   * Calculate file hashes
-   */
-  private calculateHashes(): Record<string, string> {
-    const files = [
-      'providers/emailproviders.json',
-      'package.json'
-    ];
+        // Step 1: Validate prerequisites
+        await this.validatePrerequisites();
 
-    const hashes: Record<string, string> = {};
+        // Step 2: Run tests
+        await this.runTests();
 
-    for (const file of files) {
-      try {
-        const fullPath = join(this.projectRoot, file);
-        const content = readFileSync(fullPath);
-        const hash = createHash('sha256').update(content).digest('hex');
-        const fileName = file.split('/').pop() || file;
-        hashes[fileName] = hash;
-        console.log(`✅ ${file}: ${hash}`);
-      } catch (error) {
-        console.error(`❌ Failed to hash ${file}:`, error);
-        throw error;
-      }
+        // Step 3: Run build
+        await this.runBuild();
+
+        // Step 4: Show commit instructions
+        this.showCommitInstructions(config);
     }
 
-    return hashes;
-  }
-
-  /**
-   * Update the hash-verifier.ts file with new hashes
-   */
-  private async updateHashVerifier(hashes: Record<string, string>): Promise<void> {
-    const hashVerifierPath = join(this.projectRoot, 'src/security/hash-verifier.ts');
-    let content = readFileSync(hashVerifierPath, 'utf-8');
-
-    // Update emailproviders.json hash
-    content = content.replace(
-      /'emailproviders\.json': '[a-f0-9]{64}'/,
-      `'emailproviders.json': '${hashes['emailproviders.json']}'`
-    );
-
-    // Update package.json hash
-    content = content.replace(
-      /'package\.json': '[a-f0-9]{64}'/,
-      `'package.json': '${hashes['package.json']}'`
-    );
-
-    writeFileSync(hashVerifierPath, content);
-  }
-
-  /**
-   * Run comprehensive tests
-   */
-  private async runTests(): Promise<void> {
-    console.log('🧪 STEP 4: Running Tests');
-    console.log('-'.repeat(40));
-
-    try {
-      // Disable version sync temporarily to avoid conflicts
-      const output = execSync('npm test', { 
-        encoding: 'utf-8',
-        env: { ...process.env, SKIP_VERSION_SYNC: '1' }
-      });
-      
-      // Extract test results
-      const lines = output.split('\n');
-      const testSummary = lines.find(line => line.includes('Test Suites:'));
-      const coverage = lines.find(line => line.includes('All files'));
-      
-      if (testSummary) {
-        console.log(`✅ ${testSummary}`);
-      }
-      if (coverage) {
-        console.log(`📊 Coverage: ${coverage}`);
-      }
-      
-      console.log('✅ All tests passed');
-    } catch (error) {
-      throw new Error('Tests failed - please fix before release');
+    private async validatePrerequisites(): Promise<void> {
+        console.log("🔍 STEP 1: Validating Prerequisites");
+        console.log("-".repeat(40));
+        
+        try {
+            const branch = execSync("git branch --show-current", { encoding: "utf-8" }).trim();
+            if (branch !== "main") {
+                throw new Error(`Must be on main branch, currently on: ${branch}`);
+            }
+            console.log("✅ On main branch");
+        } catch (e) {
+            throw new Error(`Failed to check git branch: ${e}`);
+        }
+        
+        try {
+            const status = execSync("git status --porcelain", { encoding: "utf-8" }).trim();
+            if (status) {
+                console.log("ℹ️  Working directory has changes - they will be committed");
+            } else {
+                console.log("✅ Working directory clean");
+            }
+        } catch (e) {
+            throw new Error(`Failed to check git status: ${e}`);
+        }
+        
+        console.log();
     }
 
-    console.log('');
-  }
-
-  /**
-   * Verify build works
-   */
-  private async verifyBuild(): Promise<void> {
-    console.log('🔨 STEP 5: Verifying Build');
-    console.log('-'.repeat(40));
-
-    try {
-      execSync('npm run build', { 
-        encoding: 'utf-8', 
-        stdio: 'pipe',
-        env: { ...process.env, SKIP_VERSION_SYNC: '1' }
-      });
-      console.log('✅ Build successful');
-    } catch (error) {
-      throw new Error('Build failed - please fix before release');
+    private async runTests(): Promise<void> {
+        console.log("🧪 STEP 2: Running Tests");
+        console.log("-".repeat(40));
+        
+        try {
+            execSync("npm test", {
+                encoding: "utf-8",
+                stdio: "pipe",
+                env: { ...process.env, SKIP_VERSION_SYNC: "1" }
+            });
+            console.log("✅ All tests passed\n");
+        } catch (error) {
+            throw new Error("Tests failed - please fix before release");
+        }
     }
 
-    console.log('');
-  }
-
-  /**
-   * Create release commit with all changes
-   */
-  private async createReleaseCommit(config: ReleaseConfig): Promise<void> {
-    console.log('📝 STEP 7: Creating Release Commit');
-    console.log('-'.repeat(40));
-
-    // Stage all changes including package.json and hash updates
-    execSync('git add .');
-
-    // Check if there are changes to commit
-    try {
-      const staged = execSync('git diff --cached --name-only', { encoding: 'utf-8' }).trim();
-      if (!staged) {
-        console.log('ℹ️  No changes to commit');
-        return;
-      }
-      console.log('📁 Staged files:', staged.split('\n').join(', '));
-    } catch (error) {
-      console.log('ℹ️  Unable to check staged files');
+    private async runBuild(): Promise<void> {
+        console.log("🔨 STEP 3: Verifying Build");
+        console.log("-".repeat(40));
+        
+        try {
+            execSync("npm run build", {
+                encoding: "utf-8",
+                stdio: "pipe",
+                env: { ...process.env, SKIP_VERSION_SYNC: "1" }
+            });
+            console.log("✅ Build successful\n");
+        } catch {
+            throw new Error("Build failed - please fix before release");
+        }
     }
 
-    // Generate commit message
-    const commitMessage = this.generateCommitMessage(config);
-    
-    // Create commit
-    try {
-      execSync(`git commit -m "${commitMessage}"`, { encoding: 'utf-8' });
-      console.log('✅ Release commit created');
-    } catch (error) {
-      console.log('ℹ️  Commit creation skipped (no changes or already committed)');
+    private showCommitInstructions(config: ReleaseConfig): void {
+        console.log("📝 STEP 4: Commit Instructions");
+        console.log("-".repeat(40));
+        
+        const commitType = this.getCommitType(config.releaseType);
+        const exampleMessage = this.getExampleCommitMessage(config.releaseType);
+        
+        console.log("✅ Ready for release!");
+        console.log(`📋 Create a ${config.releaseType} release by committing with:`);
+        console.log(`   • Commit type: ${commitType}`);
+        console.log(`   • Example: ${exampleMessage}`);
+        console.log();
+        console.log("🤖 SEMANTIC-RELEASE WILL AUTOMATICALLY:");
+        console.log("   • Determine the new version number");
+        console.log("   • Update package.json");
+        console.log("   • Calculate and update security hashes");
+        console.log("   • Build and test the package");
+        console.log("   • Publish to NPM");
+        console.log("   • Create GitHub release with notes");
+        console.log();
+        console.log("🎯 NEXT STEPS:");
+        console.log("   1. Commit your changes with proper semantic prefix");
+        console.log("   2. Push to GitHub");
+        console.log("   3. Watch the automated release process");
+        console.log();
     }
 
-    console.log('');
-  }
-
-  /**
-   * Create git tag for release
-   */
-  private async createGitTag(version: string): Promise<void> {
-    console.log('🏷️  STEP 8: Creating Git Tag');
-    console.log('-'.repeat(40));
-
-    const tagName = `v${version}`;
-    
-    try {
-      // Check if tag already exists
-      try {
-        execSync(`git rev-parse ${tagName}`, { stdio: 'pipe' });
-        console.log(`⚠️  Tag ${tagName} already exists, skipping`);
-        return;
-      } catch {
-        // Tag doesn't exist, continue
-      }
-
-      // Create annotated tag
-      const tagMessage = `Release v${version}`;
-      execSync(`git tag -a ${tagName} -m "${tagMessage}"`, { encoding: 'utf-8' });
-      console.log(`✅ Created git tag: ${tagName}`);
-    } catch (error) {
-      throw new Error(`Failed to create git tag: ${error}`);
+    private getCommitType(releaseType: string): string {
+        switch (releaseType) {
+            case "major": return "feat! (breaking change)";
+            case "minor": return "feat (new feature)";
+            case "patch": return "fix (bug fix)";
+            default: return "fix";
+        }
     }
 
-    console.log('');
-  }
-
-
-  /**
-   * Generate semantic-release compatible commit message
-   */
-  private generateCommitMessage(config: ReleaseConfig): string {
-    const { releaseType, targetVersion, features, breakingChanges, securityUpdates } = config;
-    
-    let commitType = 'feat';
-    if (releaseType === 'major') {
-      commitType = 'feat!';
+    private getExampleCommitMessage(releaseType: string): string {
+        switch (releaseType) {
+            case "major": 
+                return "feat!: major API changes\\n\\nBREAKING CHANGE: Updated API structure";
+            case "minor": 
+                return "feat: add new feature\\n\\nAdded new functionality for X";
+            case "patch": 
+                return "fix: resolve issue with Y\\n\\nFixed bug that caused Z";
+            default: 
+                return "fix: general improvements";
+        }
     }
-
-    let message = `${commitType}: v${targetVersion}`;
-    
-    // Add short description
-    if (features.length > 0) {
-      message += ` - ${features[0]}`;
-    }
-
-    // Add breaking change notice
-    if (breakingChanges.length > 0) {
-      message += '\n\nBREAKING CHANGE: ' + breakingChanges[0];
-      
-      if (breakingChanges.length > 1) {
-        message += '\n\n' + breakingChanges.slice(1).map(change => `- ${change}`).join('\n');
-      }
-    }
-
-    // Add features list
-    if (features.length > 1) {
-      message += '\n\nFeatures:\n' + features.map(feature => `- ${feature}`).join('\n');
-    }
-
-    // Add security updates
-    if (securityUpdates.length > 0) {
-      message += '\n\nSecurity:\n' + securityUpdates.map(update => `- ${update}`).join('\n');
-    }
-
-    return message.replace(/"/g, '\\"'); // Escape quotes for shell
-  }
-
-  /**
-   * Show final instructions
-   */
-  private showFinalInstructions(config: ReleaseConfig): void {
-    console.log('🎯 STEP 9: Final Instructions');
-    console.log('-'.repeat(40));
-    console.log('✅ Release preparation complete!');
-    console.log('');
-    console.log('📋 READY FOR RELEASE:');
-    console.log(`• Version updated to ${config.targetVersion}`);
-    console.log(`• Git tag v${config.targetVersion} created`);
-    console.log('• All tests passing');
-    console.log('• Build verified');
-    console.log('• Security hashes updated');
-    console.log('• Release commit created');
-    console.log('');
-    console.log('📋 NEXT STEPS (Manual):');
-    console.log('1. 🔍 Review changes: git log --oneline -3');
-    console.log('2. 🚀 Push to GitHub using GitKraken (push main + tags)');
-    console.log('');
-    console.log('🤖 GITHUB CI/CD WILL AUTOMATICALLY:');
-    console.log('• Detect the new version and tag');
-    console.log('• Build the project');
-    console.log('• Run all tests');
-    console.log('• Publish to NPM');
-    console.log('• Create GitHub release with notes');
-    console.log('');
-    console.log('⚠️  IMPORTANT:');
-    console.log('• Make sure you have npm publish permissions');
-    console.log('• Check GitHub Actions after pushing');
-    console.log('• Verify the published package on npmjs.com');
-    console.log('');
-    console.log(`🎉 Ready to release v${config.targetVersion}!`);
-  }
 }
 
-/**
- * CLI interface
- */
 async function main() {
-  const args = process.argv.slice(2);
-  
-  if (args.length === 0 || args.includes('--help')) {
-    console.log(`
-📦 EMAIL PROVIDER LINKS - RELEASE PREPARATION SCRIPT
+    const args = process.argv.slice(2);
+    
+    if (args.length === 0 || args.includes("--help")) {
+        console.log(`
+🚀 SIMPLE SEMANTIC RELEASE PREPARATION
 
-Usage: npx tsx scripts/prepare-release.ts <version> [options]
+Usage: npx tsx scripts/prepare-release.ts [--major|--minor|--patch]
 
 Examples:
-  npx tsx scripts/prepare-release.ts 2.0.0 --major
-  npx tsx scripts/prepare-release.ts 1.8.1 --patch  
-  npx tsx scripts/prepare-release.ts 1.9.0 --minor
+  npx tsx scripts/prepare-release.ts --patch
+  npx tsx scripts/prepare-release.ts --minor
+  npx tsx scripts/prepare-release.ts --major
 
-Options:
-  --major     Major version (breaking changes)
-  --minor     Minor version (new features)
-  --patch     Patch version (bug fixes)
-  --help      Show this help
-    `);
-    process.exit(0);
-  }
+This script prepares your code for semantic-release by:
+• Running tests and build verification
+• Providing commit message guidance
+• Letting semantic-release handle ALL version management
 
-  const targetVersion = args[0];
-  const releaseType = args.includes('--major') ? 'major' : 
-                     args.includes('--minor') ? 'minor' : 'patch';
+NO MORE MANUAL VERSION BUMPS OR HASH CALCULATIONS!
+        `);
+        process.exit(0);
+    }
 
-  // Configure release based on version and type
-  const config: ReleaseConfig = {
-    targetVersion,
-    releaseType,
-    features: [
-      'Modern async email provider detection',
-      'Concurrent DNS resolution for business domains',
-      '93 providers supporting 178 domains globally',
-      'Enterprise security with URL validation',
-      'Email alias detection and normalization',
-      '91.75% test coverage with 366 passing tests'
-    ],
-    breakingChanges: releaseType === 'major' ? [
-      'Complete API rewrite with async-first design',
-      'getEmailProvider() replaces getEmailProviderOptimized()',
-      'loadProviders() no longer accepts parameters',
-      'Enhanced email alias detection system'
-    ] : [],
-    securityUpdates: [
-      'Updated security hashes for data integrity verification',
-      'Enhanced URL validation and attack prevention',
-      '92 comprehensive security tests covering all attack vectors'
-    ]
-  };
+    const releaseType = args.includes("--major")
+        ? "major"
+        : args.includes("--minor")
+        ? "minor"
+        : "patch";
 
-  const releaseManager = new ReleaseManager();
-  await releaseManager.prepareRelease(config);
+    const config: ReleaseConfig = { releaseType };
+    const manager = new SimpleReleaseManager();
+    await manager.prepareRelease(config);
 }
 
-// Run if called directly
 if (require.main === module) {
-  main().catch(console.error);
+    main().catch((e) => {
+        console.error("Release preparation failed:", e);
+        process.exit(1);
+    });
 }
 
-export { ReleaseManager, type ReleaseConfig };
+export { SimpleReleaseManager, ReleaseConfig };
