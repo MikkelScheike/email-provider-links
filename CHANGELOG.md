@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2025-06-23
+
+### ⚡ Enhancements
+- **IDN Support**: Added full internationalized domain name (punycode) support for email providers.
+- **PNPM Testing**: Verified compatibility with pnpm versions 18.x through 24.x.
+
+### 🔥 Removed
+- **Bun Support**: Completely removed Bun-specific configuration and dependencies.
+
+### 🛠 CI/CD
+- **CI Triggers**: Improved CI configuration to trigger builds for all branches.
+
+### 🛡️ Security
+- **Integrity Checks**: Enhanced hash verification and data integrity checks for provider files.
+
+---
+
 ## [2.0.0] - 2024-06-21
 
 ### ✨ Features

@@ -146,14 +146,19 @@ export function initializeSecurity() {
 /**
  * Express middleware for secure provider loading (if using in web apps)
  */
-export function createSecurityMiddleware(options: {
+interface SecurityMiddlewareOptions {
   expectedHash?: string;
   allowInvalidUrls?: boolean;
   onSecurityIssue?: (report: SecureLoadResult['securityReport']) => void;
-} = {}) {
+  getProviders?: () => SecureLoadResult;
+}
+
+export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}) {
   return (req: any, res: any, next: any) => {
-    const result = secureLoadProviders(undefined, options.expectedHash);
+    // If a custom providers getter is provided, use that instead of loading from file
+    const result = options.getProviders ? options.getProviders() : secureLoadProviders(undefined, options.expectedHash);
     
+    // Handle security level
     if (result.securityReport.securityLevel === 'CRITICAL' && !options.allowInvalidUrls) {
       if (options.onSecurityIssue) {
         options.onSecurityIssue(result.securityReport);

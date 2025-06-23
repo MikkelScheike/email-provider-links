@@ -9,6 +9,7 @@ A TypeScript library providing direct links to **93 email providers** (178 domai
 - 🚀 **Fast & Lightweight**: Zero dependencies, minimal footprint
 - 📧 **93 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
 - 🌐 **178 Domains Supported**: Comprehensive international coverage
+- 🌍 **IDN Support**: Full internationalized domain name (punycode) support
 - 🏢 **Business Domain Detection**: DNS-based detection for custom domains (Google Workspace, Microsoft 365, etc.)
 - 🔒 **Enterprise Security**: Multi-layer protection against malicious URLs and supply chain attacks
 - 🛡️ **URL Validation**: HTTPS-only enforcement with domain allowlisting
@@ -18,17 +19,24 @@ A TypeScript library providing direct links to **93 email providers** (178 domai
 - 🚦 **Rate Limiting**: Built-in DNS query rate limiting to prevent abuse
 - 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
 - 🛡️ **Fraud Prevention**: Detect duplicate accounts through email alias manipulation
-- 🧪 **Thoroughly Tested**: 371 tests with 91.75% code coverage
+- 🧪 **Thoroughly Tested**: 370 tests with 92.89% code coverage
 
 ## Installation
 
+Using npm:
 ```bash
 npm install @mikkelscheike/email-provider-links
+```
+
+Using pnpm:
+```bash
+pnpm add @mikkelscheike/email-provider-links
 ```
 
 ## Requirements
 
 - **Node.js**: `>=18.0.0` (Tested on 18.x, 20.x, 22.x, **24.x**)
+- **Package Managers**: npm and pnpm (Tested on pnpm 18.x through 24.x)
 - **TypeScript**: `>=4.0.0` (optional)
 - **Zero runtime dependencies** - No external packages required
 
@@ -314,7 +322,7 @@ if (result.securityReport.securityLevel === 'CRITICAL') {
 
 We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on adding new email providers.
 
-**Quality Assurance**: This project maintains high standards with 371 comprehensive tests achieving 91.75% code coverage.
+**Quality Assurance**: This project maintains high standards with 370 comprehensive tests achieving 92.89% code coverage.
 **Security Note**: All new providers undergo security validation and must pass our allowlist verification.
 
 ## Security

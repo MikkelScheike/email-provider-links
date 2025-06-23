@@ -100,6 +100,13 @@ const DEFAULT_CONFIG: ConcurrentDNSConfig = {
  * Concurrent DNS Detection Engine
  */
 export class ConcurrentDNSDetector {
+  // Store active query states
+  private activeQueries: Set<Promise<any>> = new Set();
+
+  // Cleanup method for tests
+  cleanup() {
+    this.activeQueries.clear();
+  }
   private config: ConcurrentDNSConfig;
   private providers: EmailProvider[];
 
@@ -116,7 +123,7 @@ export class ConcurrentDNSDetector {
    */
   async detectProvider(domain: string): Promise<ConcurrentDNSResult> {
     const startTime = Date.now();
-    const normalizedDomain = domain.toLowerCase();
+    const normalizedDomain = domain.toLowerCase().trim().replace(/\.+$/, '');
 
     // Initialize result
     const result: ConcurrentDNSResult = {

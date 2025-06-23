@@ -46,7 +46,7 @@ npm run build
 ```typescript
 import { getEmailProvider } from '@mikkelscheike/email-provider-links';
 
-// Supports 93 providers with 180+ domains
+// Supports 93 providers with 178 domains
 const result = await getEmailProvider('user@gmail.com');
 console.log(result.loginUrl); // https://mail.google.com/mail/
 
@@ -83,7 +83,7 @@ import { Config } from '@mikkelscheike/email-provider-links';
 console.log('Default timeout:', Config.DEFAULT_DNS_TIMEOUT);         // 5000ms
 console.log('Rate limit:', Config.MAX_DNS_REQUESTS_PER_MINUTE);     // 10 requests/min
 console.log('Providers supported:', Config.SUPPORTED_PROVIDERS_COUNT); // 93
-console.log('Domains supported:', Config.SUPPORTED_DOMAINS_COUNT);     // 180+
+console.log('Domains supported:', Config.SUPPORTED_DOMAINS_COUNT);     // 178
 
 // Custom timeout for DNS detection
 const result = await getEmailProvider('user@company.com', 3000);

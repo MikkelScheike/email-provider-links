@@ -139,6 +139,8 @@ const URL_SHORTENERS = [
   'buff.ly'
 ];
 
+import { domainToPunycode } from '../idn';
+
 export interface URLValidationResult {
   isValid: boolean;
   reason?: string;
@@ -195,7 +197,7 @@ export function validateEmailProviderUrl(url: string): URLValidationResult {
     
     // Parse and normalize the URL
     const urlObj = new URL(url);
-    const domain = urlObj.hostname.toLowerCase();
+    const domain = domainToPunycode(urlObj.hostname.toLowerCase());
     const normalizedUrl = urlObj.toString();
 
     // Must use HTTPS

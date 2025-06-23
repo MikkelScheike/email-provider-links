@@ -214,5 +214,40 @@ describe('Email Provider Links', () => {
       expect(tutanota!.customDomainDetection!.mxPatterns).toContain('tutanota.de');
     });
   });
+
+  describe('Re-exported functions', () => {
+    it('should re-export all API functions correctly', () => {
+      const index = require('../src/index').default;
+      
+      // Test default export object
+      expect(typeof index.getEmailProvider).toBe('function');
+      expect(typeof index.getEmailProviderSync).toBe('function');
+      expect(typeof index.getEmailProviderFast).toBe('function');
+      expect(typeof index.normalizeEmail).toBe('function');
+      expect(typeof index.emailsMatch).toBe('function');
+      expect(index.Config).toBeDefined();
+      expect(index.PROVIDER_COUNT).toBe(93);
+      expect(index.DOMAIN_COUNT).toBe(178);
+
+      // Test named exports
+      const {
+        getEmailProvider,
+        getEmailProviderFast,
+        normalizeEmail,
+        emailsMatch,
+        loadProviders,
+        detectProviderConcurrent,
+        Config
+      } = require('../src/index');
+
+      expect(typeof getEmailProvider).toBe('function');
+      expect(typeof getEmailProviderFast).toBe('function');
+      expect(typeof normalizeEmail).toBe('function');
+      expect(typeof emailsMatch).toBe('function');
+      expect(typeof loadProviders).toBe('function');
+      expect(typeof detectProviderConcurrent).toBe('function');
+      expect(Config).toBeDefined();
+    });
+  });
 });
 

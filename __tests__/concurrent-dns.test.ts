@@ -21,6 +21,11 @@ describe('Concurrent DNS Detection Tests', () => {
       });
     });
 
+    afterEach(() => {
+      // Clean up any remaining DNS query states
+      detector?.cleanup?.();
+    });
+
     describe('Provider Detection', () => {
       it('should detect Microsoft 365 from known domain', async () => {
         const result = await detector.detectProvider('microsoft.com');

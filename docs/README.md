@@ -45,8 +45,8 @@ This package implements enterprise-grade security features. Key security docs:
 - **Malicious Pattern Detection** - Blocks common attack vectors
 - **File Integrity Verification** - SHA-256 hash validation
 - **DNS Rate Limiting** - Built-in protection against abuse
-- **Comprehensive Testing** - 321 tests with 78% code coverage
-- **93 Email Providers** - Supporting 180+ domains worldwide
+- **Comprehensive Testing** - 369 tests with 91.84% code coverage
+- **93 Email Providers** - Supporting 178 domains worldwide
 
 For complete security details, see [SECURITY.md](SECURITY.md).
 

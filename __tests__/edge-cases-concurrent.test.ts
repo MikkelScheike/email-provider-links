@@ -5,6 +5,7 @@
  * including error scenarios, fallback handling, and edge cases.
  */
 
+/* global describe, it, expect */
 import {
   ConcurrentDNSDetector,
   detectProviderConcurrent

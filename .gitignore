@@ -1,6 +1,13 @@
 # Dependencies
 node_modules/
 
+# Package manager locks and config
+.pnpm-store/
+.npmrc
+.pnpmrc
+.yarnrc.yml.bak
+
+
 # Build output
 dist/
 
@@ -54,8 +61,6 @@ jspm_packages/
 # Output of 'npm pack'
 *.tgz
 
-# Yarn Integrity file
-.yarn-integrity
 
 # dotenv environment variables file
 .env
@@ -83,6 +88,7 @@ public
 # Temporary folders
 tmp/
 temp/
+
 
 # IDE files
 .vscode/
@@ -115,3 +121,47 @@ Thumbs.db
 .env.development
 .env.production
 
+
+# Test coverage
+.nyc_output/
+coverage/
+coverage.json
+coverage.lcov
+
+# Build directories
+build/
+out/
+dist/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.history/
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local env files
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local

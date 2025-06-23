@@ -1,0 +1,18 @@
+{
+  "providers": [
+    {
+      "companyProvider": "Gmail",
+      "loginUrl": "https://mail.google.com/mail/",
+      "domains": [
+        "gmail.com"
+      ]
+    },
+    {
+      "companyProvider": "Invalid",
+      "loginUrl": "https://invalid-domain.com",
+      "domains": [
+        "invalid-domain.com"
+      ]
+    }
+  ]
+}
