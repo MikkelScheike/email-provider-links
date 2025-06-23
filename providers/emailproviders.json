@@ -1,0 +1,1064 @@
+{
+  "version": "2.0",
+  "providers": [
+    {
+      "id": "aamra",
+      "name": "Aamra Mail",
+      "url": "https://mail.aamra.com.bd",
+      "domains": [
+        "aamra.com.bd"
+      ]
+    },
+    {
+      "id": "amazon",
+      "name": "Amazon WorkMail",
+      "url": "https://workmail.aws.amazon.com/",
+      "mx": [
+        "awsapps.com",
+        "inbound-smtp.us-east-1.awsapps.com",
+        "inbound-smtp.us-west-2.awsapps.com",
+        "inbound-smtp.eu-west-1.awsapps.com",
+        "inbound-smtp.ap-southeast-2.awsapps.com",
+        "workmail.amazonaws.com"
+      ],
+      "txt": [
+        "amazonses:workmail",
+        "spf:amazonses.com",
+        "spf:workmail.us-east-1.amazonaws.com"
+      ]
+    },
+    {
+      "id": "anonad",
+      "name": "AnonAddy",
+      "url": "https://anonaddy.com",
+      "domains": [
+        "anonaddy.com"
+      ]
+    },
+    {
+      "id": "aol",
+      "name": "AOL Mail",
+      "url": "https://mail.aol.com",
+      "domains": [
+        "aol.com",
+        "love.com",
+        "ygm.com",
+        "games.com",
+        "wow.com",
+        "aim.com"
+      ]
+    },
+    {
+      "id": "att",
+      "name": "AT&T Mail",
+      "url": "https://currently.att.yahoo.com",
+      "domains": [
+        "att.net"
+      ]
+    },
+    {
+      "id": "bd",
+      "name": "BD Mail",
+      "url": "https://bdmail.net",
+      "domains": [
+        "bdmail.net"
+      ]
+    },
+    {
+      "id": "biglob",
+      "name": "Biglobe",
+      "url": "https://mail.biglobe.ne.jp",
+      "domains": [
+        "biglobe.ne.jp"
+      ],
+      "mx": [
+        "bgmgate1.biglobe.ne.jp",
+        "bgmgate2.biglobe.ne.jp"
+      ],
+      "txt": [
+        "spf:spf01.biglobe.ne.jp include:spf04.biglobe.ne.jp include:spf06.biglobe.ne.jp ~all"
+      ]
+    },
+    {
+      "id": "blueho",
+      "name": "Bluehost Email",
+      "url": "https://webmail.bluehost.com",
+      "mx": [
+        "bluehost.com",
+        "mailchannels.net"
+      ],
+      "txt": [
+        "spf:spf.bluehost.com"
+      ]
+    },
+    {
+      "id": "bol",
+      "name": "BOL Mail",
+      "url": "https://email.bol.com.br",
+      "domains": [
+        "bol.com.br"
+      ]
+    },
+    {
+      "id": "comcas",
+      "name": "Comcast/Xfinity",
+      "url": "https://connect.xfinity.com/appsuite/",
+      "domains": [
+        "comcast.net"
+      ]
+    },
+    {
+      "id": "counte",
+      "name": "CounterMail",
+      "url": "https://countermail.com",
+      "domains": [
+        "countermail.com"
+      ]
+    },
+    {
+      "id": "daum",
+      "name": "Daum",
+      "url": "https://mail.daum.net/",
+      "domains": [
+        "daum.net"
+      ],
+      "mx": [
+        "hanmail.net"
+      ],
+      "txt": [
+        "spf:_spf.daum.net ~all"
+      ]
+    },
+    {
+      "id": "fast",
+      "name": "FastMail",
+      "url": "https://www.fastmail.com",
+      "domains": [
+        "fastmail.com",
+        "fastmail.fm"
+      ],
+      "mx": [
+        "messagingengine.com",
+        "in1-smtp.messagingengine.com",
+        "in2-smtp.messagingengine.com"
+      ],
+      "txt": [
+        "spf:spf.messagingengine.com"
+      ]
+    },
+    {
+      "id": "freefr",
+      "name": "Free.fr",
+      "url": "https://webmail.free.fr/",
+      "domains": [
+        "free.fr"
+      ]
+    },
+    {
+      "id": "globo",
+      "name": "Globo Mail",
+      "url": "https://email.globo.com",
+      "domains": [
+        "globo.com"
+      ]
+    },
+    {
+      "id": "g",
+      "name": "Gmail",
+      "url": "https://mail.google.com/mail/",
+      "domains": [
+        "gmail.com",
+        "googlemail.com"
+      ],
+      "alias": {
+        "dots": true,
+        "plus": true
+      }
+    },
+    {
+      "id": "gmx",
+      "name": "GMX",
+      "url": "https://www.gmx.net",
+      "domains": [
+        "gmx.com",
+        "gmx.net",
+        "gmx.de",
+        "gmx.at",
+        "gmx.ch",
+        "gmx.org"
+      ]
+    },
+    {
+      "id": "godadd",
+      "name": "GoDaddy",
+      "url": "https://sso.godaddy.com/?realm=pass&app=email",
+      "domains": [
+        "godaddy.com",
+        "secureserver.net"
+      ],
+      "mx": [
+        "smtp.secureserver.net",
+        "mailstore1.secureserver.net",
+        "mailstore2.secureserver.net",
+        "mx1.secureserver.net",
+        "mx2.secureserver.net",
+        "domain-com.mail.protection.outlook.com"
+      ],
+      "txt": [
+        "spf:secureserver.net",
+        "spf:spf.protection.outlook.com",
+        "godaddy-verification="
+      ]
+    },
+    {
+      "id": "gworks",
+      "name": "Google Workspace",
+      "url": "https://mail.google.com",
+      "mx": [
+        "google.com",
+        "googlemail.com",
+        "aspmx.l.google.com",
+        "aspmx2.googlemail.com",
+        "aspmx3.googlemail.com"
+      ],
+      "txt": [
+        "spf:_spf.google.com",
+        "gsv:"
+      ]
+    },
+    {
+      "id": "hostga",
+      "name": "HostGator",
+      "url": "https://portal.hostgator.com/login",
+      "domains": [
+        "hostgator.com"
+      ],
+      "mx": [
+        "mail.yourdomain.com"
+      ],
+      "txt": [
+        "spf:websitewelcome.com"
+      ]
+    },
+    {
+      "id": "hostin",
+      "name": "Hostinger",
+      "url": "https://mail.hostinger.com",
+      "domains": [
+        "hostinger.com"
+      ],
+      "mx": [
+        "mx1.hostinger.com",
+        "mx2.hostinger.com",
+        "mx3.hostinger.com"
+      ],
+      "txt": [
+        "spf:spf.hostinger.com",
+        "hostinger-verification="
+      ]
+    },
+    {
+      "id": "hush",
+      "name": "Hushmail",
+      "url": "https://www.hushmail.com/signin/",
+      "domains": [
+        "hushmail.com"
+      ],
+      "mx": [
+        "plsmtp1.hushmail.com",
+        "plsmtp2.hushmail.com"
+      ],
+      "txt": [
+        "spf:4429584.spf01.hubspotemail.net ip4:65.39.178.0/24 ip4:64.69.70.192/28 -all"
+      ]
+    },
+    {
+      "id": "icloud",
+      "name": "iCloud Mail",
+      "url": "https://www.icloud.com/mail",
+      "domains": [
+        "icloud.com",
+        "me.com",
+        "mac.com"
+      ],
+      "mx": [
+        "mx01.mail.icloud.com",
+        "mx02.mail.icloud.com"
+      ],
+      "txt": [
+        "apple-domain-verification=",
+        "spf:icloud.com"
+      ]
+    },
+    {
+      "id": "iij",
+      "name": "IIJ",
+      "url": "https://mail.iij.ad.jp",
+      "domains": [
+        "iij.ad.jp"
+      ]
+    },
+    {
+      "id": "inmoti",
+      "name": "InMotion Hosting",
+      "url": "https://ngx257.inmotionhosting.com:2096",
+      "domains": [
+        "inmotionhosting.com"
+      ],
+      "mx": [
+        "mail.inmotionhosting.com",
+        "mx.inmotionhosting.com"
+      ],
+      "txt": [
+        "spf:inmotionhosting.com",
+        "inmotionhosting-verification="
+      ]
+    },
+    {
+      "id": "ionos",
+      "name": "IONOS",
+      "url": "https://mail.ionos.com",
+      "domains": [
+        "ionos.com",
+        "1and1.com",
+        "ionos.de"
+      ],
+      "mx": [
+        "mx00.ionos.com",
+        "mx01.ionos.com",
+        "mx00.1and1.com",
+        "mx01.1and1.com",
+        "mx00.kundenserver.de",
+        "mx01.kundenserver.de"
+      ],
+      "txt": [
+        "spf:_spf.perfora.net",
+        "spf:_spf.kundenserver.de",
+        "spf:_spf.ionos.com",
+        "ionos-domain-verification="
+      ]
+    },
+    {
+      "id": "kolabn",
+      "name": "Kolab Now",
+      "url": "https://kolabnow.com",
+      "domains": [
+        "kolabnow.com"
+      ]
+    },
+    {
+      "id": "lapost",
+      "name": "La Poste",
+      "url": "https://laposte.net/",
+      "domains": [
+        "laposte.net"
+      ],
+      "mx": [
+        "smtpz4.laposte.net"
+      ],
+      "txt": [
+        "spf:_spfbloc2.laposte.net include:_spf.lpn.as8677.net -all"
+      ]
+    },
+    {
+      "id": "libero",
+      "name": "Libero",
+      "url": "https://login.libero.it/",
+      "domains": [
+        "libero.it"
+      ]
+    },
+    {
+      "id": "link3",
+      "name": "Link3 Mail",
+      "url": "https://mail.link3.net",
+      "domains": [
+        "link3.net"
+      ]
+    },
+    {
+      "id": "bg",
+      "name": "Mail.bg",
+      "url": "https://www.mail.bg",
+      "domains": [
+        "mail.bg"
+      ]
+    },
+    {
+      "id": "com",
+      "name": "Mail.com",
+      "url": "https://www.mail.com",
+      "domains": [
+        "mail.com"
+      ]
+    },
+    {
+      "id": "ru",
+      "name": "Mail.ru",
+      "url": "https://mail.ru/",
+      "domains": [
+        "mail.ru"
+      ]
+    },
+    {
+      "id": "fence",
+      "name": "Mailfence",
+      "url": "https://mailfence.com",
+      "domains": [
+        "mailfence.com"
+      ],
+      "mx": [
+        "mailfence.com",
+        "smtp1.mailfence.com",
+        "smtp2.mailfence.com"
+      ],
+      "txt": [
+        "mailfence-verification"
+      ]
+    },
+    {
+      "id": "ms365b",
+      "name": "Microsoft 365 (Business)",
+      "url": "https://outlook.office365.com",
+      "mx": [
+        "outlook.com",
+        "microsoft.com",
+        "office365.com",
+        "protection.outlook.com",
+        "mail.protection.outlook.com"
+      ],
+      "txt": [
+        "spf:spf.protection.outlook.com",
+        "ms",
+        "microsoft-domain-verification"
+      ]
+    },
+    {
+      "id": "msol",
+      "name": "Microsoft Outlook",
+      "url": "https://outlook.office365.com",
+      "domains": [
+        "outlook.com",
+        "hotmail.com",
+        "live.com",
+        "msn.com",
+        "hotmail.co.uk",
+        "hotmail.fr",
+        "hotmail.it",
+        "hotmail.es",
+        "hotmail.de",
+        "live.co.uk",
+        "live.fr",
+        "live.it",
+        "live.nl",
+        "live.com.au",
+        "live.ca"
+      ],
+      "alias": {
+        "plus": true
+      }
+    },
+    {
+      "id": "migadu",
+      "name": "Migadu",
+      "url": "https://migadu.com",
+      "domains": [
+        "migadu.com"
+      ]
+    },
+    {
+      "id": "movist",
+      "name": "Movistar Mail",
+      "url": "https://webmail.movistar.es",
+      "domains": [
+        "movistar.es"
+      ]
+    },
+    {
+      "id": "mtn",
+      "name": "MTN Mail",
+      "url": "https://webmail.mtnonline.com",
+      "domains": [
+        "mtnonline.com"
+      ]
+    },
+    {
+      "id": "namech",
+      "name": "Namecheap Private Email",
+      "url": "https://privateemail.com",
+      "domains": [
+        "namecheap.com",
+        "privateemail.com"
+      ],
+      "mx": [
+        "mx1.privateemail.com",
+        "mx2.privateemail.com"
+      ],
+      "txt": [
+        "spf:spf.privateemail.com"
+      ]
+    },
+    {
+      "id": "naver",
+      "name": "Naver",
+      "url": "https://mail.naver.com/",
+      "domains": [
+        "naver.com"
+      ]
+    },
+    {
+      "id": "neospa",
+      "name": "Neo.space Email",
+      "url": "https://neo.space/mail",
+      "domains": [
+        "neo.space"
+      ],
+      "mx": [
+        "neo.space",
+        "mx0001.neo.space",
+        "mx0002.neo.space"
+      ],
+      "txt": [
+        "neo-space-verification"
+      ]
+    },
+    {
+      "id": "neteas",
+      "name": "NetEase Mail",
+      "url": "https://mail.126.com",
+      "domains": [
+        "126.com",
+        "163.com",
+        "188.com",
+        "yeah.net"
+      ]
+    },
+    {
+      "id": "nifty",
+      "name": "Nifty Mail",
+      "url": "https://mail.nifty.com",
+      "domains": [
+        "nifty.com"
+      ]
+    },
+    {
+      "id": "ocn",
+      "name": "OCN",
+      "url": "https://mail.ocn.jp/",
+      "domains": [
+        "ocn.ne.jp"
+      ]
+    },
+    {
+      "id": "onecom",
+      "name": "One.com Email",
+      "url": "https://www.one.com/mail/",
+      "mx": [
+        "one.com",
+        "mailpod12-cph3.one.com",
+        "pub.mailpod12-cph3.one.com"
+      ],
+      "txt": [
+        "include:_spf.one.com"
+      ]
+    },
+    {
+      "id": "ono",
+      "name": "Ono Mail",
+      "url": "https://webmail.ono.com",
+      "domains": [
+        "ono.com"
+      ]
+    },
+    {
+      "id": "orange",
+      "name": "Orange",
+      "url": "https://login.orange.fr/",
+      "domains": [
+        "wanadoo.fr"
+      ],
+      "mx": [
+        "orange.fr"
+      ],
+      "txt": [
+        "spf:_spf_gp.wanadoo.fr include:spffed-ip.orange.com include:_spf_other.wanadoo.fr ~all"
+      ]
+    },
+    {
+      "id": "posteo",
+      "name": "Posteo",
+      "url": "https://posteo.de",
+      "domains": [
+        "posteo.de",
+        "posteo.net"
+      ]
+    },
+    {
+      "id": "proton",
+      "name": "ProtonMail",
+      "url": "https://mail.proton.me",
+      "domains": [
+        "proton.me",
+        "protonmail.com",
+        "protonmail.ch",
+        "pm.me"
+      ],
+      "mx": [
+        "protonmail.ch",
+        "mail.protonmail.ch",
+        "mailsec.protonmail.ch"
+      ],
+      "txt": [
+        "spf:_spf.protonmail.ch",
+        "protonmail-verification="
+      ],
+      "alias": {
+        "plus": true
+      }
+    },
+    {
+      "id": "qq",
+      "name": "QQ Mail",
+      "url": "https://mail.qq.com",
+      "domains": [
+        "qq.com",
+        "foxmail.com"
+      ]
+    },
+    {
+      "id": "racksp",
+      "name": "Rackspace Email",
+      "url": "https://apps.rackspace.com/index.php",
+      "mx": [
+        "emailsrvr.com",
+        "rackspace.com",
+        "rackspacecloud.com"
+      ],
+      "txt": [
+        "spf:emailsrvr.com"
+      ]
+    },
+    {
+      "id": "rakute",
+      "name": "Rakuten Mail",
+      "url": "https://mail.rakuten.co.jp",
+      "domains": [
+        "rakuten.co.jp"
+      ]
+    },
+    {
+      "id": "rediff",
+      "name": "Rediffmail",
+      "url": "https://mail.rediff.com",
+      "domains": [
+        "rediffmail.com",
+        "rediff.com"
+      ]
+    },
+    {
+      "id": "runbox",
+      "name": "Runbox",
+      "url": "https://runbox.com/mail",
+      "domains": [
+        "runbox.com"
+      ]
+    },
+    {
+      "id": "seznam",
+      "name": "Seznam.cz",
+      "url": "https://email.seznam.cz",
+      "domains": [
+        "seznam.cz",
+        "email.cz",
+        "post.cz"
+      ]
+    },
+    {
+      "id": "simple",
+      "name": "SimpleLogin",
+      "url": "https://app.simplelogin.io",
+      "domains": [
+        "8alias.com",
+        "8shield.net",
+        "aleeas.com",
+        "dralias.com",
+        "silomails.com",
+        "simplelogin.com",
+        "simplelogin.fr",
+        "simplelogin.io",
+        "slmail.me",
+        "slmails.com"
+      ]
+    },
+    {
+      "id": "simply",
+      "name": "Simply.com Email",
+      "url": "https://www.simply.com/en/email",
+      "mx": [
+        "spamfilter.io",
+        "mx.spamfilter.io"
+      ],
+      "txt": [
+        "include:spf.key-systems.net"
+      ]
+    },
+    {
+      "id": "sina",
+      "name": "Sina Mail",
+      "url": "https://mail.sina.com.cn",
+      "domains": [
+        "sina.com",
+        "sina.cn",
+        "sina.com.cn"
+      ]
+    },
+    {
+      "id": "sitegr",
+      "name": "SiteGround",
+      "url": "https://tools.siteground.com/email",
+      "domains": [
+        "siteground.com"
+      ],
+      "mx": [
+        "mx10.mailspamprotection.com",
+        "mx20.mailspamprotection.com",
+        "mx30.mailspamprotection.com"
+      ],
+      "txt": [
+        "spf:_spf.mailspamprotection.com"
+      ]
+    },
+    {
+      "id": "tonlin",
+      "name": "T-Online",
+      "url": "https://email.t-online.de/",
+      "domains": [
+        "t-online.de"
+      ]
+    },
+    {
+      "id": "telkom",
+      "name": "Telkom Mail",
+      "url": "https://webmail.telkom.co.za",
+      "domains": [
+        "telkom.co.za"
+      ]
+    },
+    {
+      "id": "terra",
+      "name": "Terra Mail",
+      "url": "https://webmail.terra.com.br",
+      "domains": [
+        "terra.com.br",
+        "terra.es"
+      ]
+    },
+    {
+      "id": "titan",
+      "name": "Titan Email",
+      "url": "https://app.titan.email",
+      "domains": [
+        "titan.email"
+      ],
+      "mx": [
+        "mx1.titan.email",
+        "mx2.titan.email"
+      ],
+      "txt": [
+        "spf:spf.titan.email"
+      ]
+    },
+    {
+      "id": "tutano",
+      "name": "Tutanota",
+      "url": "https://mail.tutanota.com",
+      "domains": [
+        "tutanota.com",
+        "tutanota.de",
+        "tutamail.com",
+        "tuta.io",
+        "keemail.me",
+        "tuta.com"
+      ],
+      "mx": [
+        "tutanota.de",
+        "mail.tutanota.de"
+      ],
+      "txt": [
+        "tutanota-verification="
+      ]
+    },
+    {
+      "id": "uol",
+      "name": "UOL Mail",
+      "url": "https://email.uol.com.br",
+      "domains": [
+        "uol.com.br"
+      ]
+    },
+    {
+      "id": "verizo",
+      "name": "Verizon",
+      "url": "https://login.verizon.com/",
+      "domains": [
+        "verizon.net"
+      ]
+    },
+    {
+      "id": "vodaco",
+      "name": "Vodacom Mail",
+      "url": "https://webmail.vodacom.co.za",
+      "domains": [
+        "vodacom.co.za"
+      ]
+    },
+    {
+      "id": "webde",
+      "name": "Web.de",
+      "url": "https://web.de/",
+      "domains": [
+        "web.de"
+      ]
+    },
+    {
+      "id": "xtra",
+      "name": "Xtra Mail",
+      "url": "https://www.xtra.co.nz/email",
+      "domains": [
+        "xtra.co.nz"
+      ]
+    },
+    {
+      "id": "y",
+      "name": "Yahoo Mail",
+      "url": "https://login.yahoo.com",
+      "domains": [
+        "yahoo.com",
+        "yahoo.co.uk",
+        "yahoo.fr",
+        "yahoo.co.in",
+        "yahoo.com.br",
+        "yahoo.co.jp",
+        "yahoo.it",
+        "yahoo.de",
+        "yahoo.in",
+        "yahoo.es",
+        "yahoo.ca",
+        "yahoo.com.au",
+        "yahoo.com.ar",
+        "yahoo.com.mx",
+        "yahoo.co.id",
+        "yahoo.com.sg",
+        "ymail.com",
+        "rocketmail.com",
+        "myyahoo.com"
+      ],
+      "alias": {
+        "plus": true
+      }
+    },
+    {
+      "id": "yandex",
+      "name": "Yandex Mail",
+      "url": "https://mail.yandex.com",
+      "domains": [
+        "yandex.ru",
+        "yandex.com"
+      ]
+    },
+    {
+      "id": "zoho",
+      "name": "Zoho Mail",
+      "url": "https://mail.zoho.com",
+      "domains": [
+        "zohomail.com",
+        "zoho.com"
+      ]
+    },
+    {
+      "id": "zohoeu",
+      "name": "Zoho Mail EU",
+      "url": "https://mail.zoho.eu",
+      "domains": [
+        "zoho.eu"
+      ]
+    },
+    {
+      "id": "alibab",
+      "name": "Alibaba Mail",
+      "url": "https://mail.aliyun.com",
+      "domains": [
+        "aliyun.com",
+        "alibaba.com",
+        "taobao.com",
+        "tmall.com"
+      ],
+      "mx": [
+        "mx1.qiye.aliyun.com",
+        "mx2.qiye.aliyun.com",
+        "mx3.qiye.aliyun.com"
+      ],
+      "txt": [
+        "spf:spf.qiye.aliyun.com"
+      ]
+    },
+    {
+      "id": "sify",
+      "name": "Sify Mail",
+      "url": "https://mail.sify.com",
+      "domains": [
+        "sify.com",
+        "sifymail.com"
+      ]
+    },
+    {
+      "id": "indiat",
+      "name": "IndiatTimes Mail",
+      "url": "https://mail.indiatimes.com",
+      "domains": [
+        "indiatimes.com"
+      ]
+    },
+    {
+      "id": "virgil",
+      "name": "Virgilio Mail",
+      "url": "https://mail.virgilio.it",
+      "domains": [
+        "virgilio.it",
+        "alice.it",
+        "tin.it"
+      ]
+    },
+    {
+      "id": "teleko",
+      "name": "Telekom Mail",
+      "url": "https://email.magenta.de",
+      "domains": [
+        "magenta.de",
+        "telekom.de"
+      ]
+    },
+    {
+      "id": "tiscal",
+      "name": "Tiscali Mail",
+      "url": "https://mail.tiscali.it",
+      "domains": [
+        "tiscali.it"
+      ]
+    },
+    {
+      "id": "skynet",
+      "name": "Skynet Mail",
+      "url": "https://webmail.skynet.be",
+      "domains": [
+        "skynet.be"
+      ]
+    },
+    {
+      "id": "telene",
+      "name": "Telenet Mail",
+      "url": "https://webmail.telenet.be",
+      "domains": [
+        "telenet.be"
+      ]
+    },
+    {
+      "id": "xs4all",
+      "name": "Xs4All",
+      "url": "https://webmail.xs4all.nl",
+      "domains": [
+        "xs4all.nl"
+      ]
+    },
+    {
+      "id": "planet",
+      "name": "Planet.nl",
+      "url": "https://webmail.planet.nl",
+      "domains": [
+        "planet.nl"
+      ]
+    },
+    {
+      "id": "bluewi",
+      "name": "Bluewin Mail",
+      "url": "https://webmail.bluewin.ch",
+      "domains": [
+        "bluewin.ch"
+      ]
+    },
+    {
+      "id": "eircom",
+      "name": "Eircom Mail",
+      "url": "https://webmail.eircom.net",
+      "domains": [
+        "eircom.net"
+      ]
+    },
+    {
+      "id": "centru",
+      "name": "Centrum Mail",
+      "url": "https://www.centrum.cz",
+      "domains": [
+        "centrum.cz",
+        "centrum.sk"
+      ]
+    },
+    {
+      "id": "interi",
+      "name": "Interia Mail",
+      "url": "https://poczta.interia.pl",
+      "domains": [
+        "interia.pl"
+      ]
+    },
+    {
+      "id": "onet",
+      "name": "Onet Mail",
+      "url": "https://poczta.onet.pl",
+      "domains": [
+        "onet.pl",
+        "poczta.onet.pl",
+        "op.pl"
+      ]
+    },
+    {
+      "id": "ramble",
+      "name": "Rambler Mail",
+      "url": "https://mail.rambler.ru",
+      "domains": [
+        "rambler.ru",
+        "lenta.ru",
+        "autorambler.ru"
+      ]
+    },
+    {
+      "id": "nat",
+      "name": "Nate Mail",
+      "url": "https://mail.nate.com",
+      "domains": [
+        "nate.com"
+      ]
+    },
+    {
+      "id": "han",
+      "name": "Hanmail",
+      "url": "https://mail.hanmail.net",
+      "domains": [
+        "hanmail.net"
+      ]
+    },
+    {
+      "id": "livejp",
+      "name": "Live.jp",
+      "url": "https://login.live.com",
+      "domains": [
+        "live.jp"
+      ]
+    }
+  ],
+  "meta": {
+    "count": 93,
+    "domains": 178,
+    "generated": "2025-06-21T09:13:42.091Z"
+  }
+}

@@ -1,0 +1,189 @@
+name: CI/CD Pipeline (Node.js + pnpm)
+
+on:
+  # Trigger on all pushes
+  push:
+  # Trigger on all PRs
+  pull_request:
+  # Manual trigger from GitHub UI
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x, 24.x]
+        package-manager: [npm, pnpm]
+        include:
+          - package-manager: npm
+            install: npm ci
+            test: npm test
+            build: npm run build
+          - package-manager: pnpm
+            install: pnpm install --frozen-lockfile
+            test: pnpm test
+            build: pnpm run build
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install pnpm
+      if: matrix.package-manager == 'pnpm'
+      uses: pnpm/action-setup@v2
+      with:
+        version: 10.11.1
+        run_install: false
+
+
+
+    - name: Get package manager cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          node_modules
+          ~/.npm
+          ~/.pnpm-store
+        key: ${{ runner.os }}-${{ matrix.package-manager }}-${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.package-manager }}-
+        
+    - name: Setup package manager environment
+      run: |
+        # Clean node_modules to ensure no leftover state
+        rm -rf node_modules
+
+
+        # Then handle lockfiles and configuration
+        case "${{ matrix.package-manager }}" in
+          "pnpm")
+            rm -f package-lock.json bun.lock
+            rm -rf .pnp.cjs .pnp.loader.mjs
+            # Ensure clean pnpm state
+            rm -rf .pnpm-store
+            ;;
+          "npm")
+            rm -f pnpm-lock.yaml bun.lock
+            rm -rf .pnp.cjs .pnp.loader.mjs
+            # Ensure clean npm state
+            rm -rf .npm
+            ;;
+        esac
+
+
+    - name: Install dependencies
+      run: ${{ matrix.install }}
+      
+    - name: 🔄 Auto-sync versions
+      run: |
+        echo "Syncing package.json version with git tags..."
+        npm run sync-versions
+      
+    - name: Security audit
+      run: |
+        case "${{ matrix.package-manager }}" in
+          "npm")
+            npm audit --audit-level=moderate
+            ;;
+          "pnpm")
+            pnpm audit
+            ;;
+        esac
+      
+    - name: Run tests
+      run: ${{ matrix.test }}
+      
+    - name: 🔒 CRITICAL SECURITY CHECK
+      run: |
+        echo "🚨 Running critical security verification..."
+        echo "This will FAIL if providers file has been tampered with!"
+        # Skip hash verification during semantic-release process
+        if [[ "$GITHUB_ACTOR" == "semantic-release-bot" ]]; then
+          echo "ℹ️  Skipping hash verification during semantic-release"
+        else
+          npm test -- --testNamePattern="CRITICAL.*production providers file must have correct hash" --verbose
+          echo "✅ Security check passed - providers file integrity verified"
+        fi
+      
+    - name: Run build
+      run: ${{ matrix.build }}
+      
+    - name: Test examples
+      run: |
+        node examples/example-js.js
+        npx tsx examples/example.ts
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests with coverage
+      run: npm run test:coverage
+      
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: success()
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+
+  publish:
+    name: Publish to NPM
+    runs-on: ubuntu-latest
+    needs: [test, coverage]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        # Fetch all history for semantic versioning
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build package
+      run: npm run build
+      
+    - name: Semantic Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: npx semantic-release
+

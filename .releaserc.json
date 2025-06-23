@@ -1,0 +1,56 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "npm run update-hashes"
+      }
+    ],
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": true,
+        "tarballDir": "dist",
+        "pkgRoot": "."
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["package.json", "package-lock.json", "src/security/hash-verifier.ts"],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    {
+      "name": "@semantic-release/github",
+      "config": {
+        "assets": [
+          {
+            "path": "email-provider-links-*.tgz",
+            "label": "NPM Package"
+          }
+        ]
+      }
+    }
+  ],
+  "preset": "conventionalcommits",
+  "releaseRules": [
+    {
+      "type": "docs",
+      "scope": "README",
+      "release": "patch"
+    },
+    {
+      "type": "refactor",
+      "release": "patch"
+    },
+    {
+      "type": "style",
+      "release": "patch"
+    }
+  ]
+}
+

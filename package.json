@@ -1,0 +1,18 @@
+{
+  "name": "Email-provider-links",
+  "version": "2.5.0",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "sync-versions": "echo 'Version sync not required for development'"
+  },
+  "devDependencies": {
+    "@jest/globals": "^30.0.2",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.0.3",
+    "jest": "^30.0.2",
+    "ts-jest": "^29.4.0",
+    "typescript": "^5.8.3"
+  }
+}
