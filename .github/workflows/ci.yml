@@ -80,29 +80,13 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20.x'
-
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 10.11.1
-        run_install: false
-
-    - name: Get package manager cache
-      uses: actions/cache@v3
-      with:
-        path: |
-          node_modules
-          ~/.npm
-          ~/.pnpm-store
-        key: ${{ runner.os }}-coverage-${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-coverage-
+        cache: 'npm'
 
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      run: npm ci
       
     - name: Run tests with coverage
-      run: pnpm run test:coverage
+      run: npm run test:coverage
       
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -136,29 +120,13 @@ jobs:
       with:
         node-version: '20.x'
         registry-url: 'https://registry.npmjs.org'
-
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 10.11.1
-        run_install: false
-
-    - name: Get package manager cache
-      uses: actions/cache@v3
-      with:
-        path: |
-          node_modules
-          ~/.npm
-          ~/.pnpm-store
-        key: ${{ runner.os }}-publish-${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml') }}
-        restore-keys: |
-          ${{ runner.os }}-publish-
+        cache: 'npm'
 
     - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      run: npm ci
       
     - name: Build package
-      run: pnpm run build
+      run: npm run build
       
     - name: Semantic Release
       env:
