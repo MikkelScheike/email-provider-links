@@ -1,4 +1,4 @@
-name: CI/CD Pipeline (Node.js + pnpm)
+name: CI/CD Pipeline
 
 on:
   # Trigger on all pushes
@@ -16,16 +16,6 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x, 24.x]
-        package-manager: [npm, pnpm]
-        include:
-          - package-manager: npm
-            install: npm ci
-            test: npm test
-            build: npm run build
-          - package-manager: pnpm
-            install: pnpm install --frozen-lockfile
-            test: pnpm test
-            build: pnpm run build
     
     steps:
     - name: Checkout code
@@ -36,47 +26,16 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Install pnpm
-      if: matrix.package-manager == 'pnpm'
-      uses: pnpm/action-setup@v2
-      with:
-        version: 10.11.1
-        run_install: false
-
-    - name: Get package manager cache
+    - name: Setup Node.js cache
       uses: actions/cache@v3
       with:
-        path: |
-          node_modules
-          ~/.npm
-          ~/.pnpm-store
-        key: ${{ runner.os }}-${{ matrix.package-manager }}-${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml') }}
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.package-manager }}-
-        
-    - name: Setup package manager environment
-      run: |
-        # Clean node_modules to ensure no leftover state
-        rm -rf node_modules
-
-        # Then handle lockfiles and configuration
-        case "${{ matrix.package-manager }}" in
-          "pnpm")
-            rm -f package-lock.json bun.lock
-            rm -rf .pnp.cjs .pnp.loader.mjs
-            # Ensure clean pnpm state
-            rm -rf .pnpm-store
-            ;;
-          "npm")
-            rm -f pnpm-lock.yaml bun.lock
-            rm -rf .pnp.cjs .pnp.loader.mjs
-            # Ensure clean npm state
-            rm -rf .npm
-            ;;
-        esac
+          ${{ runner.os }}-node-
 
     - name: Install dependencies
-      run: ${{ matrix.install }}
+      run: npm ci
       
     - name: 🔄 Auto-sync versions
       run: |
@@ -84,18 +43,10 @@ jobs:
         npm run sync-versions
       
     - name: Security audit
-      run: |
-        case "${{ matrix.package-manager }}" in
-          "npm")
-            npm audit --audit-level=moderate
-            ;;
-          "pnpm")
-            pnpm audit
-            ;;
-        esac
+      run: npm audit --audit-level=moderate
       
     - name: Run tests
-      run: ${{ matrix.test }}
+      run: npm test
       
     - name: 🔒 CRITICAL SECURITY CHECK
       run: |
@@ -110,7 +61,7 @@ jobs:
         fi
       
     - name: Run build
-      run: ${{ matrix.build }}
+      run: npm run build
       
     - name: Test examples
       run: |
