@@ -11,11 +11,12 @@
     "!dist/**/*.map"
   ],
   "scripts": {
-    "build": "tsc",
+    "verify-hashes": "tsx scripts/verify-hashes.ts",
+    "build": "tsx scripts/verify-hashes.ts && tsc",
     "test": "jest --silent",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "prepublishOnly": "npm run build",
+"prepublishOnly": "npm run verify-hashes && npm run build",
     "dev": "tsx src/index.ts",
     "sync-versions": "node scripts/sync-versions.js",
     "pretest": "node scripts/sync-versions.js",
