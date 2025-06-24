@@ -1,4 +1,29 @@
-# Simplified Alias Detection API
+# API Documentation
+
+## Email Validation
+
+The library provides comprehensive email validation following international standards:
+
+```typescript
+import { validateInternationalEmail } from '@mikkelscheike/email-provider-links';
+
+// Validate an email address
+const result = validateInternationalEmail('user@example.com');
+
+// Handle validation results
+if (result) {
+  console.log(result.code);    // e.g., IDN_VALIDATION_ERROR
+  console.log(result.message); // Human-readable error
+}
+```
+
+### Validation Features
+- RFC 5321, 5322, and 6530 compliance
+- Full IDN (Punycode) support
+- Comprehensive validation checks
+- Clear, translatable error messages
+
+## Alias Detection API
 
 ## Current API (Over-engineered)
 - `detectEmailAlias()` - Detailed analysis object

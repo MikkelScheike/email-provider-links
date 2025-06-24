@@ -160,7 +160,7 @@ export function generateSecurityHashes(basePath: string = __dirname) {
   
   for (const file of files) {
     try {
-      const fullPath = join(basePath, '..', '..', file);
+      const fullPath = join(basePath, '..', file);
       const hash = calculateFileHash(fullPath);
       hashes[file.split('/').pop() || file] = hash;
       console.log(`✅ ${file}: ${hash}`);
@@ -275,7 +275,7 @@ export function performSecurityAudit(providersFilePath?: string): {
   recommendations: string[];
   securityLevel: 'HIGH' | 'MEDIUM' | 'LOW' | 'CRITICAL';
 } {
-  const filePath = providersFilePath || join(__dirname, '..', '..', 'providers', 'emailproviders.json');
+    const filePath = providersFilePath || join(__dirname, '..', 'providers', 'emailproviders.json');
   const hashResult = verifyProvidersIntegrity(filePath);
   
   const recommendations: string[] = [];

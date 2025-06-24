@@ -101,11 +101,17 @@ const DEFAULT_CONFIG: ConcurrentDNSConfig = {
  */
 export class ConcurrentDNSDetector {
   // Store active query states
-  private activeQueries: Set<Promise<any>> = new Set();
+  private activeQueries: Set<{ promise: Promise<any>, reject: (error: Error) => void }> = new Set();
 
   // Cleanup method for tests
   cleanup() {
+    // Cancel any in-progress timeouts
+    const timeoutError = new Error('Operation cancelled by cleanup');
+    for (const { reject } of this.activeQueries) {
+      reject(timeoutError);
+    }
     this.activeQueries.clear();
+    return Promise.resolve();
   }
   private config: ConcurrentDNSConfig;
   private providers: EmailProvider[];
@@ -504,14 +510,31 @@ export class ConcurrentDNSDetector {
    * Wrap a promise with a timeout
    */
   private withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error(`DNS query timeout after ${ms}ms`)), ms);
+    let rejectFn: ((error: Error) => void) | undefined;
+    
+    const timeoutPromise = new Promise<T>((resolve, reject) => {
+      rejectFn = reject;
+      const timeout = setTimeout(() => reject(new Error(`DNS query timeout after ${ms}ms`)), ms).unref();
       
       promise
         .then(resolve)
         .catch(reject)
-        .finally(() => clearTimeout(timeout));
+        .finally(() => {
+          clearTimeout(timeout);
+          // Clean up active query
+          const queryEntry = Array.from(this.activeQueries).find(entry => entry.promise === timeoutPromise);
+          if (queryEntry) {
+            this.activeQueries.delete(queryEntry);
+          }
+        });
     });
+
+    // Only add to active queries if we have a reject function
+    if (rejectFn) {
+      const queryEntry = { promise: timeoutPromise, reject: rejectFn };
+      this.activeQueries.add(queryEntry);
+    }
+    return timeoutPromise;
   }
 }
 

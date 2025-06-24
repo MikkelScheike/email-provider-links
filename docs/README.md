@@ -4,7 +4,7 @@ This directory contains comprehensive documentation for the Email Provider Links
 
 ## Files
 
-- **`CHANGELOG.md`** - Complete version history and release notes
+- **[`CHANGELOG.md`](../CHANGELOG.md)** - Complete version history and release notes (in root directory)
 - **`CONTRIBUTING.md`** - Guidelines for contributing, including security requirements
 - **`SECURITY.md`** - Security policy, vulnerability reporting, and security features
 
@@ -12,7 +12,7 @@ This directory contains comprehensive documentation for the Email Provider Links
 
 ### For Users
 - [Security Policy](SECURITY.md) - Understanding security features and reporting vulnerabilities
-- [Changelog](CHANGELOG.md) - Version history and migration guides
+- [Changelog](../CHANGELOG.md) - Version history and migration guides
 
 ### For Contributors  
 - [Contributing Guide](CONTRIBUTING.md) - How to add providers and contribute safely
@@ -33,7 +33,7 @@ This package implements enterprise-grade security features. Key security docs:
 - Testing and validation procedures
 - Pull request security checklist
 
-### 📋 [Changelog](CHANGELOG.md)
+### 📋 [Changelog](../CHANGELOG.md)
 - Detailed security feature history
 - Migration guides for version updates
 - Breaking change notifications

@@ -139,7 +139,7 @@ const URL_SHORTENERS = [
   'buff.ly'
 ];
 
-import { domainToPunycode } from '../idn';
+import { domainToPunycode } from './idn';
 
 export interface URLValidationResult {
   isValid: boolean;

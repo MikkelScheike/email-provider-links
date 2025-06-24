@@ -9,7 +9,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { validateEmailProviderUrl, auditProviderSecurity } from './url-validator';
 import { verifyProvidersIntegrity, generateSecurityHashes, handleHashMismatch } from './hash-verifier';
-import type { EmailProvider } from '../index';
+import type { EmailProvider } from './index';
 
 export interface SecureLoadResult {
   success: boolean;
@@ -36,7 +36,7 @@ export function secureLoadProviders(
   providersPath?: string,
   expectedHash?: string
 ): SecureLoadResult {
-  const filePath = providersPath || join(__dirname, '..', '..', 'providers', 'emailproviders.json');
+  const filePath = providersPath || join(__dirname, '..', 'providers', 'emailproviders.json');
   const issues: string[] = [];
   let providers: EmailProvider[] = [];
   

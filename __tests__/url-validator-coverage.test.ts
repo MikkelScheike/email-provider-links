@@ -9,7 +9,7 @@ import {
   validateEmailProviderUrl,
   validateAllProviderUrls,
   auditProviderSecurity
-} from '../src/security/url-validator';
+} from '../src/url-validator';
 
 describe('URL Validator - Coverage Tests', () => {
   describe('validateEmailProviderUrl - Edge Cases', () => {

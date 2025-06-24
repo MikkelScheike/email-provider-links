@@ -9,7 +9,7 @@ import {
   validateEmailProviderUrl, 
   auditProviderSecurity,
   validateAllProviderUrls 
-} from '../src/security/url-validator';
+} from '../src/url-validator';
 
 import { 
   calculateHash,
@@ -21,13 +21,13 @@ import {
   generateSecurityHashes,
   performSecurityAudit,
   createProviderManifest
-} from '../src/security/hash-verifier';
+} from '../src/hash-verifier';
 
 import { 
   secureLoadProviders,
   initializeSecurity,
   createSecurityMiddleware
-} from '../src/security/secure-loader';
+} from '../src/secure-loader';
 
 import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
@@ -1064,7 +1064,7 @@ describe('Security - Hash Verifier Extended Tests', () => {
       
       // Create two manifests with delay to ensure different timestamps
       const manifest1 = createProviderManifest(testProviders);
-      await new Promise(resolve => setTimeout(resolve, 10)); // Increased delay
+      await new Promise(resolve => setTimeout(resolve, 10).unref()); // Increased delay
       const manifest2 = createProviderManifest(testProviders);
       
       // Timestamps should be different (with sufficient delay)
@@ -1262,7 +1262,7 @@ describe('Security - Hash Verifier Edge Cases for Maximum Coverage', () => {
     
     try {
       // Mock the KNOWN_GOOD_HASHES to simulate TO_BE_CALCULATED
-      const originalModule = require('../src/security/hash-verifier');
+const originalModule = require('../src/hash-verifier');
       const audit = performSecurityAudit(testAuditFile);
       
       expect(audit).toHaveProperty('securityLevel');

@@ -39,9 +39,10 @@ export interface EmailProviderResult {
   proxyService?: string;
   /** Error information if detection failed */
   error?: {
-    type: 'INVALID_EMAIL' | 'DNS_TIMEOUT' | 'RATE_LIMITED' | 'UNKNOWN_DOMAIN' | 'NETWORK_ERROR';
+    type: 'INVALID_EMAIL' | 'DNS_TIMEOUT' | 'RATE_LIMITED' | 'UNKNOWN_DOMAIN' | 'NETWORK_ERROR' | 'IDN_VALIDATION_ERROR';
     message: string;
     retryAfter?: number; // seconds until retry allowed (for rate limiting)
+    idnError?: string; // specific IDN validation error message
   };
 }
 

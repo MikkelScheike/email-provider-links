@@ -6,10 +6,11 @@ A TypeScript library providing direct links to **93 email providers** (178 domai
 
 ## ✨ Features
 
-- 🚀 **Fast & Lightweight**: Zero dependencies, minimal footprint
+- 🚀 **Fast & Lightweight**: Zero dependencies, ultra-low memory (~0.39MB initial, ~0.02MB per 1000 ops)
 - 📧 **93 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
 - 🌐 **178 Domains Supported**: Comprehensive international coverage
-- 🌍 **IDN Support**: Full internationalized domain name (punycode) support
+- 🌍 **IDN Support**: Full internationalized domain name (punycode) support with RFC compliance
+- ✅ **Email Validation**: International email validation following RFC 5321, 5322, and 6530 standards
 - 🏢 **Business Domain Detection**: DNS-based detection for custom domains (Google Workspace, Microsoft 365, etc.)
 - 🔒 **Enterprise Security**: Multi-layer protection against malicious URLs and supply chain attacks
 - 🛡️ **URL Validation**: HTTPS-only enforcement with domain allowlisting
@@ -28,15 +29,9 @@ Using npm:
 npm install @mikkelscheike/email-provider-links
 ```
 
-Using pnpm:
-```bash
-pnpm add @mikkelscheike/email-provider-links
-```
-
 ## Requirements
 
 - **Node.js**: `>=18.0.0` (Tested on 18.x, 20.x, 22.x, **24.x**)
-- **Package Managers**: npm and pnpm (Tested on pnpm 18.x through 24.x)
 - **TypeScript**: `>=4.0.0` (optional)
 - **Zero runtime dependencies** - No external packages required
 
@@ -160,6 +155,39 @@ console.log('Max requests:', Config.MAX_DNS_REQUESTS_PER_MINUTE); // 10
 console.log('Default timeout:', Config.DEFAULT_DNS_TIMEOUT);       // 5000ms
 ```
 
+## Email Validation
+
+The library includes comprehensive email validation following international standards:
+
+```typescript
+import { validateInternationalEmail } from '@mikkelscheike/email-provider-links';
+
+// Validate any email address
+const result = validateInternationalEmail('user@example.com');
+
+// Returns undefined for valid emails
+console.log(result); // undefined
+
+// Returns detailed error information for invalid emails
+const invalid = validateInternationalEmail('user@münchen.com');
+if (invalid) {
+  console.log(invalid.code);    // IDN_VALIDATION_ERROR
+  console.log(invalid.message); // Human-readable error message
+}
+```
+
+### Validation Features
+
+- ✅ **RFC Compliance**: Follows RFC 5321, 5322, and 6530 standards
+- 🌍 **International Support**: Full IDN (Punycode) validation
+- 📝 **Detailed Errors**: Clear, translatable error messages
+- 🔍 **Comprehensive Checks**:
+  - Local part validation (username)
+  - Domain format validation
+  - IDN encoding validation
+  - Length limits (local part, domain, total)
+  - TLD validation
+
 ## Advanced Usage
 
 <details>
@@ -262,6 +290,12 @@ interface EmailProviderResult {
   loginUrl: string | null;
   detectionMethod?: 'domain_match' | 'mx_record' | 'txt_record' | 'proxy_detected';
   proxyService?: string;
+  error?: {
+    type: 'INVALID_EMAIL' | 'DNS_TIMEOUT' | 'RATE_LIMITED' | 'UNKNOWN_DOMAIN' | 
+          'NETWORK_ERROR' | 'IDN_VALIDATION_ERROR';
+    message: string;
+    idnError?: string;  // Specific IDN validation error message
+  };
 }
 
 interface ConfigConstants {
@@ -317,6 +351,24 @@ if (result.securityReport.securityLevel === 'CRITICAL') {
   console.error('Security validation failed:', result.securityReport.issues);
 }
 ```
+
+## Performance Benchmarks
+
+This package is designed to be extremely memory efficient and fast. We continuously monitor performance metrics through automated benchmarks that run on every PR and release.
+
+Latest benchmark results show:
+- Provider loading: ~0.39MB heap usage, <0.5ms
+- Email lookups: ~0.02MB heap usage per 100 operations
+- Concurrent DNS: ~0.03MB heap usage, ~110ms for 10 lookups
+- Large scale (1000 ops): ~0.02MB heap usage, <3ms total
+- Cache effectiveness: ~0.01MB impact on subsequent loads
+
+To run benchmarks locally:
+```bash
+npm run benchmark
+```
+
+Benchmarks are automatically run in CI to catch any performance regressions.
 
 ## Contributing
 

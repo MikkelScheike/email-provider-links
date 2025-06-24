@@ -21,9 +21,12 @@ describe('Concurrent DNS Detection Tests', () => {
       });
     });
 
-    afterEach(() => {
-      // Clean up any remaining DNS query states
-      detector?.cleanup?.();
+    afterEach(async () => {
+      // Clean up any remaining DNS query states and promises
+      await Promise.race([
+        detector?.cleanup?.(),
+        new Promise(resolve => setTimeout(resolve, 100).unref())
+      ]);
     });
 
     describe('Provider Detection', () => {

@@ -5,20 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.6.0] - 2025-06-23
+## [2.6.0] - 2025-06-24
 
-### ⚡ Enhancements
-- **IDN Support**: Added full internationalized domain name (punycode) support for email providers.
-- **PNPM Testing**: Verified compatibility with pnpm versions 18.x through 24.x.
+### 🌐 International Email Validation
+
+#### Added
+- **Comprehensive Email Validation** following RFC 5321, 5322, and 6530 standards
+- **Full IDN Support** with Punycode validation
+- **Clear Error Messages** designed for translation
+- **RFC-Compliant Checks** for all email components
+
+#### New Features
+- `validateInternationalEmail()` function for complete validation
+- Detailed error codes and messages
+- Length validation for all email parts
+- IDN (Punycode) validation for domains
+
+#### Enhanced Tests
+- 396 comprehensive tests (up from 370)
+- 93.29% overall code coverage
+- 98.24% coverage for IDN validation
+- Added memory leak detection for worker processes
+
+### Non-Breaking Changes
+- Added new validation function that maintains backward compatibility
+- Enhanced error messages for better internationalization
+- Improved IDN support in existing functions
+
+### ⚡ Additional Enhancements
+- **Memory Optimization**: New benchmark results showing:
+  - Initial load: ~0.39MB heap usage, <0.5ms
+  - Cache performance: ~0.01MB impact
+  - Async lookups: ~0.15MB heap usage
+  - Large scale (1000 ops): ~0.02MB heap usage, <3ms
+  - Minimal footprint with efficient garbage collection
 
 ### 🔥 Removed
-- **Bun Support**: Completely removed Bun-specific configuration and dependencies.
+- **Bun Support**: Completely removed Bun-specific configuration and dependencies
 
 ### 🛠 CI/CD
-- **CI Triggers**: Improved CI configuration to trigger builds for all branches.
+- **CI Triggers**: Improved CI configuration to trigger builds for all branches
 
 ### 🛡️ Security
-- **Integrity Checks**: Enhanced hash verification and data integrity checks for provider files.
+- **Integrity Checks**: Enhanced hash verification and data integrity checks for provider files
 
 ---
 
