@@ -57,7 +57,7 @@ class HashUpdater {
     }
 
     private async updateHashVerifier(hashes: Record<string, string>): Promise<void> {
-        const verifierPath = join(this.projectRoot, "src/security/hash-verifier.ts");
+        const verifierPath = join(this.projectRoot, "src/hash-verifier.ts");
         let content = readFileSync(verifierPath, "utf-8");
         
         // Update emailproviders.json hash
