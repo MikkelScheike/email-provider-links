@@ -11,7 +11,7 @@ import { verifyProvidersIntegrity } from '../src/hash-verifier';
 function verifyHashes() {
   console.log('🔒 Verifying file integrity...');
   
-  const result = verifyProvidersIntegrity();
+  const result = verifyProvidersIntegrity('providers/emailproviders.json');
   
   if (!result.isValid) {
     console.error('❌ Hash verification failed!');
