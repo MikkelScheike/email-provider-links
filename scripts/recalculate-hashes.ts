@@ -10,7 +10,7 @@
  *   npx tsx scripts/recalculate-hashes.ts
  */
 
-import { recalculateHashes } from '../src/security/hash-verifier';
+import { recalculateHashes } from '../src/hash-verifier';
 import { join } from 'path';
 
 function main() {
@@ -21,11 +21,11 @@ function main() {
   
   try {
     // Recalculate hashes
-    const configCode = recalculateHashes(join(__dirname, '..', 'src', 'security'));
+    const configCode = recalculateHashes(join(__dirname, '..', 'src'));
     
     console.log('\n🎯 WHAT TO DO NEXT:');
     console.log('1. Review git diff to verify changes are legitimate');
-    console.log('2. Copy the configuration above to src/security/hash-verifier.ts');
+    console.log('2. Copy the configuration above to src/hash-verifier.ts');
     console.log('3. Replace the KNOWN_GOOD_HASHES constant');
     console.log('4. Commit the hash update with clear commit message');
     console.log('5. Consider requiring code review for hash changes');

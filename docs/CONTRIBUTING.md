@@ -43,7 +43,7 @@ All new email providers must meet these security criteria:
    ```
 
 3. **Update Security Allowlist**
-   Add the domain to `ALLOWED_DOMAINS` in `src/security/url-validator.ts`:
+   Add the domain to `ALLOWED_DOMAINS` in `src/url-validator.ts`:
    ```typescript
    const ALLOWED_DOMAINS = [
      // ... existing domains
@@ -54,7 +54,7 @@ All new email providers must meet these security criteria:
 4. **Update Security Hashes**
    ```bash
    npx tsx scripts/recalculate-hashes.ts
-   # Copy the output to src/security/hash-verifier.ts
+   # Copy the output to src/hash-verifier.ts
    ```
 
 5. **Run Security Tests**

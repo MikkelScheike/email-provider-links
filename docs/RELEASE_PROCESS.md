@@ -49,7 +49,7 @@ vim package.json
 # Recalculate security hashes
 npx tsx scripts/recalculate-hashes.ts
 
-# Copy the output and update src/security/hash-verifier.ts
+# Copy the output and update src/hash-verifier.ts
 # Update the KNOWN_GOOD_HASHES constant with new values
 ```
 
@@ -157,7 +157,7 @@ vim providers/emailproviders.json
 npx tsx scripts/recalculate-hashes.ts
 
 # 3. Copy output to hash-verifier.ts
-vim src/security/hash-verifier.ts
+vim src/hash-verifier.ts
 
 # 4. Commit with clear message explaining why
 git commit -m "security: update hashes after adding Gmail enterprise domains"

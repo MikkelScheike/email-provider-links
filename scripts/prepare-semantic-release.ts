@@ -144,7 +144,7 @@ class SemanticReleaseManager {
    * Update the hash-verifier.ts file with new hashes
    */
   private async updateHashVerifier(hashes: Record<string, string>): Promise<void> {
-    const hashVerifierPath = join(this.projectRoot, 'src/security/hash-verifier.ts');
+    const hashVerifierPath = join(this.projectRoot, 'src/hash-verifier.ts');
     let content = readFileSync(hashVerifierPath, 'utf-8');
 
     // Update emailproviders.json hash
@@ -221,7 +221,7 @@ class SemanticReleaseManager {
     console.log('-'.repeat(40));
 
     // Stage only security hash changes (no version changes)
-    execSync('git add src/security/hash-verifier.ts');
+    execSync('git add src/hash-verifier.ts');
 
     // Check if there are changes to commit
     try {
