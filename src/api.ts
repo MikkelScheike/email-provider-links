@@ -6,9 +6,7 @@
  */
 
 import { 
-  detectProviderConcurrent,
-  ConcurrentDNSConfig,
-  ConcurrentDNSResult
+  detectProviderConcurrent
 } from './concurrent-dns';
 import { loadProviders } from './loader';
 
@@ -62,13 +60,13 @@ export interface EmailProviderResult {
  * ```typescript
  * // Consumer email
  * const gmail = await getEmailProvider('user@gmail.com');
- * console.log(gmail.provider?.name); // "Gmail"
- * console.log(gmail.loginUrl);       // "https://mail.google.com/mail/"
+ * console.log(gmail.provider?.companyProvider); // "Gmail"
+ * console.log(gmail.loginUrl);                  // "https://mail.google.com/mail/"
  * 
  * // Business domain
  * const business = await getEmailProvider('user@mycompany.com');
- * console.log(business.provider?.name); // "Google Workspace" (if detected)
- * console.log(business.detectionMethod); // "mx_record"
+ * console.log(business.provider?.companyProvider); // "Google Workspace" (if detected)
+ * console.log(business.detectionMethod);          // "mx_record"
  * 
  * // Error handling
  * const invalid = await getEmailProvider('invalid-email');
@@ -157,7 +155,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
     // Enhanced error handling
     if (error.message?.includes('Rate limit exceeded')) {
       const retryMatch = error.message.match(/Try again in (\d+) seconds/);
-      const retryAfter = retryMatch ? parseInt(retryMatch[1]) : undefined;
+      const retryAfter = retryMatch ? parseInt(retryMatch[1], 10) : undefined;
       
       return {
         provider: null,
@@ -166,7 +164,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
         error: {
           type: 'RATE_LIMITED',
           message: 'DNS query rate limit exceeded',
-          retryAfter
+          ...(retryAfter !== undefined ? { retryAfter } : {})
         }
       };
     }
@@ -208,7 +206,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
  * ```typescript
  * // Works for known domains
  * const gmail = getEmailProviderSync('user@gmail.com');
- * console.log(gmail.provider?.name); // "Gmail"
+ * console.log(gmail.provider?.companyProvider); // "Gmail"
  * 
  * // Unknown domains return null
  * const unknown = getEmailProviderSync('user@mycompany.com');
@@ -381,8 +379,6 @@ export function emailsMatch(email1: string, email2: string): boolean {
   
   return normalized1 === normalized2;
 }
-
-// Note: EmailProvider type is defined above
 
 /**
  * Enhanced email provider detection with concurrent DNS for maximum performance.
