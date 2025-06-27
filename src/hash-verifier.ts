@@ -83,7 +83,7 @@ export function verifyProvidersIntegrity(
       isValid,
       expectedHash: expectedHashToUse,
       actualHash,
-      reason: isValid ? 'Hash verification passed' : 'File hash does not match expected value - potential tampering detected',
+      reason: isValid ? undefined : 'File hash does not match expected value - potential tampering detected',
       file: filePath
     };
     
