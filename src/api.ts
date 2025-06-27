@@ -137,9 +137,12 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
       provider: concurrentResult.provider,
       email,
       loginUrl: concurrentResult.provider?.loginUrl || null,
-      detectionMethod: concurrentResult.detectionMethod || 'mx_record',
-      proxyService: concurrentResult.proxyService
+      detectionMethod: concurrentResult.detectionMethod || 'mx_record'
     };
+
+    if (concurrentResult.proxyService) {
+      result.proxyService = concurrentResult.proxyService;
+    }
 
     // Add error context for null results
     if (!result.provider && !result.proxyService) {
