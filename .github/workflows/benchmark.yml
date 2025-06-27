@@ -62,20 +62,35 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const results = fs.readFileSync('benchmark-results.txt', 'utf8');
-            
-            const comment = `## 📊 Performance Benchmark Results
-            
-            \`\`\`
-            ${results}
-            \`\`\`
-            
-            > Note: These benchmarks were run on Node.js ${{ matrix.node-version }}
-            `;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.name,
-              body: comment
-            });
+            try {
+              const results = fs.readFileSync('benchmark-results.txt', 'utf8');
+              
+              const comment = `## 📊 Performance Benchmark Results
+              
+              \`\`\`
+              ${results}
+              \`\`\`
+              
+              > Note: These benchmarks were run on Node.js ${{ matrix.node-version }}
+              `;
+              
+              // Only try to comment if we have a PR number
+              if (context.payload.pull_request) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.name,
+                  issue_number: context.payload.pull_request.number,
+                  body: comment
+                });
+                console.log('Successfully posted benchmark results comment');
+              } else {
+                console.log('No PR number found - skipping comment creation');
+                console.log('Benchmark Results:\n', results);
+              }
+            } catch (error) {
+              console.log('Error while trying to post comment:', error.message);
+              // Don't fail the build if commenting fails
+              if (fs.existsSync('benchmark-results.txt')) {
+                console.log('Benchmark Results:\n', fs.readFileSync('benchmark-results.txt', 'utf8'));
+              }
+            }
