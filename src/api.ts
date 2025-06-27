@@ -487,7 +487,7 @@ export async function getEmailProviderFast(
       provider: concurrentResult.provider,
       email,
       loginUrl: concurrentResult.provider?.loginUrl || null,
-      detectionMethod: concurrentResult.detectionMethod || undefined,
+      detectionMethod: concurrentResult.detectionMethod || 'mx_record',
       proxyService: concurrentResult.proxyService,
       timing: concurrentResult.timing,
       confidence: concurrentResult.confidence,
