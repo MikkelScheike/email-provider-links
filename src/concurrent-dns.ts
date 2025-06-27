@@ -252,7 +252,7 @@ export class ConcurrentDNSDetector {
       const optimizedTxtResult: DNSQueryResult = {
         type: 'txt',
         success: txtResult?.success || false,
-        records: txtResult?.records,
+        records: txtResult?.records || [],
         error: txtResult?.error,
         timing: 0, // Don't count TXT time if MX was sufficient
         rawResponse: txtResult?.rawResponse
