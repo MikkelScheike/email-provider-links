@@ -9,6 +9,17 @@
  * Provider interface
  * Uses compact field names for smaller JSON size
  */
+/**
+ * Provider types:
+ * - public_provider: Regular email providers (Gmail, Yahoo, etc.)
+ * - custom_provider: Business email services (Google Workspace, Microsoft 365)
+ * - proxy_service: Email proxy services (Cloudflare, etc.)
+ */
+export type ProviderType = 
+  | 'public_provider'  // Regular email providers
+  | 'custom_provider'  // Business email services
+  | 'proxy_service';   // Email proxy services
+
 export interface Provider {
   /** Provider ID (short identifier) */
   id: string;
@@ -21,6 +32,8 @@ export interface Provider {
   /** DNS detection patterns (flattened) */
   mx?: string[];
   txt?: string[];
+  /** Provider type */
+  type: ProviderType;
   /** Alias capabilities */
   alias?: {
     dots?: boolean;   // Gmail dot normalization

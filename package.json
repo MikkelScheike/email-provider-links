@@ -13,7 +13,7 @@
   "scripts": {
     "verify-hashes": "tsx scripts/verify-hashes.ts",
     "build": "tsx scripts/verify-hashes.ts && tsc",
-    "test": "jest --silent",
+    "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "prepublishOnly": "npm run verify-hashes && npm run build",

@@ -106,7 +106,80 @@ describe('Schema Module', () => {
     });
   });
 
-  describe('Provider Validation', () => {
+describe('Provider Schema', () => {
+describe('Provider Types', () => {
+    // Helper function to print types for debugging
+    function logProviderTypes(providers: any[]) {
+      const typeMap = providers.reduce((acc, p) => {
+        acc[p.type] = (acc[p.type] || 0) + 1;
+        return acc;
+      }, {});
+      console.log('Provider types:', typeMap);
+    }
+    it('should have all required provider types in emailproviders.json', () => {
+      const { loadProviders } = require('../src/loader');
+      const { providers } = loadProviders();
+      logProviderTypes(providers);  // Debug log
+
+      // Collect all provider types
+      const types = new Set(providers.map(p => p.type));
+
+      // Verify we have all required types
+      expect(types.has('public_provider')).toBe(true);
+      expect(types.has('custom_provider')).toBe(true);
+      expect(types.has('proxy_service')).toBe(true);
+
+      // Count providers of each type for logging
+      const publicCount = providers.filter(p => p.type === 'public_provider').length;
+      const customCount = providers.filter(p => p.type === 'custom_provider').length;
+      const proxyCount = providers.filter(p => p.type === 'proxy_service').length;
+
+      // Make sure we have at least one of each type
+      expect(publicCount).toBeGreaterThan(0);
+      expect(customCount).toBeGreaterThan(0);
+      expect(proxyCount).toBeGreaterThan(0);
+
+      // Verify all providers have a valid type
+      const invalidTypes = providers.filter(p => !['public_provider', 'custom_provider', 'proxy_service'].includes(p.type));
+      expect(invalidTypes).toHaveLength(0);
+    });
+
+    it('should have valid provider configurations for each type', () => {
+      const { loadProviders } = require('../src/loader');
+      const { providers } = loadProviders();
+
+      // Check public providers
+      const publicProviders = providers.filter(p => p.type === 'public_provider');
+      publicProviders.forEach(provider => {
+        expect(provider.domains).toBeDefined();
+        expect(provider.domains.length).toBeGreaterThan(0);
+      });
+
+      // Check custom providers
+      const customProviders = providers.filter(p => p.type === 'custom_provider');
+      customProviders.forEach(provider => {
+        expect(provider.customDomainDetection).toBeDefined();
+        const { mxPatterns, txtPatterns } = provider.customDomainDetection;
+        expect(mxPatterns || txtPatterns).toBeDefined();
+        if (mxPatterns) expect(mxPatterns.length).toBeGreaterThan(0);
+        if (txtPatterns) expect(txtPatterns.length).toBeGreaterThan(0);
+      });
+
+      // Check proxy services
+      const proxyServices = providers.filter(p => p.type === 'proxy_service');
+      proxyServices.forEach(provider => {
+        // For proxy services that use custom domain detection
+        if (provider.customDomainDetection) {
+          const { mxPatterns, txtPatterns } = provider.customDomainDetection;
+          expect(mxPatterns || txtPatterns).toBeDefined();
+          if (mxPatterns) expect(mxPatterns.length).toBeGreaterThan(0);
+          if (txtPatterns) expect(txtPatterns.length).toBeGreaterThan(0);
+        }
+        // Some proxy services have known domains (like Apple Private Relay)
+        // while others handle unknown custom domains
+      });
+    });
+  });
     const validProvider: Provider = {
       id: 'gmail',
       companyProvider: 'Gmail',

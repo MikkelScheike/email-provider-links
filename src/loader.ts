@@ -51,14 +51,22 @@ const DEFAULT_CONFIG: LoaderConfig = {
  * Convert compressed provider to EmailProvider format
  */
 function convertProviderToEmailProvider(compressedProvider: Provider): EmailProvider {
+  if (!compressedProvider.type) {
+    console.warn(`Missing type for provider ${compressedProvider.id}`);
+  }
   const provider: EmailProvider = {
     companyProvider: compressedProvider.companyProvider,
     loginUrl: compressedProvider.loginUrl || null,
-    domains: compressedProvider.domains || []
+    domains: compressedProvider.domains || [],
+    type: compressedProvider.type
   };
 
-  // Convert DNS detection patterns
-  if (compressedProvider.mx?.length || compressedProvider.txt?.length) {
+  // Include DNS detection patterns for business email services and proxy services
+  const needsCustomDomainDetection = 
+    compressedProvider.type === 'custom_provider' || 
+    compressedProvider.type === 'proxy_service';
+
+  if (needsCustomDomainDetection && (compressedProvider.mx?.length || compressedProvider.txt?.length)) {
     provider.customDomainDetection = {};
     
     if (compressedProvider.mx?.length) {

@@ -2,6 +2,22 @@
   "version": "2.0",
   "providers": [
     {
+      "id": "cloudflare",
+      "mx": [
+        "mx.cloudflare.com",
+        "cloudflare.com",
+        "mxrecord.io",
+        "mxrecord.mx"
+      ],
+      "txt": [
+        "spf:_spf.cloudflare.com",
+        "cloudflare-verify="
+      ],
+      "type": "proxy_service",
+      "companyProvider": "Cloudflare Email Routing",
+      "loginUrl": null
+    },
+    {
       "id": "aamra",
       "domains": [
         "aamra.com.bd"
@@ -25,7 +41,7 @@
         "spf:amazonses.com",
         "spf:workmail.us-east-1.amazonaws.com"
       ],
-      "type": "proxy_service",
+      "type": "custom_provider",
       "companyProvider": "Amazon WorkMail",
       "loginUrl": "https://workmail.aws.amazon.com/"
     },
@@ -95,7 +111,7 @@
       "txt": [
         "spf:spf.bluehost.com"
       ],
-      "type": "proxy_service",
+      "type": "custom_provider",
       "companyProvider": "Bluehost Email",
       "loginUrl": "https://webmail.bluehost.com"
     },
@@ -241,7 +257,7 @@
         "spf:_spf.google.com",
         "gsv:"
       ],
-      "type": "proxy_service",
+      "type": "custom_provider",
       "companyProvider": "Google Workspace",
       "loginUrl": "https://mail.google.com"
     },
@@ -464,7 +480,7 @@
         "ms",
         "microsoft-domain-verification"
       ],
-      "type": "proxy_service",
+      "type": "custom_provider",
       "companyProvider": "Microsoft 365 (Business)",
       "loginUrl": "https://outlook.office365.com"
     },
@@ -604,7 +620,7 @@
       "txt": [
         "include:_spf.one.com"
       ],
-      "type": "proxy_service",
+      "type": "custom_provider",
       "companyProvider": "One.com Email",
       "loginUrl": "https://www.one.com/mail/"
     },
@@ -686,7 +702,7 @@
       "txt": [
         "spf:emailsrvr.com"
       ],
-      "type": "proxy_service",
+      "type": "custom_provider",
       "companyProvider": "Rackspace Email",
       "loginUrl": "https://apps.rackspace.com/index.php"
     },
@@ -756,7 +772,7 @@
       "txt": [
         "include:spf.key-systems.net"
       ],
-      "type": "proxy_service",
+      "type": "custom_provider",
       "companyProvider": "Simply.com Email",
       "loginUrl": "https://www.simply.com/en/email"
     },

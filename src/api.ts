@@ -11,10 +11,16 @@ import {
 import { loadProviders } from './loader';
 
 // EmailProvider interface
+export type ProviderType = 
+  | 'public_provider'  // Regular email providers (Gmail, Yahoo, etc.)
+  | 'custom_provider'  // Business email services (Google Workspace, Microsoft 365)
+  | 'proxy_service';   // Email proxy services (Cloudflare, etc.)
+
 export interface EmailProvider {
   companyProvider: string;
   loginUrl: string | null;
   domains: string[];
+  type: ProviderType;
   customDomainDetection?: {
     mxPatterns?: string[];
     txtPatterns?: string[];

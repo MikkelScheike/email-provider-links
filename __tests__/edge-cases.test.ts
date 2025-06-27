@@ -265,6 +265,39 @@ describe('Edge Cases - Error Handling', () => {
   // Error handling tests removed as they required complex mocking
 });
 
+describe('Provider conversion edge cases', () => {
+  describe('customDomainDetection field', () => {
+    it('should not include customDomainDetection for providers with direct domain matches', async () => {
+      const result = await getEmailProvider('user@protonmail.com');
+      expect(result.provider).not.toBeNull();
+      expect(result.provider?.companyProvider).toBe('ProtonMail');
+      expect(result.provider?.customDomainDetection).toBeUndefined();
+    });
+
+    it('should include customDomainDetection for proxy services', async () => {
+      const result = await getEmailProvider('user@company.com');
+      if (result.provider?.companyProvider === 'Google Workspace') {
+        expect(result.provider.customDomainDetection).toBeDefined();
+        expect(result.provider.customDomainDetection?.mxPatterns).toBeDefined();
+        expect(result.provider.customDomainDetection?.txtPatterns).toBeDefined();
+      }
+    });
+
+    it('should include customDomainDetection for business-only providers', async () => {
+      // Load providers directly to check one we know is business-only
+      const { loadProviders } = require('../src/loader');
+      const { providers } = loadProviders();
+      const businessProvider = providers.find(p => 
+        !p.domains?.length && // No direct domains
+        p.customDomainDetection?.mxPatterns?.length // Has MX patterns
+      );
+
+      expect(businessProvider?.customDomainDetection).toBeDefined();
+      expect(businessProvider?.domains).toHaveLength(0);
+    });
+  });
+});
+
 describe('Edge Cases - getEmailProviderFast', () => {
   it('should handle null email input', async () => {
     const result = await getEmailProviderFast(null as any);

@@ -336,7 +336,7 @@ describe('Email Provider Links', () => {
       expect(result.loginUrl).toBe('https://mail.rediff.com');
     });
 
-    it('should have FastMail and Tutanota with custom domain detection', () => {
+    it('should have FastMail and Tutanota in public providers list', () => {
       const providers = getSupportedProviders();
       
       const fastmail = providers.find(p => p.companyProvider === 'FastMail');
@@ -345,11 +345,11 @@ describe('Email Provider Links', () => {
       expect(fastmail).toBeDefined();
       expect(tutanota).toBeDefined();
       
-      expect(fastmail!.customDomainDetection).toBeDefined();
-      expect(tutanota!.customDomainDetection).toBeDefined();
+      expect(fastmail!.customDomainDetection).toBeUndefined();
+      expect(tutanota!.customDomainDetection).toBeUndefined();
       
-      expect(fastmail!.customDomainDetection!.mxPatterns).toContain('messagingengine.com');
-      expect(tutanota!.customDomainDetection!.mxPatterns).toContain('tutanota.de');
+      expect(fastmail!.domains).toContain('fastmail.com');
+      expect(tutanota!.domains).toContain('tutanota.com');
     });
   });
 
