@@ -51,8 +51,6 @@ export type {
 // ===== EMAIL VALIDATION =====
 // Enhanced validation with international support
 
-import { validateInternationalEmail } from './idn';
-
 /**
  * Enhanced email validation with comprehensive error reporting
  * 
