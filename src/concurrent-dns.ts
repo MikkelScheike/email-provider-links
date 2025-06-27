@@ -72,7 +72,7 @@ export interface ConcurrentDNSResult {
     conflicts: boolean;
     queries: DNSQueryResult[];
     fallbackUsed: boolean;
-  };
+  } | undefined;
 }
 
 /**
