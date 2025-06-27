@@ -137,7 +137,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
       provider: concurrentResult.provider,
       email,
       loginUrl: concurrentResult.provider?.loginUrl || null,
-      detectionMethod: concurrentResult.detectionMethod || undefined,
+      detectionMethod: concurrentResult.detectionMethod || 'mx_record',
       proxyService: concurrentResult.proxyService
     };
 
