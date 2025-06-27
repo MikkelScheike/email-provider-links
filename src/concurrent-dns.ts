@@ -437,7 +437,7 @@ export class ConcurrentDNSDetector {
     if (matches.length === 1) return matches[0];
 
     // Sort by confidence and preference for MX records
-    return matches.sort((a, b) => {
+    const sortedMatches = matches.sort((a, b) => {
       // Prioritize MX records if configured
       if (this.config.prioritizeMX) {
         if (a.method === 'mx_record' && b.method !== 'mx_record') return -1;
@@ -446,7 +446,9 @@ export class ConcurrentDNSDetector {
       
       // Then by confidence
       return b.confidence - a.confidence;
-    })[0] || null;
+    });
+    
+    return sortedMatches[0] || null;
   }
 
   /**
