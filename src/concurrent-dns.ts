@@ -454,7 +454,7 @@ export class ConcurrentDNSDetector {
       return b.confidence - a.confidence;
     });
     
-    return sortedMatches[0] || null;
+    return sortedMatches.length > 0 ? sortedMatches[0] : null;
   }
 
   /**
