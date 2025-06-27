@@ -129,10 +129,15 @@ export function validateEmailAddress(email: string): {
 
 import { loadProviders } from './loader';
 import { 
+  getEmailProvider,
   getEmailProviderSync,
+  getEmailProviderFast,
   normalizeEmail,
-  emailsMatch
+  emailsMatch,
+  Config
 } from './api';
+import { detectProviderConcurrent } from './concurrent-dns';
+import { validateInternationalEmail } from './idn';
 
 /**
  * Get comprehensive list of all supported email providers
