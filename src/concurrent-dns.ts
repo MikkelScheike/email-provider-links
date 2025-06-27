@@ -247,12 +247,15 @@ export class ConcurrentDNSDetector {
     const mxResult = mappedResults[0];
     const txtResult = mappedResults[1];
     
-    if (mxResult.success && this.hasMXMatch(mxResult) && this.config.prioritizeMX) {
+    if (mxResult && mxResult.success && this.hasMXMatch(mxResult) && this.config.prioritizeMX) {
       // Create an optimized TXT result that indicates it wasn't needed
-      const optimizedTxtResult = {
-        ...txtResult,
+      const optimizedTxtResult: DNSQueryResult = {
+        type: 'txt',
+        success: txtResult?.success || false,
+        records: txtResult?.records,
+        error: txtResult?.error,
         timing: 0, // Don't count TXT time if MX was sufficient
-        optimized: true
+        rawResponse: txtResult?.rawResponse
       };
       return [mxResult, optimizedTxtResult];
     }
@@ -443,7 +446,7 @@ export class ConcurrentDNSDetector {
       
       // Then by confidence
       return b.confidence - a.confidence;
-    })[0];
+    })[0] || null;
   }
 
   /**

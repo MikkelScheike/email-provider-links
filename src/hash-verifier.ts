@@ -28,7 +28,7 @@ export interface HashVerificationResult {
   isValid: boolean;
   expectedHash?: string;
   actualHash: string;
-  reason?: string;
+  reason: string;
   file: string;
 }
 
@@ -83,7 +83,7 @@ export function verifyProvidersIntegrity(
       isValid,
       expectedHash: expectedHashToUse,
       actualHash,
-      reason: isValid ? undefined : 'File hash does not match expected value - potential tampering detected',
+      reason: isValid ? 'Hash verification passed' : 'File hash does not match expected value - potential tampering detected',
       file: filePath
     };
     
@@ -130,7 +130,7 @@ export function verifyProvidersDataIntegrity(
       isValid,
       expectedHash: expectedHashToUse,
       actualHash,
-      reason: isValid ? undefined : 'Data hash does not match expected value',
+      reason: isValid ? 'Hash verification passed' : 'Data hash does not match expected value',
       file: 'providersData'
     };
     
@@ -340,4 +340,3 @@ export function createProviderManifest(providers: any[]): {
     manifestHash
   };
 }
-
