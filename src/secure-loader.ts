@@ -8,7 +8,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { validateEmailProviderUrl, auditProviderSecurity } from './url-validator';
-import { verifyProvidersIntegrity, generateSecurityHashes, handleHashMismatch } from './hash-verifier';
+import { verifyProvidersIntegrity, generateSecurityHashes } from './hash-verifier';
 import type { EmailProvider } from './index';
 
 export interface SecureLoadResult {
