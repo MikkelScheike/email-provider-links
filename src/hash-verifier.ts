@@ -130,7 +130,7 @@ export function verifyProvidersDataIntegrity(
       isValid,
       expectedHash: expectedHashToUse,
       actualHash,
-      reason: isValid ? 'Hash verification passed' : 'Data hash does not match expected value',
+      reason: isValid ? undefined : 'Data hash does not match expected value',
       file: 'providersData'
     };
     
