@@ -440,7 +440,7 @@ export class ConcurrentDNSDetector {
    */
   private selectBestMatch(matches: ProviderMatch[]): ProviderMatch | null {
     if (matches.length === 0) return null;
-    if (matches.length === 1) return matches[0];
+    if (matches.length === 1) return matches[0] ?? null;
 
     // Sort by confidence and preference for MX records
     const sortedMatches = matches.sort((a, b) => {
@@ -454,7 +454,7 @@ export class ConcurrentDNSDetector {
       return b.confidence - a.confidence;
     });
     
-    return sortedMatches.length > 0 ? sortedMatches[0] : null;
+    return sortedMatches.length > 0 ? (sortedMatches[0] ?? null) : null;
   }
 
   /**
