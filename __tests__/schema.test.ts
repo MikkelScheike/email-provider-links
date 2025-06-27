@@ -152,13 +152,13 @@ describe('Schema Module', () => {
     it('should require provider URL', () => {
       const invalidProvider = { ...validProvider, loginUrl: '' };
       const errors = validateProvider(invalidProvider);
-      expect(errors).toContain('Login URL is required and must be a string');
+      expect(errors).toContain('Login URL must be null or a string starting with HTTPS');
     });
 
     it('should require provider URL to be string', () => {
       const invalidProvider = { ...validProvider, loginUrl: 123 as any };
       const errors = validateProvider(invalidProvider);
-      expect(errors).toContain('Login URL is required and must be a string');
+      expect(errors).toContain('Login URL must be null or a string starting with HTTPS');
       // Should not crash when checking HTTPS on non-string URL
       expect(errors.length).toBeGreaterThan(0);
     });
@@ -166,7 +166,7 @@ describe('Schema Module', () => {
     it('should require HTTPS URLs', () => {
       const invalidProvider = { ...validProvider, loginUrl: 'http://mail.google.com/mail/' };
       const errors = validateProvider(invalidProvider);
-      expect(errors).toContain('Login URL must use HTTPS');
+      expect(errors).toContain('Login URL must be null or a string starting with HTTPS');
     });
 
     it('should validate domains array', () => {
@@ -211,7 +211,7 @@ describe('Schema Module', () => {
       expect(errors.length).toBeGreaterThan(3);
       expect(errors).toContain('Provider ID is required and must be a string');
 expect(errors).toContain('Company provider is required and must be a string');
-expect(errors).toContain('Login URL must use HTTPS');
+expect(errors).toContain('Login URL must be null or a string starting with HTTPS');
       expect(errors).toContain('Domains must be an array');
       expect(errors).toContain('MX patterns must be an array');
       expect(errors).toContain('TXT patterns must be an array');

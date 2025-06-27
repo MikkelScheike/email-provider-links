@@ -58,6 +58,7 @@ describe('Provider Data Loader Tests', () => {
         expect(provider).toHaveProperty('loginUrl');
         expect(provider).toHaveProperty('domains');
         expect(typeof provider.companyProvider).toBe('string');
+        // loginUrl can be null or string for any provider type
         expect(provider.loginUrl === null || typeof provider.loginUrl === 'string').toBe(true);
         expect(Array.isArray(provider.domains)).toBe(true);
       });
@@ -198,7 +199,8 @@ describe('Provider Data Loader Tests', () => {
       const { providers } = loadProviders();
       
       providers.forEach(provider => {
-        if (provider.loginUrl) {
+        // Validate that loginUrl is either null or a valid HTTPS URL
+        if (provider.loginUrl !== null) {
           expect(provider.loginUrl).toMatch(/^https:\/\/.+/);
         }
       });

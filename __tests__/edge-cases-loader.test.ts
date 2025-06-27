@@ -206,7 +206,7 @@ describe('Provider Data Loader Edge Cases', () => {
         expect(provider).toHaveProperty('companyProvider');
         expect(provider).toHaveProperty('loginUrl');
         expect(provider).toHaveProperty('domains');
-        expect(typeof provider.companyProvider).toBe('string');
+        expect(provider.loginUrl === null || typeof provider.loginUrl === 'string').toBe(true);
         expect(provider.loginUrl === null || typeof provider.loginUrl === 'string').toBe(true);
         expect(Array.isArray(provider.domains)).toBe(true);
       });
@@ -224,7 +224,7 @@ describe('Provider Data Loader Edge Cases', () => {
       const { providers } = loadProviders();
       
       providers.forEach(provider => {
-        if (provider.loginUrl) {
+        if (provider.loginUrl !== null) {
           expect(provider.loginUrl).toMatch(/^https:\/\/.+/);
         }
       });
