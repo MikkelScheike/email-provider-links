@@ -28,7 +28,7 @@ export interface HashVerificationResult {
   isValid: boolean;
   expectedHash?: string;
   actualHash: string;
-  reason: string;
+  reason?: string;
   file: string;
 }
 
