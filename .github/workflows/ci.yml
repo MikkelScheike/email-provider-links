@@ -1,10 +1,14 @@
 name: CI/CD Pipeline
 
 on:
-  # Trigger on all pushes
+  # Only trigger push events on main
   push:
+    branches:
+      - main
   # Trigger on all PRs
   pull_request:
+    branches:
+      - main
   # Manual trigger from GitHub UI
   workflow_dispatch:
 
