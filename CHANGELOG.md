@@ -5,6 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0] - 2025-06-27
+
+### 🚀 Major Enhancement Release - Modern TypeScript & Enhanced Developer Experience
+
+#### ✨ Modern TypeScript Support
+- **Upgraded to TypeScript 2025 Standards** with latest compiler options
+- **Strict Type Checking** with enhanced null safety and exactOptionalPropertyTypes
+- **Better Error Messages** with improved type inference and debugging
+- **Enhanced Module Resolution** using NodeNext for better compatibility
+
+#### 📧 Advanced Email Validation
+- **Enhanced `validateEmailAddress()`** function with comprehensive error reporting
+- **Detailed Error Contexts** with specific error codes and user-friendly messages
+- **Improved International Support** with better IDN handling
+- **Input Sanitization** with robust validation for all input types
+
+#### 📦 Batch Processing & Performance
+- **New `batchProcessEmails()`** function for efficient bulk processing
+- **Alias Deduplication** to detect and handle duplicate email addresses
+- **Provider Information Enrichment** with optional metadata inclusion
+- **Memory-Efficient Processing** for large email datasets
+
+#### 🔍 Enhanced Library Utilities
+- **`getLibraryStats()`** for comprehensive library metadata
+- **Improved `getSupportedProviders()`** with defensive copying
+- **Enhanced Domain Extraction** with better error handling
+- **Robust Provider Support Checking** with fallback mechanisms
+
+#### 🛡️ Security & Robustness Improvements
+- **Enhanced Hash Verification** with optional reason fields
+- **Improved Error Handling** throughout the codebase
+- **Better Input Validation** with comprehensive type checking
+- **Defensive Programming** patterns to prevent runtime errors
+
+#### 🎯 Developer Experience
+- **New Modern Example** (`examples/modern-example.ts`) showcasing all features
+- **Enhanced Documentation** with comprehensive API reference
+- **Better Type Exports** for improved IntelliSense support
+- **Improved Error Messages** with actionable guidance
+
+#### ⚡ Performance Optimizations
+- **Optimized Concurrent DNS** with better error handling
+- **Smart Caching Strategies** for improved performance
+- **Memory Usage Optimizations** for large-scale operations
+- **Faster Compilation** with modern TypeScript configuration
+
+#### 🧪 Enhanced Testing
+- **396 Comprehensive Tests** with excellent coverage
+- **All Tests Passing** with improved reliability
+- **Enhanced Error Scenario Testing** for edge cases
+- **Better Test Structure** with modern testing patterns
+
+#### 🔄 API Enhancements (Non-Breaking)
+- **Backward Compatibility Maintained** for all existing APIs
+- **Enhanced Return Types** with better type information
+- **Improved Error Contexts** with detailed error information
+- **Optional Property Handling** with safer type checking
+
+#### 📚 Documentation & Examples
+- **Updated README** with new features and enhanced examples
+- **Modern Example File** demonstrating all capabilities
+- **Enhanced TypeScript Documentation** with better type information
+- **Improved API Documentation** with comprehensive examples
+
+### 🔥 Technical Improvements
+- **Code Quality**: Enhanced with modern TypeScript patterns
+- **Type Safety**: Improved with stricter type checking
+- **Error Handling**: Comprehensive error contexts throughout
+- **Performance**: Optimized hot paths and memory usage
+- **Security**: Enhanced validation and integrity checking
+
+### 🛠 Development Experience
+- **Better IntelliSense**: Enhanced type definitions and documentation
+- **Improved Debugging**: Better error messages and context
+- **Modern Tooling**: Updated to latest TypeScript standards
+- **Enhanced Examples**: Comprehensive demonstration of features
+
 ## [2.6.0] - 2025-06-24
 
 ### 🌐 International Email Validation
