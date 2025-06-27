@@ -13,7 +13,7 @@ import { loadProviders } from './loader';
 // EmailProvider interface
 export interface EmailProvider {
   companyProvider: string;
-  loginUrl: string;
+  loginUrl: string | null;
   domains: string[];
   customDomainDetection?: {
     mxPatterns?: string[];

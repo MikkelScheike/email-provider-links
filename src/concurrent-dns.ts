@@ -7,7 +7,7 @@
 
 import { promisify } from 'util';
 import { resolveMx, resolveTxt } from 'dns';
-import { EmailProvider } from './index';
+import { EmailProvider } from './api';
 
 // Convert Node.js callback-style DNS functions to Promise-based
 const resolveMxAsync = promisify(resolveMx);
