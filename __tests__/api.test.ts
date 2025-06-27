@@ -236,6 +236,127 @@ describe('Email Provider API Tests', () => {
     });
   });
 
+  describe('Advanced error handling and edge cases', () => {
+    beforeEach(() => {
+      jest.resetModules();
+      jest.restoreAllMocks();
+    });
+
+    it('should handle rate limiting errors', async () => {
+      // Reset the modules to ensure clean mock state
+      jest.resetModules();
+      
+      // Mock the dependency to simulate rate limiting
+      jest.doMock('../src/concurrent-dns', () => ({
+        detectProviderConcurrent: jest.fn().mockRejectedValueOnce(
+          new Error('Rate limit exceeded. Try again in 60 seconds')
+        )
+      }));
+      
+      // Re-import the function after mocking
+      const { getEmailProvider } = require('../src/index');
+      
+      const result = await getEmailProvider('test@example.com');
+      expect(result.error?.type).toBe('RATE_LIMITED');
+      expect(result.error?.retryAfter).toBe(60);
+      
+      // Clear mock
+      jest.dontMock('../src/concurrent-dns');
+    });
+
+    it('should handle DNS timeout errors', async () => {
+      // Reset the modules to ensure clean mock state
+      jest.resetModules();
+      
+      // Mock the dependency to simulate timeout
+      jest.doMock('../src/concurrent-dns', () => ({
+        detectProviderConcurrent: jest.fn().mockRejectedValueOnce(
+          new Error('timeout')
+        )
+      }));
+      
+      // Re-import the function after mocking
+      const { getEmailProvider } = require('../src/index');
+      
+      const result = await getEmailProvider('test@example.com', 2000);
+      expect(result.error?.type).toBe('DNS_TIMEOUT');
+      expect(result.error?.message).toContain('2000ms');
+      
+      // Clear mock
+      jest.dontMock('../src/concurrent-dns');
+    });
+
+    it('should handle proxy service detection', async () => {
+      // Reset the modules to ensure clean mock state
+      jest.resetModules();
+      
+      // Mock the dependencies
+      jest.doMock('../src/concurrent-dns', () => ({
+        detectProviderConcurrent: jest.fn().mockResolvedValueOnce({
+          provider: null,
+          proxyService: 'Cloudflare',
+          detectionMethod: 'proxy_detected',
+          timing: { mx: 100, txt: 100, total: 200 },
+          confidence: 0.9
+        })
+      }));
+      
+      // Re-import the function after mocking
+      const { getEmailProvider } = require('../src/index');
+      
+      const result = await getEmailProvider('test@example.com');
+      expect(result.proxyService).toBe('Cloudflare');
+      expect(result.detectionMethod).toBe('proxy_detected');
+      
+      // Clear mock
+      jest.dontMock('../src/concurrent-dns');
+    });
+
+    it('should handle network errors gracefully', async () => {
+      // Reset the modules to ensure clean mock state
+      jest.resetModules();
+      
+      // Mock the dependencies
+      jest.doMock('../src/concurrent-dns', () => ({
+        detectProviderConcurrent: jest.fn().mockRejectedValueOnce(
+          new Error('Network error')
+        )
+      }));
+      
+      // Re-import the function after mocking
+      const { getEmailProvider } = require('../src/index');
+      
+      const result = await getEmailProvider('test@example.com');
+      expect(result.error?.type).toBe('NETWORK_ERROR');
+      expect(result.error?.message).toBe('Network error');
+      
+      // Clear mock
+      jest.dontMock('../src/concurrent-dns');
+    });
+
+    it('should handle various invalid email formats', () => {
+      // Test null input
+      expect(getEmailProviderSync(null as any).error?.type).toBe('INVALID_EMAIL');
+      expect(getEmailProviderSync(null as any).error?.message).toBe('Email address is required and must be a string');
+      
+      // Test undefined input
+      expect(getEmailProviderSync(undefined as any).error?.type).toBe('INVALID_EMAIL');
+      expect(getEmailProviderSync(undefined as any).error?.message).toBe('Email address is required and must be a string');
+      
+      // Test non-string input
+      expect(getEmailProviderSync(42 as any).error?.type).toBe('INVALID_EMAIL');
+      expect(getEmailProviderSync(42 as any).error?.message).toBe('Email address is required and must be a string');
+      
+      // Test empty string
+      expect(getEmailProviderSync('').error?.type).toBe('INVALID_EMAIL');
+      expect(getEmailProviderSync('').error?.message).toBe('Email address is required and must be a string');
+      
+      // Test invalid email with no domain part
+      expect(getEmailProviderSync('test@').error?.type).toBe('INVALID_EMAIL');
+      expect(getEmailProviderSync('test@').error?.message).toBe('Invalid email format');
+    });
+  });
+
   describe('Performance and reliability', () => {
     it('should handle multiple concurrent requests', async () => {
       const emails = [

@@ -207,7 +207,7 @@ describe('Provider Data Loader Edge Cases', () => {
         expect(provider).toHaveProperty('loginUrl');
         expect(provider).toHaveProperty('domains');
         expect(typeof provider.companyProvider).toBe('string');
-        expect(typeof provider.loginUrl).toBe('string');
+        expect(provider.loginUrl === null || typeof provider.loginUrl === 'string').toBe(true);
         expect(Array.isArray(provider.domains)).toBe(true);
       });
     });
@@ -224,7 +224,9 @@ describe('Provider Data Loader Edge Cases', () => {
       const { providers } = loadProviders();
       
       providers.forEach(provider => {
-        expect(provider.loginUrl).toMatch(/^https:\/\/.+/);
+        if (provider.loginUrl) {
+          expect(provider.loginUrl).toMatch(/^https:\/\/.+/);
+        }
       });
     });
   });

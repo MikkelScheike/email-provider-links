@@ -1,7 +1,7 @@
 {
   "name": "@mikkelscheike/email-provider-links",
   "version": "2.7.1",
-  "description": "TypeScript library for email provider detection with 93 providers (178 domains), concurrent DNS resolution, optimized performance, 91.75% test coverage, and enterprise security for login and password reset flows",
+  "description": "TypeScript library for email provider detection with 93 providers (207 domains), concurrent DNS resolution, optimized performance, 91.75% test coverage, and enterprise security for login and password reset flows",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -62,17 +62,17 @@
     "access": "public"
   },
   "devDependencies": {
-    "@jest/globals": "^30.0.2",
+    "@jest/globals": "^30.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^11.0.3",
-    "@semantic-release/npm": "^12.0.1",
+    "@semantic-release/npm": "^12.0.2",
     "@semantic-release/release-notes-generator": "^14.0.3",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.0.3",
+    "@types/node": "^24.0.4",
     "conventional-changelog-conventionalcommits": "^9.0.0",
-    "jest": "^30.0.2",
+    "jest": "^30.0.3",
     "semantic-release": "^24.2.5",
     "ts-jest": "^29.4.0",
     "tsx": "^4.20.3",

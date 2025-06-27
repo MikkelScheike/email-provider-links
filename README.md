@@ -2,7 +2,11 @@
 
 🔒 **Modern email provider detection library with enhanced TypeScript support and enterprise security**
 
-A robust TypeScript library providing direct links to **93 email providers** (178 domains) with **concurrent DNS resolution**, **optimized performance**, **comprehensive email validation**, and advanced security features for login and password reset flows.
+A robust TypeScript library providing direct links to **93 email providers** (180 domains) with **concurrent DNS resolution**, **optimized performance**, **comprehensive email validation**, and advanced security features for login and password reset flows.
+
+## 🚀 Try it out
+
+**[Live Demo](https://demo.mikkelscheike.com)** - Test the library with any email address and see it in action!
 
 ## ✨ New in Version 2.7.0
 
@@ -13,12 +17,13 @@ A robust TypeScript library providing direct links to **93 email providers** (17
 - 🛡️ **Improved Security**: Enhanced cryptographic integrity verification
 - ⚡ **Better Performance**: Optimized concurrent DNS with smart caching
 - 🎯 **Developer Experience**: Enhanced error messages and debugging information
+- 📊 **Development Mode**: Memory usage tracking when NODE_ENV=development
 
 ## ✨ Core Features
 
-- 🚀 **Fast & Lightweight**: Zero dependencies, ultra-low memory (~0.39MB initial, ~0.02MB per 1000 ops)
+- 🚀 **Fast & Lightweight**: Zero dependencies, ultra-low memory (~0.08MB initial, ~0.03MB per 1000 ops)
 - 📧 **93 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
-- 🌐 **178 Domains Supported**: Comprehensive international coverage
+- 🌐 **207 Domains Supported**: Comprehensive international coverage
 - 🌍 **Full IDN Support**: International domain names with RFC compliance and Punycode
 - ✅ **Advanced Email Validation**: International email validation with detailed error reporting
 - 🏢 **Business Domain Detection**: DNS-based detection for custom domains (Google Workspace, Microsoft 365, etc.)
@@ -31,7 +36,7 @@ A robust TypeScript library providing direct links to **93 email providers** (17
 - 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
 - 🛡️ **Fraud Prevention**: Detect duplicate accounts through email alias manipulation
 - 📦 **Batch Processing**: Efficiently process multiple emails with deduplication
-- 🧪 **Thoroughly Tested**: 396 tests with comprehensive code coverage
+- 🧪 **Thoroughly Tested**: 424 tests with 93.16% code coverage
 
 ## Installation
 
@@ -54,83 +59,9 @@ Fully compatible with the latest Node.js 24.x! The library is tested on:
 - Node.js 22.x (Current)
 - **Node.js 24.x (Latest)** - Full support with latest features
 
-## Quick Start
-
-**One function handles everything** - consumer emails, business domains, and unknown providers:
-
-```typescript
-import { getEmailProvider } from '@mikkelscheike/email-provider-links';
-
-// Works for ANY email address - the only function you need
-const result = await getEmailProvider('user@gmail.com');
-console.log(result.loginUrl);                    // "https://mail.google.com/mail/"
-console.log(result.provider?.companyProvider);   // "Gmail"
-
-// Automatically detects business domains too
-const business = await getEmailProvider('user@mycompany.com');
-console.log(business.provider?.companyProvider); // "Google Workspace" (if detected)
-
-// Gracefully handles unknown providers
-const unknown = await getEmailProvider('user@unknown.com');
-console.log(unknown.loginUrl);                   // null
-```
-
-## Enhanced Email Validation
-
-**New in 2.7.0**: Comprehensive email validation with international support:
-
-```typescript
-import { validateEmailAddress, validateInternationalEmail } from '@mikkelscheike/email-provider-links';
-
-// Enhanced validation with detailed error reporting
-const result = validateEmailAddress('user@example.com');
-if (result.isValid) {
-  console.log('Valid email:', result.normalizedEmail);
-} else {
-  console.log('Error:', result.error?.message);
-  console.log('Error code:', result.error?.code);
-}
-
-// International domain validation
-const intlResult = validateInternationalEmail('user@münchen.de');
-if (!intlResult) {
-  console.log('Valid international email');
-} else {
-  console.log('Validation error:', intlResult.message);
-}
-```
-
-## Batch Processing
-
-**New in 2.7.0**: Process multiple emails efficiently with deduplication:
-
-```typescript
-import { batchProcessEmails } from '@mikkelscheike/email-provider-links';
-
-const emails = [
-  'user@gmail.com',
-  'u.s.e.r+work@gmail.com',  // Alias of the first email
-  'test@yahoo.com',
-  'invalid-email'
-];
-
-const results = batchProcessEmails(emails, {
-  includeProviderInfo: true,
-  normalizeEmails: true,
-  deduplicateAliases: true
-});
-
-results.forEach(result => {
-  console.log(`${result.email}: ${result.isValid ? 'Valid' : 'Invalid'}`);
-  if (result.isDuplicate) {
-    console.log('  🔄 Duplicate detected');
-  }
-});
-```
-
 ## Supported Providers
 
-**📊 Current Coverage: 93 providers supporting 178 domains**
+**📊 Current Coverage: 93 providers supporting 207 domains**
 
 **Consumer Email Providers:**
 - **Gmail** (2 domains): gmail.com, googlemail.com
@@ -301,73 +232,36 @@ console.log(domain); // 'example.com'
 
 </details>
 
-## TypeScript Support
+## Performance and Detection System
 
-Full TypeScript support with comprehensive interfaces:
+For detailed performance metrics and information about the detection system, refer to [Performance and Detection System](docs/PERFORMANCE.md).
+
+### Development Mode Features
+
+When `NODE_ENV` is set to 'development', the library provides additional insights:
 
 ```typescript
-interface EmailProviderResult {
-  provider: EmailProvider | null;
-  email: string;
-  loginUrl: string | null;
-  detectionMethod?: 'domain_match' | 'mx_record' | 'txt_record' | 'both' | 'proxy_detected';
-  proxyService?: string;
-  error?: {
-    type: 'INVALID_EMAIL' | 'DNS_TIMEOUT' | 'RATE_LIMITED' | 'UNKNOWN_DOMAIN' | 
-          'NETWORK_ERROR' | 'IDN_VALIDATION_ERROR';
-    message: string;
-    retryAfter?: number;  // seconds until retry allowed (for rate limiting)
-    idnError?: string;    // specific IDN validation error message
-  };
-}
-
-interface ConfigConstants {
-  DEFAULT_DNS_TIMEOUT: number;          // 5000ms
-  MAX_DNS_REQUESTS_PER_MINUTE: number;  // 10 requests
-  SUPPORTED_PROVIDERS_COUNT: number;    // 93 providers
-  SUPPORTED_DOMAINS_COUNT: number;      // 178 domains
-}
+// Memory usage is automatically logged:
+// 🚀 Current memory usage: 0.08 MB
 ```
 
-## 🛡️ Security Features
+### Memory Management
 
-This package implements **enterprise-grade security** to protect against malicious redirects and supply chain attacks:
+The library implements careful memory management:
+- Initial load: ~0.08MB heap usage
+- Batch operations: ~0.03MB per 1000 operations
+- Maximum load: < 25MB even under heavy concurrent operations
+- Automatic garbage collection hints
+- Memory usage logging in development mode
 
-### ✅ Multi-Layer Protection
-
-- **HTTPS-Only Enforcement**: All provider URLs must use HTTPS protocol
-- **Domain Allowlisting**: Only pre-approved domains are allowed (93+ verified providers)
-- **Malicious Pattern Detection**: Blocks IP addresses, URL shorteners, suspicious TLDs
-- **Path Traversal Prevention**: Detects and blocks `../` and encoded variants
-- **JavaScript Injection Protection**: Prevents `javascript:`, `data:`, and script injections
-- **File Integrity Verification**: SHA-256 hash verification for provider database
-
-### 🔒 Attack Prevention
-
-Protects against common attack vectors:
-- ❌ **URL Injection**: Blocked by strict allowlisting
-- ❌ **Typosquatting**: Blocked by domain validation
-- ❌ **URL Shorteners**: Blocked by pattern detection
-- ❌ **Protocol Downgrade**: Blocked by HTTPS enforcement
-- ❌ **Path Traversal**: Blocked by path validation
-- ❌ **Script Injection**: Blocked by content validation
-- ❌ **Supply Chain Attacks**: Blocked by integrity verification
-
-### 🧪 Security Testing
-
-- **396 comprehensive tests** covering all functionality and edge cases
-- **92+ dedicated security tests** covering all attack vectors
-- **Automated security validation** in CI/CD pipeline
-- **Regular security audits** of provider database
-
-## Performance Benchmarks
+### Performance Benchmarks
 
 This package is designed to be extremely memory efficient and fast:
 
-- **Provider loading**: ~0.39MB heap usage, <0.5ms
-- **Email lookups**: ~0.02MB heap usage per 100 operations
-- **Concurrent DNS**: ~0.03MB heap usage, ~110ms for 10 lookups
-- **Large scale (1000 ops)**: ~0.02MB heap usage, <3ms total
+- **Provider loading**: ~0.08MB heap usage, ~0.5ms
+- **Email lookups**: ~0.03MB heap usage per 100 operations
+- **Concurrent DNS**: ~0.03MB heap usage, ~27ms for 10 lookups
+- **Large scale (1000 ops)**: ~0.03MB heap usage, ~1.1ms total
 - **International validation**: <1ms for complex IDN domains
 
 To run benchmarks locally:
@@ -375,19 +269,11 @@ To run benchmarks locally:
 npm run benchmark
 ```
 
-## Examples
-
-Run the modern example to see all features in action:
-
-```bash
-npx tsx examples/modern-example.ts
-```
-
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on adding new email providers.
 
-**Quality Assurance**: This project maintains high standards with 396 comprehensive tests achieving excellent code coverage.
+**Quality Assurance**: This project maintains high standards with 424 comprehensive tests achieving 93.16% code coverage (96.46% function coverage).
 **Security Note**: All new providers undergo security validation and must pass our allowlist verification.
 
 ## Security

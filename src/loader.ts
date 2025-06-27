@@ -52,8 +52,8 @@ const DEFAULT_CONFIG: LoaderConfig = {
  */
 function convertProviderToEmailProvider(compressedProvider: Provider): EmailProvider {
   const provider: EmailProvider = {
-    companyProvider: compressedProvider.name,
-    loginUrl: compressedProvider.url,
+    companyProvider: compressedProvider.companyProvider,
+    loginUrl: compressedProvider.loginUrl,
     domains: compressedProvider.domains || []
   };
 
@@ -130,6 +130,11 @@ function loadProvidersInternal(config: Partial<LoaderConfig> = {}): {
     if (mergedConfig.debug) {
       console.log(`⚡ Loading completed in ${loadTime}ms`);
       console.log(`📊 Stats: ${providers.length} providers, ${domainCount} domains`);
+    }
+    
+    if (process.env.NODE_ENV === 'development') {
+      const memoryUsageInMB = process.memoryUsage().heapUsed / 1024 / 1024;
+      console.log(`🚀 Current memory usage: ${memoryUsageInMB.toFixed(2)} MB`);
     }
 
     return {

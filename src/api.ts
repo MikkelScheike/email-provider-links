@@ -260,11 +260,9 @@ export function getEmailProviderSync(email: string): EmailProviderResult {
       };
     }
 
-    // Load providers and find matching domain
-    const { providers } = loadProviders();
-    const provider = providers.find(p => 
-      p.domains?.some(d => d.toLowerCase() === domain)
-    );
+    // Use cached providers and domain map for efficient lookup
+    const { domainMap } = loadProviders();
+    const provider = domainMap.get(domain);
 
     const result: EmailProviderResult = {
       provider: provider || null,

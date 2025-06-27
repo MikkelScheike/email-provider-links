@@ -109,8 +109,8 @@ describe('Schema Module', () => {
   describe('Provider Validation', () => {
     const validProvider: Provider = {
       id: 'gmail',
-      name: 'Gmail',
-      url: 'https://mail.google.com/mail/',
+      companyProvider: 'Gmail',
+      loginUrl: 'https://mail.google.com/mail/',
       domains: ['gmail.com', 'googlemail.com'],
       mx: ['aspmx.l.google.com'],
       txt: ['spf:_spf.google.com'],
@@ -138,35 +138,35 @@ describe('Schema Module', () => {
     });
 
     it('should require provider name', () => {
-      const invalidProvider = { ...validProvider, name: '' };
+      const invalidProvider = { ...validProvider, companyProvider: '' };
       const errors = validateProvider(invalidProvider);
-      expect(errors).toContain('Provider name is required and must be a string');
+      expect(errors).toContain('Company provider is required and must be a string');
     });
 
     it('should require provider name to be string', () => {
-      const invalidProvider = { ...validProvider, name: 123 as any };
+      const invalidProvider = { ...validProvider, companyProvider: 123 as any };
       const errors = validateProvider(invalidProvider);
-      expect(errors).toContain('Provider name is required and must be a string');
+      expect(errors).toContain('Company provider is required and must be a string');
     });
 
     it('should require provider URL', () => {
-      const invalidProvider = { ...validProvider, url: '' };
+      const invalidProvider = { ...validProvider, loginUrl: '' };
       const errors = validateProvider(invalidProvider);
-      expect(errors).toContain('Provider URL is required and must be a string');
+      expect(errors).toContain('Login URL is required and must be a string');
     });
 
     it('should require provider URL to be string', () => {
-      const invalidProvider = { ...validProvider, url: 123 as any };
+      const invalidProvider = { ...validProvider, loginUrl: 123 as any };
       const errors = validateProvider(invalidProvider);
-      expect(errors).toContain('Provider URL is required and must be a string');
+      expect(errors).toContain('Login URL is required and must be a string');
       // Should not crash when checking HTTPS on non-string URL
       expect(errors.length).toBeGreaterThan(0);
     });
 
     it('should require HTTPS URLs', () => {
-      const invalidProvider = { ...validProvider, url: 'http://mail.google.com/mail/' };
+      const invalidProvider = { ...validProvider, loginUrl: 'http://mail.google.com/mail/' };
       const errors = validateProvider(invalidProvider);
-      expect(errors).toContain('Provider URL must use HTTPS');
+      expect(errors).toContain('Login URL must use HTTPS');
     });
 
     it('should validate domains array', () => {
@@ -190,8 +190,8 @@ describe('Schema Module', () => {
     it('should allow optional fields to be undefined', () => {
       const minimalProvider: Provider = {
         id: 'test',
-        name: 'Test Provider',
-        url: 'https://test.com'
+        companyProvider: 'Test Provider',
+        loginUrl: 'https://test.com'
       };
       const errors = validateProvider(minimalProvider);
       expect(errors).toEqual([]);
@@ -200,8 +200,8 @@ describe('Schema Module', () => {
     it('should collect multiple validation errors', () => {
       const invalidProvider = {
         id: '',
-        name: 123,
-        url: 'http://test.com',
+        companyProvider: 123,
+        loginUrl: 'http://test.com',
         domains: 'test.com',
         mx: 'mx.test.com',
         txt: 'spf1'
@@ -210,8 +210,8 @@ describe('Schema Module', () => {
       const errors = validateProvider(invalidProvider);
       expect(errors.length).toBeGreaterThan(3);
       expect(errors).toContain('Provider ID is required and must be a string');
-      expect(errors).toContain('Provider name is required and must be a string');
-      expect(errors).toContain('Provider URL must use HTTPS');
+expect(errors).toContain('Company provider is required and must be a string');
+expect(errors).toContain('Login URL must use HTTPS');
       expect(errors).toContain('Domains must be an array');
       expect(errors).toContain('MX patterns must be an array');
       expect(errors).toContain('TXT patterns must be an array');
@@ -222,8 +222,8 @@ describe('Schema Module', () => {
     it('should define Provider interface correctly', () => {
       const provider: Provider = {
         id: 'test',
-        name: 'Test',
-        url: 'https://test.com',
+        companyProvider: 'Test',
+        loginUrl: 'https://test.com',
         domains: ['test.com'],
         mx: ['mx.test.com'],
         txt: ['spf:_spf.test.com'],
@@ -234,8 +234,8 @@ describe('Schema Module', () => {
       };
 
       expect(provider.id).toBe('test');
-      expect(provider.name).toBe('Test');
-      expect(provider.url).toBe('https://test.com');
+expect(provider.companyProvider).toBe('Test');
+      expect(provider.loginUrl).toBe('https://test.com');
       expect(provider.domains).toEqual(['test.com']);
       expect(provider.mx).toEqual(['mx.test.com']);
       expect(provider.txt).toEqual(['spf:_spf.test.com']);
@@ -248,8 +248,8 @@ describe('Schema Module', () => {
         version: '2.0',
         providers: [{
           id: 'test',
-          name: 'Test',
-          url: 'https://test.com'
+          companyProvider: 'Test',
+          loginUrl: 'https://test.com'
         }],
         meta: {
           count: 1,

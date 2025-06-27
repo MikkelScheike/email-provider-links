@@ -15,32 +15,32 @@ The package includes automated performance benchmarks that run:
 ### 1. Initial Load
 Tests the initial loading of provider data.
 - **Threshold**: < 0.5MB heap usage, < 5ms duration
-- **Current**: ~0.2MB heap usage, < 1ms duration
+- **Current**: ~0.08MB heap usage, ~0.52ms duration
 
 ### 2. Cached Provider Loads
 Tests the caching mechanism with repeated loads.
 - **Threshold**: < 0.5MB additional heap, < 1ms per operation
-- **Current**: ~0.2MB heap usage, < 0.1ms per operation
+- **Current**: ~0.01MB heap usage, ~0.05ms per operation
 
 ### 3. Sync Email Lookups
 Tests performance of synchronous email provider lookups.
 - **Threshold**: < 0.1MB heap per 100 operations
-- **Current**: ~0.03MB heap per 100 operations
+- **Current**: ~0.03MB heap per 100 operations, ~0.25ms duration
 
 ### 4. Async Email Lookups
 Tests performance of asynchronous email provider lookups.
 - **Threshold**: < 0.5MB heap per 100 operations
-- **Current**: ~0.14MB heap per 100 operations
+- **Current**: ~0.15MB heap per 100 operations, ~238ms duration
 
 ### 5. Concurrent DNS
 Tests DNS resolution performance.
 - **Threshold**: < 0.5MB heap per 10 lookups
-- **Current**: ~0.03MB heap per 10 lookups
+- **Current**: ~0.03MB heap per 10 lookups, ~27ms duration
 
 ### 6. Large Scale Operations
 Tests performance at scale (1000 operations).
-- **Threshold**: < 1MB heap usage
-- **Current**: ~0.03MB heap usage
+- **Threshold**: < 20MB heap usage
+- **Current**: ~0.03MB heap usage, ~1.11ms duration
 
 ## Regression Detection
 

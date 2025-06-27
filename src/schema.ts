@@ -13,9 +13,9 @@ export interface Provider {
   /** Provider ID (short identifier) */
   id: string;
   /** Provider display name */
-  name: string;
+  companyProvider: string;
   /** Login/webmail URL */
-  url: string;
+  loginUrl: string;
   /** Email domains (omitted if empty) */
   domains?: string[];
   /** DNS detection patterns (flattened) */
@@ -90,14 +90,14 @@ export function validateProvider(provider: Provider): string[] {
     errors.push('Provider ID is required and must be a string');
   }
   
-  if (!provider.name || typeof provider.name !== 'string') {
-    errors.push('Provider name is required and must be a string');
+  if (!provider.companyProvider || typeof provider.companyProvider !== 'string') {
+    errors.push('Company provider is required and must be a string');
   }
   
-  if (!provider.url || typeof provider.url !== 'string') {
-    errors.push('Provider URL is required and must be a string');
-  } else if (!provider.url.startsWith('https://')) {
-    errors.push('Provider URL must use HTTPS');
+  if (!provider.loginUrl || typeof provider.loginUrl !== 'string') {
+    errors.push('Login URL is required and must be a string');
+  } else if (!provider.loginUrl.startsWith('https://')) {
+    errors.push('Login URL must use HTTPS');
   }
   
   if (provider.domains && !Array.isArray(provider.domains)) {

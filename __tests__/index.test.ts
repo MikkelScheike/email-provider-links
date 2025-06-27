@@ -5,7 +5,10 @@ import {
   getSupportedProviders,
   isEmailProviderSupported,
   EmailProvider,
-  EmailProviderResult
+  EmailProviderResult,
+  batchProcessEmails,
+  getLibraryStats,
+  normalizeEmail
 } from '../src/index';
 
 describe('Email Provider Links', () => {
@@ -112,6 +115,141 @@ describe('Email Provider Links', () => {
     it('should return false for invalid emails', () => {
       expect(isEmailProviderSupported('invalid-email')).toBe(false);
       expect(isEmailProviderSupported('')).toBe(false);
+    });
+  });
+
+  describe('Error handling and edge cases', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+      jest.resetModules();
+    });
+    it('should handle getSupportedProviders errors gracefully', () => {
+      // Temporarily break loadProviders to test error handling
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const originalLoadProviders = require('../src/loader').loadProviders;
+      jest.spyOn(require('../src/loader'), 'loadProviders').mockImplementation(() => {
+        throw new Error('Simulated error');
+      });
+
+      const providers = getSupportedProviders();
+      expect(providers).toEqual([]);
+      expect(console.warn).toHaveBeenCalledWith(
+        'Failed to load providers:',
+        expect.any(Error)
+      );
+
+      // Restore original implementation
+      jest.spyOn(require('../src/loader'), 'loadProviders').mockImplementation(originalLoadProviders);
+      jest.spyOn(console, 'warn').mockRestore();
+    });
+
+    it('should handle getLibraryStats errors gracefully', () => {
+      // Mock the loader module
+      jest.doMock('../src/loader', () => ({
+        loadProviders: jest.fn().mockImplementation(() => {
+          throw new Error('Simulated error');
+        })
+      }));
+      
+      // Reset module registry and reimport
+      jest.resetModules();
+      const { getLibraryStats } = require('../src/index');
+
+      const stats = getLibraryStats();
+      expect(stats).toEqual({
+        providerCount: 0,
+        domainCount: 0,
+        version: '2.7.0',
+        supportsAsync: true,
+        supportsIDN: true,
+        supportsAliasDetection: true,
+        supportsConcurrentDNS: true
+      });
+
+      // Clear mock
+      jest.dontMock('../src/loader');
+    });
+
+    it('should handle null input in extractDomain', () => {
+      expect(extractDomain(null as any)).toBeNull();
+      expect(extractDomain(undefined as any)).toBeNull();
+      expect(extractDomain(42 as any)).toBeNull();
+    });
+
+    it('should handle errors in isEmailProviderSupported', () => {
+      expect(isEmailProviderSupported(null as any)).toBe(false);
+      expect(isEmailProviderSupported(undefined as any)).toBe(false);
+      expect(isEmailProviderSupported(42 as any)).toBe(false);
+    });
+  });
+
+  describe('Batch processing', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+      jest.resetModules();
+    });
+    it('should handle various email formats in batch', () => {
+      const emails = [
+        'valid@gmail.com',
+        'invalid-email',
+        null as any,
+        'u.s.e.r+alias@gmail.com',
+        'UPPER@GMAIL.COM',
+        'duplicate@gmail.com',
+        'DuPlIcAtE@gmail.com'
+      ];
+
+      const results = batchProcessEmails(emails, {
+        includeProviderInfo: true,
+        normalizeEmails: true,
+        deduplicateAliases: true
+      });
+
+      expect(results).toHaveLength(emails.length);
+      expect(results[0].isValid).toBe(true);
+      expect(results[0].provider).toBe('Gmail');
+      expect(results[1].isValid).toBe(false);
+      expect(results[2].isValid).toBe(false);
+      expect(results[3].normalized).toBe('user@gmail.com');
+      expect(results[4].normalized).toBe('upper@gmail.com');
+      expect(results[6].isDuplicate).toBe(true);
+    });
+
+    it('should handle errors in normalization', () => {
+      const originalNormalizeEmail = normalizeEmail;
+      global.normalizeEmail = jest.fn().mockImplementation(() => {
+        throw new Error('Simulated normalization error');
+      });
+
+      const results = batchProcessEmails(['test@gmail.com'], {
+        normalizeEmails: true
+      });
+
+      expect(results[0].normalized).toBe('test@gmail.com');
+
+      global.normalizeEmail = originalNormalizeEmail;
+    });
+
+    it('should handle errors in provider lookup', () => {
+      // Mock the api module
+      jest.doMock('../src/api', () => ({
+        getEmailProviderSync: jest.fn().mockImplementation(() => {
+          throw new Error('Simulated provider lookup error');
+        })
+      }));
+      
+      // Reset module registry and reimport
+      jest.resetModules();
+      const { batchProcessEmails } = require('../src/index');
+      
+      const results = batchProcessEmails(['test@gmail.com'], {
+        includeProviderInfo: true
+      });
+
+      expect(results[0].provider).toBeNull();
+
+      // Clear mock
+      jest.dontMock('../src/api');
     });
   });
 
