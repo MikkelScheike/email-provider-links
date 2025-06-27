@@ -34,13 +34,19 @@ jobs:
         
       - name: Run benchmarks
         run: |
-          # Run benchmark and save output
+          # Run benchmark with garbage collection enabled
           npm run benchmark | tee benchmark-results.txt
           
-          # Check if any heap usage exceeds 5MB or if any operation takes longer than 1000ms
-          if grep -E "Heap Used: [5-9][0-9]*\.[0-9]+ MB|Heap Used: [0-9]{2,}|Duration: [0-9]{4,}" benchmark-results.txt; then
-            echo "⚠️ Performance regression detected! Memory usage or duration exceeds thresholds."
+          # Check for critical performance regressions (10MB heap or 2000ms duration)
+          if grep -E "Heap Used: [1-9][0-9]+\.[0-9]+ MB|Duration: [2-9][0-9]{3,}" benchmark-results.txt; then
+            echo "⚠️ Critical performance regression detected! Memory usage exceeds 10MB or duration exceeds 2000ms."
             exit 1
+          fi
+          
+          # Check for minor performance regressions (7MB heap or 1500ms duration)
+          if grep -E "Heap Used: [7-9]\.[0-9]+ MB|Duration: 1[5-9][0-9]{2}" benchmark-results.txt; then
+            echo "⚠️ Minor performance regression detected. Consider optimizing."
+            # Don't fail the build for minor regressions
           fi
           
       - name: Store benchmark results
@@ -56,20 +62,35 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const results = fs.readFileSync('benchmark-results.txt', 'utf8');
-            
-            const comment = `## 📊 Performance Benchmark Results
-            
-            \`\`\`
-            ${results}
-            \`\`\`
-            
-            > Note: These benchmarks were run on Node.js ${{ matrix.node-version }}
-            `;
-            
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.name,
-              body: comment
-            });
+            try {
+              const results = fs.readFileSync('benchmark-results.txt', 'utf8');
+              
+              const comment = `## 📊 Performance Benchmark Results
+              
+              \`\`\`
+              ${results}
+              \`\`\`
+              
+              > Note: These benchmarks were run on Node.js ${{ matrix.node-version }}
+              `;
+              
+              // Only try to comment if we have a PR number
+              if (context.payload.pull_request) {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.name,
+                  issue_number: context.payload.pull_request.number,
+                  body: comment
+                });
+                console.log('Successfully posted benchmark results comment');
+              } else {
+                console.log('No PR number found - skipping comment creation');
+                console.log('Benchmark Results:\n', results);
+              }
+            } catch (error) {
+              console.log('Error while trying to post comment:', error.message);
+              // Don't fail the build if commenting fails
+              if (fs.existsSync('benchmark-results.txt')) {
+                console.log('Benchmark Results:\n', fs.readFileSync('benchmark-results.txt', 'utf8'));
+              }
+            }

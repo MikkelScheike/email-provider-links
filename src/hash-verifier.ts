@@ -340,4 +340,3 @@ export function createProviderManifest(providers: any[]): {
     manifestHash
   };
 }
-

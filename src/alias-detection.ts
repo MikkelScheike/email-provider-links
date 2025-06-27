@@ -40,7 +40,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: true,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       // Remove dots and everything after +
       const cleanUsername = username.replace(/\./g, '').split('+')[0];
       return `${cleanUsername}@${domain}`;
@@ -51,7 +56,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: false,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       // Only remove plus addressing for Outlook
       const cleanUsername = username.split('+')[0];
       return `${cleanUsername}@${domain}`;
@@ -62,7 +72,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: false,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       const cleanUsername = username.split('+')[0];
       return `${cleanUsername}@${domain}`;
     }
@@ -72,7 +87,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: false,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       const cleanUsername = username.split('+')[0];
       return `${cleanUsername}@${domain}`;
     }
@@ -82,7 +102,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: false,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       const cleanUsername = username.split('+')[0];
       return `${cleanUsername}@${domain}`;
     }
@@ -92,7 +117,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: false,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       const cleanUsername = username.split('+')[0];
       return `${cleanUsername}@${domain}`;
     }
@@ -102,7 +132,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: false,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       const cleanUsername = username.split('+')[0];
       return `${cleanUsername}@${domain}`;
     }
@@ -112,7 +147,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: false,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       const cleanUsername = username.split('+')[0];
       return `${cleanUsername}@${domain}`;
     }
@@ -122,7 +162,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: false,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       const cleanUsername = username.split('+')[0];
       return `${cleanUsername}@${domain}`;
     }
@@ -138,7 +183,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: false,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       const cleanUsername = username.split('+')[0];
       return `${cleanUsername}@${domain}`;
     }
@@ -148,7 +198,12 @@ const ALIAS_RULES: AliasRule[] = [
     supportsPlusAddressing: true,
     ignoresDots: false,
     normalize: (email: string) => {
-      const [username, domain] = email.toLowerCase().split('@');
+      const parts = email.toLowerCase().split('@');
+      const username = parts[0];
+      const domain = parts[1];
+      if (!username || !domain) {
+        return email.toLowerCase();
+      }
       const cleanUsername = username.split('+')[0];
       return `${cleanUsername}@${domain}`;
     }
@@ -166,10 +221,10 @@ function isValidEmail(email: string): boolean {
 /**
  * Gets the alias rule for a given domain
  */
-function getAliasRule(domain: string): AliasRule | undefined {
+function getAliasRule(domain: string): AliasRule | null {
   return ALIAS_RULES.find(rule => 
     rule.domains.includes(domain.toLowerCase())
-  );
+  ) || null;
 }
 
 /**
@@ -184,7 +239,14 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
   }
 
   const originalEmail = email.trim();
-  const [username, domain] = originalEmail.toLowerCase().split('@');
+  const emailParts = originalEmail.toLowerCase().split('@');
+  const username = emailParts[0];
+  const domain = emailParts[1];
+  
+  if (!username || !domain) {
+    throw new Error('Invalid email format - missing username or domain');
+  }
+  
   const rule = getAliasRule(domain);
 
   const result: AliasDetectionResult = {

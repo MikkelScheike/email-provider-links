@@ -1,16 +1,26 @@
 # Email Provider Links
 
-🔒 **Modern email provider detection library with concurrent DNS resolution and enterprise security**
+🔒 **Modern email provider detection library with enhanced TypeScript support and enterprise security**
 
-A TypeScript library providing direct links to **93 email providers** (178 domains) with **concurrent DNS resolution**, **optimized performance**, **email alias detection**, and comprehensive security features for login and password reset flows.
+A robust TypeScript library providing direct links to **93 email providers** (178 domains) with **concurrent DNS resolution**, **optimized performance**, **comprehensive email validation**, and advanced security features for login and password reset flows.
 
-## ✨ Features
+## ✨ New in Version 2.7.0
+
+- 🚀 **Modern TypeScript**: Updated to latest TypeScript 2025 standards with strict type checking
+- 🌍 **Enhanced International Support**: Improved IDN validation and Punycode handling
+- 📧 **Advanced Email Validation**: Comprehensive validation with detailed error reporting
+- 🔄 **Batch Processing**: Efficiently process multiple emails with deduplication
+- 🛡️ **Improved Security**: Enhanced cryptographic integrity verification
+- ⚡ **Better Performance**: Optimized concurrent DNS with smart caching
+- 🎯 **Developer Experience**: Enhanced error messages and debugging information
+
+## ✨ Core Features
 
 - 🚀 **Fast & Lightweight**: Zero dependencies, ultra-low memory (~0.39MB initial, ~0.02MB per 1000 ops)
 - 📧 **93 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
 - 🌐 **178 Domains Supported**: Comprehensive international coverage
-- 🌍 **IDN Support**: Full internationalized domain name (punycode) support with RFC compliance
-- ✅ **Email Validation**: International email validation following RFC 5321, 5322, and 6530 standards
+- 🌍 **Full IDN Support**: International domain names with RFC compliance and Punycode
+- ✅ **Advanced Email Validation**: International email validation with detailed error reporting
 - 🏢 **Business Domain Detection**: DNS-based detection for custom domains (Google Workspace, Microsoft 365, etc.)
 - 🔒 **Enterprise Security**: Multi-layer protection against malicious URLs and supply chain attacks
 - 🛡️ **URL Validation**: HTTPS-only enforcement with domain allowlisting
@@ -20,7 +30,8 @@ A TypeScript library providing direct links to **93 email providers** (178 domai
 - 🚦 **Rate Limiting**: Built-in DNS query rate limiting to prevent abuse
 - 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
 - 🛡️ **Fraud Prevention**: Detect duplicate accounts through email alias manipulation
-- 🧪 **Thoroughly Tested**: 370 tests with 92.89% code coverage
+- 📦 **Batch Processing**: Efficiently process multiple emails with deduplication
+- 🧪 **Thoroughly Tested**: 396 tests with comprehensive code coverage
 
 ## Installation
 
@@ -32,7 +43,7 @@ npm install @mikkelscheike/email-provider-links
 ## Requirements
 
 - **Node.js**: `>=18.0.0` (Tested on 18.x, 20.x, 22.x, **24.x**)
-- **TypeScript**: `>=4.0.0` (optional)
+- **TypeScript**: `>=4.0.0` (optional, but recommended)
 - **Zero runtime dependencies** - No external packages required
 
 ### Node.js 24 Support ✨
@@ -62,6 +73,59 @@ console.log(business.provider?.companyProvider); // "Google Workspace" (if detec
 // Gracefully handles unknown providers
 const unknown = await getEmailProvider('user@unknown.com');
 console.log(unknown.loginUrl);                   // null
+```
+
+## Enhanced Email Validation
+
+**New in 2.7.0**: Comprehensive email validation with international support:
+
+```typescript
+import { validateEmailAddress, validateInternationalEmail } from '@mikkelscheike/email-provider-links';
+
+// Enhanced validation with detailed error reporting
+const result = validateEmailAddress('user@example.com');
+if (result.isValid) {
+  console.log('Valid email:', result.normalizedEmail);
+} else {
+  console.log('Error:', result.error?.message);
+  console.log('Error code:', result.error?.code);
+}
+
+// International domain validation
+const intlResult = validateInternationalEmail('user@münchen.de');
+if (!intlResult) {
+  console.log('Valid international email');
+} else {
+  console.log('Validation error:', intlResult.message);
+}
+```
+
+## Batch Processing
+
+**New in 2.7.0**: Process multiple emails efficiently with deduplication:
+
+```typescript
+import { batchProcessEmails } from '@mikkelscheike/email-provider-links';
+
+const emails = [
+  'user@gmail.com',
+  'u.s.e.r+work@gmail.com',  // Alias of the first email
+  'test@yahoo.com',
+  'invalid-email'
+];
+
+const results = batchProcessEmails(emails, {
+  includeProviderInfo: true,
+  normalizeEmails: true,
+  deduplicateAliases: true
+});
+
+results.forEach(result => {
+  console.log(`${result.email}: ${result.isValid ? 'Valid' : 'Invalid'}`);
+  if (result.isDuplicate) {
+    console.log('  🔄 Duplicate detected');
+  }
+});
 ```
 
 ## Supported Providers
@@ -95,7 +159,7 @@ console.log(unknown.loginUrl);                   // null
 - **Eastern Europe**: Centrum (Czech/Slovak), Interia, Onet (Poland), Rambler (Russia)
 - **Other Regions**: UOL, Terra (Brazil), Telkom (South Africa), Xtra (New Zealand)
 
-## API
+## API Reference
 
 ### `getEmailProvider(email, timeout?)`
 **Recommended** - Detects any email provider including business domains.
@@ -128,20 +192,41 @@ const result = getEmailProviderSync('user@gmail.com');
 // Returns: { provider, loginUrl, email }
 ```
 
+### `getEmailProviderFast(email, options?)`
+**High-performance** - Concurrent DNS with detailed timing information.
+
+```typescript
+const result = await getEmailProviderFast('user@mycompany.com', {
+  enableParallel: true,
+  collectDebugInfo: true,
+  timeout: 3000
+});
+
+console.log(result.timing);    // { mx: 120, txt: 95, total: 125 }
+console.log(result.confidence); // 0.9
+```
+
 ## Real-World Example
 
 ```typescript
 async function handlePasswordReset(email: string) {
-  const result = await getEmailProvider(email);
+  // Validate email first
+  const validation = validateEmailAddress(email);
+  if (!validation.isValid) {
+    throw new Error(`Invalid email: ${validation.error?.message}`);
+  }
+
+  // Get provider information
+  const result = await getEmailProvider(validation.normalizedEmail);
   
   return {
     providerUrl: result.loginUrl,
     providerName: result.provider?.companyProvider || null,
-    isSupported: result.provider !== null
+    isSupported: result.provider !== null,
+    detectionMethod: result.detectionMethod
   };
 }
 ```
-
 
 ## Configuration
 
@@ -155,97 +240,24 @@ console.log('Max requests:', Config.MAX_DNS_REQUESTS_PER_MINUTE); // 10
 console.log('Default timeout:', Config.DEFAULT_DNS_TIMEOUT);       // 5000ms
 ```
 
-## Email Validation
-
-The library includes comprehensive email validation following international standards:
-
-```typescript
-import { validateInternationalEmail } from '@mikkelscheike/email-provider-links';
-
-// Validate any email address
-const result = validateInternationalEmail('user@example.com');
-
-// Returns undefined for valid emails
-console.log(result); // undefined
-
-// Returns detailed error information for invalid emails
-const invalid = validateInternationalEmail('user@münchen.com');
-if (invalid) {
-  console.log(invalid.code);    // IDN_VALIDATION_ERROR
-  console.log(invalid.message); // Human-readable error message
-}
-```
-
-### Validation Features
-
-- ✅ **RFC Compliance**: Follows RFC 5321, 5322, and 6530 standards
-- 🌍 **International Support**: Full IDN (Punycode) validation
-- 📝 **Detailed Errors**: Clear, translatable error messages
-- 🔍 **Comprehensive Checks**:
-  - Local part validation (username)
-  - Domain format validation
-  - IDN encoding validation
-  - Length limits (local part, domain, total)
-  - TLD validation
-
 ## Advanced Usage
 
 <details>
-<summary><strong>📚 Secondary Functions & Specialized Use Cases</strong></summary>
+<summary><strong>📚 Advanced Features & Specialized Use Cases</strong></summary>
 
-### Synchronous Provider Detection (No DNS)
-
-If you can't use async or don't want DNS lookups:
+### Library Statistics
 
 ```typescript
-import { getEmailProviderSync } from '@mikkelscheike/email-provider-links';
+import { getLibraryStats, getSupportedProviders } from '@mikkelscheike/email-provider-links';
 
-// Synchronous - only checks predefined domains
-const result = getEmailProviderSync('user@gmail.com');
-console.log(result.loginUrl); // Works for known domains only
+const stats = getLibraryStats();
+console.log(`Version ${stats.version} supports ${stats.providerCount} providers`);
+
+const providers = getSupportedProviders();
+console.log(`Total providers: ${providers.length}`);
 ```
 
-### Provider Support Checking
-
-```typescript
-import { isEmailProviderSupported, getSupportedProviders } from '@mikkelscheike/email-provider-links';
-
-// Check if provider is supported
-const supported = isEmailProviderSupported('user@gmail.com');
-
-// Get all supported providers
-const allProviders = getSupportedProviders();
-console.log(`Supports ${allProviders.length} providers`);
-```
-
-### Advanced Provider Detection
-
-```typescript
-import { getEmailProviderFast, detectProviderConcurrent } from '@mikkelscheike/email-provider-links';
-
-// High-performance detection with concurrent DNS
-const fastResult = await getEmailProviderFast('user@mycompany.com', {
-  enableParallel: true,
-  collectDebugInfo: true
-});
-console.log(fastResult.provider?.companyProvider); // "Google Workspace"
-console.log(fastResult.timing);                    // Performance metrics
-```
-
-### Configuration Options
-
-```typescript
-import { Config } from '@mikkelscheike/email-provider-links';
-
-// Access configuration constants
-console.log(Config.DEFAULT_DNS_TIMEOUT);           // 5000ms
-console.log(Config.MAX_DNS_REQUESTS_PER_MINUTE);   // 10
-console.log(Config.SUPPORTED_PROVIDERS_COUNT);     // 93
-```
-
-### 🔄 Email Alias Detection & Normalization
-
-**Specialized feature** for preventing duplicate accounts and fraud detection:
+### Email Alias Detection & Normalization
 
 ```typescript
 import { 
@@ -274,27 +286,38 @@ const canonical = normalizeEmail('u.s.e.r+work@gmail.com');
 console.log(canonical);  // 'user@gmail.com'
 ```
 
-**Supported alias types:**
-- **Gmail dots**: `u.s.e.r@gmail.com` → `user@gmail.com`
-- **Plus addressing**: `user+tag@provider.com` → `user@provider.com`
-- **Provider-specific rules**: Different providers have different capabilities
+### Provider Support Checking
+
+```typescript
+import { isEmailProviderSupported, extractDomain } from '@mikkelscheike/email-provider-links';
+
+// Check if provider is supported
+const supported = isEmailProviderSupported('user@gmail.com');
+
+// Extract domain safely
+const domain = extractDomain('USER@EXAMPLE.COM');
+console.log(domain); // 'example.com'
+```
 
 </details>
 
 ## TypeScript Support
+
+Full TypeScript support with comprehensive interfaces:
 
 ```typescript
 interface EmailProviderResult {
   provider: EmailProvider | null;
   email: string;
   loginUrl: string | null;
-  detectionMethod?: 'domain_match' | 'mx_record' | 'txt_record' | 'proxy_detected';
+  detectionMethod?: 'domain_match' | 'mx_record' | 'txt_record' | 'both' | 'proxy_detected';
   proxyService?: string;
   error?: {
     type: 'INVALID_EMAIL' | 'DNS_TIMEOUT' | 'RATE_LIMITED' | 'UNKNOWN_DOMAIN' | 
           'NETWORK_ERROR' | 'IDN_VALIDATION_ERROR';
     message: string;
-    idnError?: string;  // Specific IDN validation error message
+    retryAfter?: number;  // seconds until retry allowed (for rate limiting)
+    idnError?: string;    // specific IDN validation error message
   };
 }
 
@@ -332,49 +355,39 @@ Protects against common attack vectors:
 
 ### 🧪 Security Testing
 
-- **92 dedicated security tests** covering all attack vectors
-- **Comprehensive security module coverage** with edge case testing
+- **396 comprehensive tests** covering all functionality and edge cases
+- **92+ dedicated security tests** covering all attack vectors
 - **Automated security validation** in CI/CD pipeline
 - **Regular security audits** of provider database
 
-### 🔐 For Security Teams
-
-Security validation can be integrated into your workflow:
-
-```typescript
-import { secureLoadProviders } from '@mikkelscheike/email-provider-links/security';
-
-// Secure loading with integrity verification
-const result = secureLoadProviders();
-if (result.securityReport.securityLevel === 'CRITICAL') {
-  // Handle security incident
-  console.error('Security validation failed:', result.securityReport.issues);
-}
-```
-
 ## Performance Benchmarks
 
-This package is designed to be extremely memory efficient and fast. We continuously monitor performance metrics through automated benchmarks that run on every PR and release.
+This package is designed to be extremely memory efficient and fast:
 
-Latest benchmark results show:
-- Provider loading: ~0.39MB heap usage, <0.5ms
-- Email lookups: ~0.02MB heap usage per 100 operations
-- Concurrent DNS: ~0.03MB heap usage, ~110ms for 10 lookups
-- Large scale (1000 ops): ~0.02MB heap usage, <3ms total
-- Cache effectiveness: ~0.01MB impact on subsequent loads
+- **Provider loading**: ~0.39MB heap usage, <0.5ms
+- **Email lookups**: ~0.02MB heap usage per 100 operations
+- **Concurrent DNS**: ~0.03MB heap usage, ~110ms for 10 lookups
+- **Large scale (1000 ops)**: ~0.02MB heap usage, <3ms total
+- **International validation**: <1ms for complex IDN domains
 
 To run benchmarks locally:
 ```bash
 npm run benchmark
 ```
 
-Benchmarks are automatically run in CI to catch any performance regressions.
+## Examples
+
+Run the modern example to see all features in action:
+
+```bash
+npx tsx examples/modern-example.ts
+```
 
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on adding new email providers.
 
-**Quality Assurance**: This project maintains high standards with 370 comprehensive tests achieving 92.89% code coverage.
+**Quality Assurance**: This project maintains high standards with 396 comprehensive tests achieving excellent code coverage.
 **Security Note**: All new providers undergo security validation and must pass our allowlist verification.
 
 ## Security
@@ -387,5 +400,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Zero dependencies • TypeScript-first • Production ready**
-
+**Zero dependencies • TypeScript-first • Production ready • International support**

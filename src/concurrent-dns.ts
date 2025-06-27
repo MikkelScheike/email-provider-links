@@ -72,7 +72,7 @@ export interface ConcurrentDNSResult {
     conflicts: boolean;
     queries: DNSQueryResult[];
     fallbackUsed: boolean;
-  };
+  } | undefined;
 }
 
 /**
@@ -247,13 +247,22 @@ export class ConcurrentDNSDetector {
     const mxResult = mappedResults[0];
     const txtResult = mappedResults[1];
     
-    if (mxResult.success && this.hasMXMatch(mxResult) && this.config.prioritizeMX) {
+    if (mxResult && mxResult.success && this.hasMXMatch(mxResult) && this.config.prioritizeMX) {
       // Create an optimized TXT result that indicates it wasn't needed
-      const optimizedTxtResult = {
-        ...txtResult,
-        timing: 0, // Don't count TXT time if MX was sufficient
-        optimized: true
+      const optimizedTxtResult: DNSQueryResult = {
+        type: 'txt',
+        success: txtResult?.success || false,
+        records: txtResult?.records || [],
+        timing: 0 // Don't count TXT time if MX was sufficient
       };
+      
+      if (txtResult?.error) {
+        optimizedTxtResult.error = txtResult.error;
+      }
+      
+      if (txtResult?.rawResponse) {
+        optimizedTxtResult.rawResponse = txtResult.rawResponse;
+      }
       return [mxResult, optimizedTxtResult];
     }
 
@@ -431,10 +440,10 @@ export class ConcurrentDNSDetector {
    */
   private selectBestMatch(matches: ProviderMatch[]): ProviderMatch | null {
     if (matches.length === 0) return null;
-    if (matches.length === 1) return matches[0];
+    if (matches.length === 1) return matches[0] ?? null;
 
     // Sort by confidence and preference for MX records
-    return matches.sort((a, b) => {
+    const sortedMatches = matches.sort((a, b) => {
       // Prioritize MX records if configured
       if (this.config.prioritizeMX) {
         if (a.method === 'mx_record' && b.method !== 'mx_record') return -1;
@@ -443,7 +452,9 @@ export class ConcurrentDNSDetector {
       
       // Then by confidence
       return b.confidence - a.confidence;
-    })[0];
+    });
+    
+    return sortedMatches.length > 0 ? (sortedMatches[0] ?? null) : null;
   }
 
   /**

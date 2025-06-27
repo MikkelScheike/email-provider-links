@@ -6,9 +6,7 @@
  */
 
 import { 
-  detectProviderConcurrent,
-  ConcurrentDNSConfig,
-  ConcurrentDNSResult
+  detectProviderConcurrent
 } from './concurrent-dns';
 import { loadProviders } from './loader';
 
@@ -62,13 +60,13 @@ export interface EmailProviderResult {
  * ```typescript
  * // Consumer email
  * const gmail = await getEmailProvider('user@gmail.com');
- * console.log(gmail.provider?.name); // "Gmail"
- * console.log(gmail.loginUrl);       // "https://mail.google.com/mail/"
+ * console.log(gmail.provider?.companyProvider); // "Gmail"
+ * console.log(gmail.loginUrl);                  // "https://mail.google.com/mail/"
  * 
  * // Business domain
  * const business = await getEmailProvider('user@mycompany.com');
- * console.log(business.provider?.name); // "Google Workspace" (if detected)
- * console.log(business.detectionMethod); // "mx_record"
+ * console.log(business.provider?.companyProvider); // "Google Workspace" (if detected)
+ * console.log(business.detectionMethod);          // "mx_record"
  * 
  * // Error handling
  * const invalid = await getEmailProvider('invalid-email');
@@ -139,9 +137,12 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
       provider: concurrentResult.provider,
       email,
       loginUrl: concurrentResult.provider?.loginUrl || null,
-      detectionMethod: concurrentResult.detectionMethod || undefined,
-      proxyService: concurrentResult.proxyService
+      detectionMethod: concurrentResult.detectionMethod || 'mx_record'
     };
+
+    if (concurrentResult.proxyService) {
+      result.proxyService = concurrentResult.proxyService;
+    }
 
     // Add error context for null results
     if (!result.provider && !result.proxyService) {
@@ -157,7 +158,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
     // Enhanced error handling
     if (error.message?.includes('Rate limit exceeded')) {
       const retryMatch = error.message.match(/Try again in (\d+) seconds/);
-      const retryAfter = retryMatch ? parseInt(retryMatch[1]) : undefined;
+      const retryAfter = retryMatch ? parseInt(retryMatch[1], 10) : undefined;
       
       return {
         provider: null,
@@ -166,7 +167,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
         error: {
           type: 'RATE_LIMITED',
           message: 'DNS query rate limit exceeded',
-          retryAfter
+          ...(retryAfter !== undefined ? { retryAfter } : {})
         }
       };
     }
@@ -208,7 +209,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
  * ```typescript
  * // Works for known domains
  * const gmail = getEmailProviderSync('user@gmail.com');
- * console.log(gmail.provider?.name); // "Gmail"
+ * console.log(gmail.provider?.companyProvider); // "Gmail"
  * 
  * // Unknown domains return null
  * const unknown = getEmailProviderSync('user@mycompany.com');
@@ -382,8 +383,6 @@ export function emailsMatch(email1: string, email2: string): boolean {
   return normalized1 === normalized2;
 }
 
-// Note: EmailProvider type is defined above
-
 /**
  * Enhanced email provider detection with concurrent DNS for maximum performance.
  * This function uses parallel MX/TXT lookups for 2x faster business domain detection.
@@ -487,12 +486,19 @@ export async function getEmailProviderFast(
       collectDebugInfo
     });
 
-    return {
+    const fastResult: EmailProviderResult & {
+      timing?: {
+        mx: number;
+        txt: number;
+        total: number;
+      };
+      confidence?: number;
+      debug?: any;
+    } = {
       provider: concurrentResult.provider,
       email,
       loginUrl: concurrentResult.provider?.loginUrl || null,
-      detectionMethod: concurrentResult.detectionMethod || undefined,
-      proxyService: concurrentResult.proxyService,
+      detectionMethod: concurrentResult.detectionMethod || 'mx_record',
       timing: concurrentResult.timing,
       confidence: concurrentResult.confidence,
       debug: concurrentResult.debug,
@@ -501,6 +507,12 @@ export async function getEmailProviderFast(
         message: `No email provider found for domain: ${domain}`
       } : undefined
     };
+
+    if (concurrentResult.proxyService) {
+      fastResult.proxyService = concurrentResult.proxyService;
+    }
+
+    return fastResult;
 
   } catch (error: any) {
     return {
