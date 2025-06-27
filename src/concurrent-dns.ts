@@ -253,10 +253,16 @@ export class ConcurrentDNSDetector {
         type: 'txt',
         success: txtResult?.success || false,
         records: txtResult?.records || [],
-        error: txtResult?.error,
-        timing: 0, // Don't count TXT time if MX was sufficient
-        rawResponse: txtResult?.rawResponse
+        timing: 0 // Don't count TXT time if MX was sufficient
       };
+      
+      if (txtResult?.error) {
+        optimizedTxtResult.error = txtResult.error;
+      }
+      
+      if (txtResult?.rawResponse) {
+        optimizedTxtResult.rawResponse = txtResult.rawResponse;
+      }
       return [mxResult, optimizedTxtResult];
     }
 
