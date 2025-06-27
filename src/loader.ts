@@ -53,7 +53,7 @@ const DEFAULT_CONFIG: LoaderConfig = {
 function convertProviderToEmailProvider(compressedProvider: Provider): EmailProvider {
   const provider: EmailProvider = {
     companyProvider: compressedProvider.companyProvider,
-    loginUrl: compressedProvider.loginUrl,
+    loginUrl: compressedProvider.loginUrl || null,
     domains: compressedProvider.domains || []
   };
 
