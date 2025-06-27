@@ -486,12 +486,19 @@ export async function getEmailProviderFast(
       collectDebugInfo
     });
 
-    return {
+    const fastResult: EmailProviderResult & {
+      timing?: {
+        mx: number;
+        txt: number;
+        total: number;
+      };
+      confidence?: number;
+      debug?: any;
+    } = {
       provider: concurrentResult.provider,
       email,
       loginUrl: concurrentResult.provider?.loginUrl || null,
       detectionMethod: concurrentResult.detectionMethod || 'mx_record',
-      proxyService: concurrentResult.proxyService,
       timing: concurrentResult.timing,
       confidence: concurrentResult.confidence,
       debug: concurrentResult.debug,
@@ -500,6 +507,12 @@ export async function getEmailProviderFast(
         message: `No email provider found for domain: ${domain}`
       } : undefined
     };
+
+    if (concurrentResult.proxyService) {
+      fastResult.proxyService = concurrentResult.proxyService;
+    }
+
+    return fastResult;
 
   } catch (error: any) {
     return {
