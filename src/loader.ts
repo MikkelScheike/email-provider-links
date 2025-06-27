@@ -11,7 +11,7 @@ import {
   ProvidersData,
   decompressTxtPattern
 } from './schema';
-import { EmailProvider } from './index';
+import { EmailProvider } from './api';
 
 /**
  * Provider loader configuration
