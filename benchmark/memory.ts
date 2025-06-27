@@ -10,13 +10,23 @@ interface MemorySnapshot {
 }
 
 function getMemoryUsage(): MemorySnapshot {
-  const { heapUsed, heapTotal, external, arrayBuffers } = process.memoryUsage();
-  return {
-    heapUsed: Math.round(heapUsed / 1024 / 1024 * 100) / 100,    // MB
-    heapTotal: Math.round(heapTotal / 1024 / 1024 * 100) / 100,  // MB
-    external: Math.round(external / 1024 / 1024 * 100) / 100,     // MB
-    arrayBuffers: Math.round(arrayBuffers / 1024 / 1024 * 100) / 100 // MB
-  };
+  try {
+    const { heapUsed, heapTotal, external, arrayBuffers } = process.memoryUsage();
+    return {
+      heapUsed: Math.round(heapUsed / 1024 / 1024 * 100) / 100,    // MB
+      heapTotal: Math.round(heapTotal / 1024 / 1024 * 100) / 100,  // MB
+      external: Math.round(external / 1024 / 1024 * 100) / 100,     // MB
+      arrayBuffers: Math.round(arrayBuffers / 1024 / 1024 * 100) / 100 // MB
+    };
+  } catch (error) {
+    // Fallback if memory usage can't be determined
+    return {
+      heapUsed: 0,
+      heapTotal: 0,
+      external: 0,
+      arrayBuffers: 0
+    };
+  }
 }
 
 function formatMemoryDiff(before: MemorySnapshot, after: MemorySnapshot): string {
@@ -35,35 +45,43 @@ function formatMemoryDiff(before: MemorySnapshot, after: MemorySnapshot): string
 }
 
 async function runMemoryTest(name: string, fn: () => Promise<void> | void) {
-  // Force garbage collection if available
-  if (global.gc) {
-    global.gc();
-  }
+  try {
+    // Force garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
 
-  const before = getMemoryUsage();
-  console.log(`\n🔍 Running "${name}"...`);
-  
-  const start = process.hrtime.bigint();
-  await Promise.resolve(fn());
-  const end = process.hrtime.bigint();
-  
-  // Force garbage collection again
-  if (global.gc) {
-    global.gc();
-  }
+    const before = getMemoryUsage();
+    console.log(`\n🔍 Running "${name}"...`);
+    
+    const start = process.hrtime.bigint();
+    await Promise.resolve(fn());
+    const end = process.hrtime.bigint();
+    
+    // Force garbage collection again
+    if (global.gc) {
+      global.gc();
+    }
 
-  const after = getMemoryUsage();
-  const duration = Number(end - start) / 1_000_000; // Convert to milliseconds
+    const after = getMemoryUsage();
+    const duration = Number(end - start) / 1_000_000; // Convert to milliseconds
 
-  console.log(`
+    console.log(`
 📊 Memory Impact:${formatMemoryDiff(before, after)}
 ⏱️  Duration: ${duration.toFixed(2)}ms
   `);
+  } catch (error) {
+    console.log(`
+⚠️ Test "${name}" failed:
+   ${error}
+  `);
+  }
 }
 
 async function main() {
-  if (!global.gc) {
+if (!global.gc) {
     console.warn('⚠️  Running without --expose-gc. Memory measurements may be less accurate.');
+    console.log('ℹ️  Memory measurements will still be taken, but garbage collection is disabled.');
   }
 
   console.log('🏃 Starting Memory Usage Benchmarks...\n');
