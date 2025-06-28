@@ -5,9 +5,9 @@
       "id": "cloudflare",
       "mx": [
         "mx.cloudflare.com",
-        "cloudflare.com",
-        "mxrecord.io",
-        "mxrecord.mx"
+        "route1.mx.cloudflare.net",
+        "route2.mx.cloudflare.net",
+        "route3.mx.cloudflare.net"
       ],
       "txt": [
         "spf:_spf.cloudflare.com",

@@ -18,7 +18,7 @@ import { join } from 'path';
  */
 const KNOWN_GOOD_HASHES = {
   // SHA-256 hash of the legitimate emailproviders.json
-  'emailproviders.json': 'c9c3cb1590820989071ec2bea8a7560496188031f8fa6367153e642315824cdb',
+  'emailproviders.json': '288a17c8e186f9c16dca4c9d752ab8a55b9b1e240b991b490cb41c928b4366a6',
   
   // You can add hashes for other critical files
   'package.json': 'da08eadfe33e8a5c5bcc3db0f0dccc402b4d8ab8440ff57d2e9aa986921ac66d'
