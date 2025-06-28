@@ -349,7 +349,7 @@
       "loginUrl": "https://www.hushmail.com/signin/"
     },
     {
-"id": "icloud",
+      "id": "icloud",
       "domains": [
         "icloud.com",
         "me.com",
@@ -484,7 +484,7 @@
       "loginUrl": "https://www.mail.bg"
     },
     {
-"id": "com",
+      "id": "com",
       "domains": [
         "mail.com"
       ],
@@ -937,7 +937,7 @@
       "loginUrl": "https://app.titan.email"
     },
     {
-"id": "tutano",
+      "id": "tutano",
       "domains": [
         "tutanota.com",
         "tutanota.de",
@@ -1058,7 +1058,7 @@
       }
     },
     {
-"id": "yandex",
+      "id": "yandex",
       "domains": [
         "yandex.ru",
         "yandex.com"
@@ -1106,7 +1106,7 @@
       }
     },
     {
-"id": "zohoeu",
+      "id": "zohoeu",
       "domains": [
         "zoho.eu"
       ],

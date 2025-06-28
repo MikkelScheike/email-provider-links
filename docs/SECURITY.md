@@ -15,7 +15,7 @@ Email Provider Links implements enterprise-grade security measures to protect ag
 
 2. **Domain Allowlisting**
    - Only pre-approved domains are allowed
-   - 64+ verified email providers in allowlist
+   - 93+ verified email providers in allowlist
    - Subdomain validation with precise matching
 
 3. **Malicious Pattern Detection**

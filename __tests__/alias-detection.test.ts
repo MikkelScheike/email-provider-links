@@ -60,6 +60,49 @@ const mockProviders = {
       },
       "mx": ["mx.aol.com"],
       "txt": ["v=spf1 include:spf.protection.aol.com"]
+    },
+    {
+      "id": "test_no_case",
+      "companyProvider": "Test Provider - No Case",
+      "loginUrl": "https://test-no-case.com",
+      "domains": ["test-no-case.com"],
+      "type": "public_provider",
+      "alias": {
+        "dots": { "ignore": false, "strip": false },
+        "plus": { "ignore": true, "strip": true }
+      }
+    },
+    {
+      "id": "test_no_dots",
+      "companyProvider": "Test Provider - No Dots",
+      "loginUrl": "https://test-no-dots.com",
+      "domains": ["test-no-dots.com"],
+      "type": "public_provider",
+      "alias": {
+        "plus": { "ignore": true, "strip": true },
+        "case": { "ignore": true, "strip": true }
+      }
+    },
+    {
+      "id": "test_no_plus",
+      "companyProvider": "Test Provider - No Plus",
+      "loginUrl": "https://test-no-plus.com",
+      "domains": ["test-no-plus.com"],
+      "type": "public_provider",
+      "alias": {
+        "dots": { "ignore": false, "strip": false },
+        "case": { "ignore": true, "strip": true }
+      }
+    },
+    {
+      "id": "test_only_dots",
+      "companyProvider": "Test Provider - Only Dots",
+      "loginUrl": "https://test-only-dots.com",
+      "domains": ["test-only-dots.com"],
+      "type": "public_provider",
+      "alias": {
+        "dots": { "ignore": false, "strip": false }
+      }
     }
   ]
 };
@@ -171,12 +214,42 @@ expect(result.canonical).toBe('user@gmail.com');
 expect(result.canonical).toBe('user-name_123@gmail.com');
     });
 
-    it('should preserve case in alias part', () => {
-      const result = detectEmailAlias('user+TAG@gmail.com');
+// Missing Alias Properties Tests
+  describe('Provider without case property', () => {
+    it('should handle dots and plus but ignore case sensitivity', () => {
+      const result = detectEmailAlias('User.Name+Tag@test-no-case.com');
       expect(result.isAlias).toBe(true);
-      expect(result.aliasPart).toBe('tag');
-expect(result.canonical).toBe('user@gmail.com');
+      expect(result.aliasType).toBe('plus');
+      expect(result.aliasPart).toBe('tag');  // Alias part is also lowercase for consistency
+      expect(result.canonical).toBe('user.name@test-no-case.com'); // Canonical form is always lowercase
     });
+  });
+
+  describe('Provider without dots property', () => {
+    it('should handle plus and case but preserve dots', () => {
+      const result = detectEmailAlias('User.Name+Tag@test-no-dots.com');
+      expect(result.isAlias).toBe(true);
+      expect(result.aliasType).toBe('plus');
+      expect(result.aliasPart).toBe('tag');  // Alias part is also lowercase for consistency
+      expect(result.canonical).toBe('user.name@test-no-dots.com'); // Canonical form is always lowercase
+    });
+  });
+
+  describe('Provider without plus property', () => {
+    it('should handle dots and case but preserve plus', () => {
+      const result = detectEmailAlias('User.Name+Tag@test-no-plus.com');
+      expect(result.isAlias).toBe(false);
+      expect(result.canonical).toBe('user.name+tag@test-no-plus.com'); // Case should be lowercased by default in canonical form
+    });
+  });
+
+  describe('Provider with only dots property', () => {
+    it('should only handle dots configuration', () => {
+      const result = detectEmailAlias('User.Name+Tag@test-only-dots.com');
+      expect(result.isAlias).toBe(false);
+      expect(result.canonical).toBe('user.name+tag@test-only-dots.com'); // Canonical form is always lowercase
+    });
+  });
   });
 
   describe('Normalization', () => {

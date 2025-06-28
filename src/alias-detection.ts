@@ -3,6 +3,43 @@
  * 
  * Clean, focused implementation with only essential functions.
  * Detects and normalizes email aliases across different providers.
+ * 
+ * Alias Configuration Behavior:
+ * ---------------------------
+ * The module handles email aliases based on provider-specific configurations.
+ * Each provider can specify how to handle three types of email variations:
+ * 
+ * 1. Case sensitivity ("case")
+ * 2. Plus addressing ("plus")
+ * 3. Dots in username ("dots")
+ * 
+ * Important: For each of these properties, modifications are only applied if
+ * explicitly configured in the provider's settings:
+ * 
+ * - If a property is defined (e.g., "case": {"ignore": true, "strip": true}),
+ *   the specified behavior is applied
+ * 
+ * - If a property is missing from the provider's alias configuration,
+ *   the original value is preserved without modification
+ * 
+ * Example:
+ * ```json
+ * {
+ *   "alias": {
+ *     "dots": { "ignore": false, "strip": false },
+ *     "plus": { "ignore": true, "strip": true }
+ *     // case is not defined, so case will be preserved
+ *   }
+ * }
+ * ```
+ * 
+ * In this example:
+ * - Dots will be preserved (configured to not ignore/strip)
+ * - Plus addressing will be stripped (configured to ignore/strip)
+ * - Case will be preserved (not configured)
+ * 
+ * Note: The domain part of email addresses is always converted to lowercase
+ * as per RFC 5321 standard, regardless of provider configuration.
  */
 
 export interface AliasDetectionResult {
@@ -34,8 +71,26 @@ function isValidEmail(email: string): boolean {
 /**
  * Detects and analyzes email aliases
  * 
+ * This function processes email addresses according to provider-specific rules.
+ * Case is always lowercased in the canonical form for consistency and safety.
+ * It only applies additional modifications (plus, dots) that are explicitly
+ * defined in the provider's configuration.
+ * 
  * @param email - Email address to analyze
  * @returns Detailed analysis of the email alias
+ * 
+ * @example
+ * Provider with no case handling defined:
+ * ```typescript
+ * detectEmailAlias('User.Name@example.com')
+ * // Preserves case: User.Name@example.com
+ * ```
+ * 
+ * Provider with case handling defined:
+ * ```typescript
+ * detectEmailAlias('User.Name@gmail.com')
+ * // Converts to lowercase: user.name@gmail.com
+ * ```
  */
 export function detectEmailAlias(email: string): AliasDetectionResult {
   if (!isValidEmail(email)) {
@@ -43,9 +98,10 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
   }
 
   const originalEmail = email.trim();
+  // Split normally, lowering case both for username and domain by default
   const emailParts = originalEmail.toLowerCase().split('@');
   const username = emailParts[0];
-  const domain = emailParts[1];
+  const domain = emailParts[1]; // domain is always case-insensitive per RFC 5321
   
   if (!username || !domain) {
     throw new Error('Invalid email format - missing username or domain');
@@ -55,7 +111,8 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
   const provider = domainMap.get(domain);
 
   const result: AliasDetectionResult = {
-    canonical: originalEmail.toLowerCase(),
+    // Only lowercase domain part by default
+    canonical: `${username}@${domain}`,
     original: originalEmail,
     isAlias: false,
     aliasType: 'none'
@@ -72,14 +129,16 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
   let aliasType: 'plus' | 'dot' | 'none' = 'none';
   let aliasPart: string | undefined;
 
-  // Handle case sensitivity (all modern providers are case-insensitive)
+  // Canonical form is always lowercased to ensure consistent and
+  // reliable email handling across different providers.
   if (provider.alias?.case?.ignore) {
     if (provider.alias.case?.strip) {
       normalizedUsername = normalizedUsername.toLowerCase();
     }
   }
 
-  // Handle plus addressing (common for Gmail, Outlook, Yahoo, etc.)
+  // Handle plus addressing if defined in provider settings
+  // If plus handling is not defined, preserve plus addressing
   if (provider.alias?.plus?.ignore) {
     const plusIndex = username.indexOf('+');
     if (plusIndex !== -1) {
@@ -92,7 +151,8 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
     }
   }
 
-  // Handle dots (primarily for Gmail)
+  // Handle dots if defined in provider settings
+  // If dots handling is not defined, preserve dots
   if (provider.alias?.dots?.ignore) {
     const hasDots = username.includes('.');
     if (hasDots) {

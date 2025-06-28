@@ -1,5 +1,34 @@
 # Changelog
 
+## [3.0.0] - 2025-06-28
+
+### 🚀 Major Release - Performance, Security, and Advanced Alias Detection
+
+#### ✨ Major Features & Improvements
+- **Enhanced Performance**: Further optimized DNS resolution and caching
+- **Refined Precision**: Adjusted performance thresholds based on real-world metrics
+- **Security Hardening**: Removed legacy detection methods and updated security hashes
+- **TypeScript Enhancements**: Resolved TypeScript errors and improved type safety
+- **Provider Coverage**: Added support for 23 new email providers
+- **Advanced Alias Detection**: Refined provider-specific email alias handling
+
+#### 🧪 Quality & Testing
+- **Expanded Test Coverage**: 445 comprehensive tests (up from 424)
+- **Improved Coverage**: 94.65% code coverage (up from 93.16%)
+- **Function Coverage**: 95.95% function coverage
+
+#### 📚 Documentation & Infrastructure
+- **Consolidated Documentation**: Improved clarity and organization
+- **Optimized Build Process**: Enhanced development workflow
+- **Updated Metrics**: All documentation now reflects current statistics
+
+### 🔄 Breaking Changes
+- Updated minimum Node.js version requirements
+- Refined provider detection logic for better accuracy
+- Enhanced security validation process
+
+---
+
 ## [2.7.1] - 2025-06-27
 ### Fixed
 - CI workflow reliability improvements

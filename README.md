@@ -8,20 +8,21 @@ A robust TypeScript library providing direct links to **93 email providers** (18
 
 **[Live Demo](https://demo.mikkelscheike.com)** - Test the library with any email address and see it in action!
 
-## ✨ New in Version 2.7.0
+## ✨ New in Version 3.0.0
 
-- 🚀 **Modern TypeScript**: Updated to latest TypeScript 2025 standards with strict type checking
-- 🌍 **Enhanced International Support**: Improved IDN validation and Punycode handling
-- 📧 **Advanced Email Validation**: Comprehensive validation with detailed error reporting
-- 🔄 **Batch Processing**: Efficiently process multiple emails with deduplication
-- 🛡️ **Improved Security**: Enhanced cryptographic integrity verification
-- ⚡ **Better Performance**: Optimized concurrent DNS with smart caching
-- 🎯 **Developer Experience**: Enhanced error messages and debugging information
-- 📊 **Development Mode**: Memory usage tracking when NODE_ENV=development
+- 🚀 **Performance Optimizations**: Further improved DNS resolution and caching
+- 🎯 **Enhanced Precision**: Adjusted performance thresholds based on real-world metrics
+- 🛡️ **Security Updates**: Removed legacy detection methods and updated security hashes
+- 📝 **TypeScript Improvements**: Resolved TypeScript errors and enhanced type safety
+- 📚 **Documentation**: Consolidated and improved documentation for better clarity
+- ⚡ **Infrastructure**: Optimized build process and development workflow
+- 🧪 **Testing**: Expanded test coverage to 445 comprehensive tests
+- 🔄 **Provider Updates**: Added support for 23 new email providers
+- 🔍 **Advanced Alias Detection**: Refined provider-specific email alias handling for dots, plus addressing, and case sensitivity
 
 ## ✨ Core Features
 
-- 🚀 **Fast & Lightweight**: Zero dependencies, ultra-low memory (~0.08MB initial, ~0.03MB per 1000 ops)
+- 🚀 **Fast & Lightweight**: Zero dependencies, ultra-low memory (0.10MB initial, 0.00004MB per 1000 ops), small footprint (~39.5KB compressed)
 - 📧 **93 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
 - 🌐 **207 Domains Supported**: Comprehensive international coverage
 - 🌍 **Full IDN Support**: International domain names with RFC compliance and Punycode
@@ -36,7 +37,7 @@ A robust TypeScript library providing direct links to **93 email providers** (18
 - 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
 - 🛡️ **Fraud Prevention**: Detect duplicate accounts through email alias manipulation
 - 📦 **Batch Processing**: Efficiently process multiple emails with deduplication
-- 🧪 **Thoroughly Tested**: 424 tests with 93.16% code coverage
+- 🧪 **Thoroughly Tested**: 445 tests with 94.65% code coverage
 
 ## Installation
 
@@ -236,8 +237,6 @@ console.log(domain); // 'example.com'
 
 ## Performance and Detection System
 
-For detailed performance metrics and information about the detection system, refer to [Performance and Detection System](docs/PERFORMANCE.md).
-
 ### Development Mode Features
 
 When `NODE_ENV` is set to 'development', the library provides additional insights:
@@ -246,15 +245,6 @@ When `NODE_ENV` is set to 'development', the library provides additional insight
 // Memory usage is automatically logged:
 // 🚀 Current memory usage: 0.08 MB
 ```
-
-### Memory Management
-
-The library implements careful memory management:
-- Initial load: ~0.08MB heap usage
-- Batch operations: ~0.03MB per 1000 operations
-- Maximum load: < 25MB even under heavy concurrent operations
-- Automatic garbage collection hints
-- Memory usage logging in development mode
 
 ### Performance Benchmarks
 
@@ -267,10 +257,10 @@ Extensively optimized for both speed and memory efficiency:
 - Batch processing: 1000 operations in ~1.1ms
 - Email validation: <1ms for complex IDN domains
 
-**Memory Usage**:
-- Initial footprint: ~0.08MB
-- Per operation: ~0.03MB per 1000 lookups
-- Peak usage: <25MB under heavy load
+**Memory Management**:
+- Initial load: ~0.10MB heap usage
+- Batch operations: ~0.00004MB per 1000 operations
+- Maximum load: < 25MB under heavy concurrent operations
 - Cache efficiency: >99% hit rate
 - Garbage collection: Automatic optimization
 
@@ -282,15 +272,21 @@ Extensively optimized for both speed and memory efficiency:
 
 To run benchmarks:
 ```bash
-npm run benchmark # Basic benchmarks
-node --expose-gc benchmark/memory.ts # Detailed memory analysis
+# Memory usage benchmark
+npm run benchmark:memory
+
+# DNS performance benchmark
+npm run benchmark:dns
+
+# Both scripts are available in the scripts/ directory
+# and can be modified for custom performance testing
 ```
 
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on adding new email providers.
 
-**Quality Assurance**: This project maintains high standards with 424 comprehensive tests achieving 93.16% code coverage (96.46% function coverage).
+**Quality Assurance**: This project maintains high standards with 445 comprehensive tests achieving 94.65% code coverage (95.95% function coverage).
 **Security Note**: All new providers undergo security validation and must pass our allowlist verification.
 
 ## Security

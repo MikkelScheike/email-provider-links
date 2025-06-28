@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 /**
  * Performance Benchmark for Concurrent DNS Detection
@@ -7,8 +7,8 @@
  * and generates detailed performance reports.
  */
 
-const { detectProviderConcurrent } = require('../dist/concurrent-dns.js');
-const { getSupportedProviders } = require('../dist/index.js');
+import { detectProviderConcurrent } from '../src/concurrent-dns';
+import { getSupportedProviders } from '../src';
 
 // Test domains representing different scenarios
 const TEST_DOMAINS = [
@@ -24,7 +24,19 @@ const TEST_DOMAINS = [
   { domain: 'example.com', expected: null }
 ];
 
-async function benchmarkDomain(domain, providers, config) {
+interface BenchmarkResult {
+  domain: string;
+  success: boolean;
+  duration: number;
+  provider: string | null;
+  detectionMethod?: string;
+  confidence?: number;
+  timing?: any;
+  debug?: any;
+  error?: string;
+}
+
+async function benchmarkDomain(domain: string, providers: any, config: any): Promise<BenchmarkResult> {
   const start = Date.now();
   
   try {
@@ -66,7 +78,7 @@ async function runBenchmark() {
     { name: 'Sequential', enableParallel: false, timeout: 5000 }
   ];
   
-  const results = {};
+  const results: Record<string, any> = {};
   
   for (const config of configs) {
     console.log(`📊 Testing ${config.name} Mode:`);
@@ -184,6 +196,5 @@ async function runBenchmark() {
   }
 }
 
-if (require.main === module) {
-  runBenchmark().catch(console.error);
-}
+runBenchmark().catch(console.error);
+
