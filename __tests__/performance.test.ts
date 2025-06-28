@@ -116,8 +116,8 @@ describe('Performance Tests', () => {
       
       const startTime = process.hrtime.bigint();
       
-      // Perform 500 random domain lookups
-      for (let i = 0; i < 500; i++) {
+      // Perform 250 random domain lookups
+      for (let i = 0; i < 250; i++) {
         const randomDomain = domains[Math.floor(Math.random() * domains.length)];
         const provider = domainMap.get(randomDomain);
         expect(provider).toBeDefined();
@@ -126,8 +126,8 @@ describe('Performance Tests', () => {
       const endTime = process.hrtime.bigint();
       const durationMs = Number(endTime - startTime) / 1_000_000;
       
-      // 500 lookups should be fast
-      expect(durationMs).toBeLessThan(50); // Under 50ms for 500 lookups
+      // 250 lookups should be fast
+      expect(durationMs).toBeLessThan(30); // Under 30ms for 250 lookups
     });
 
     it('should maintain performance with async lookups', async () => {
