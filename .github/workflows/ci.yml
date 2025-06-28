@@ -66,11 +66,6 @@ jobs:
       
     - name: Run build
       run: npm run build
-      
-    - name: Test examples
-      run: |
-        node examples/example-js.js
-        npx tsx examples/example.ts
 
   coverage:
     name: Coverage

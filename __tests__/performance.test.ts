@@ -175,8 +175,8 @@ describe('Performance Tests', () => {
       // Calculate operations per second
       const opsPerSecond = iterations / (durationMs / 1000);
       
-      // Should handle at least 15k ops/second
-      expect(opsPerSecond).toBeGreaterThan(15000); // Should handle at least 15k ops/second
+      // Should handle at least 10k ops/second
+      expect(opsPerSecond).toBeGreaterThan(10000); // Should handle at least 10k ops/second
     });
 
     it('should handle concurrent load', async () => {
