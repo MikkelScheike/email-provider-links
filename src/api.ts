@@ -21,13 +21,23 @@ export interface EmailProvider {
   loginUrl: string | null;
   domains: string[];
   type: ProviderType;
+  alias?: {
+    dots?: {
+      ignore: boolean;
+      strip: boolean;
+    };
+    plus?: {
+      ignore: boolean;
+      strip: boolean;
+    };
+    case?: {
+      ignore: boolean;
+      strip: boolean;
+    };
+  };
   customDomainDetection?: {
     mxPatterns?: string[];
     txtPatterns?: string[];
-  };
-  alias?: {
-    dots?: boolean;
-    plus?: boolean;
   };
 }
 

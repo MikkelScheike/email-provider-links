@@ -73,27 +73,27 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
   let aliasPart: string | undefined;
 
   // Handle case sensitivity (all modern providers are case-insensitive)
-  if (provider.alias.case?.ignore) {
-    if (provider.alias.case.strip) {
+  if (provider.alias?.case?.ignore) {
+    if (provider.alias.case?.strip) {
       normalizedUsername = normalizedUsername.toLowerCase();
     }
   }
 
   // Handle plus addressing (common for Gmail, Outlook, Yahoo, etc.)
-  if (provider.alias.plus?.ignore) {
+  if (provider.alias?.plus?.ignore) {
     const plusIndex = username.indexOf('+');
     if (plusIndex !== -1) {
       aliasPart = username.substring(plusIndex + 1);
       isAlias = true;
       aliasType = 'plus';
-      if (provider.alias.plus.strip) {
+      if (provider.alias.plus?.strip) {
         normalizedUsername = username.slice(0, plusIndex);
       }
     }
   }
 
   // Handle dots (primarily for Gmail)
-  if (provider.alias.dots?.ignore) {
+  if (provider.alias?.dots?.ignore) {
     const hasDots = username.includes('.');
     if (hasDots) {
       if (!isAlias) {
@@ -101,7 +101,7 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
         isAlias = true;
         aliasType = 'dot';
       }
-      if (provider.alias.dots.strip) {
+      if (provider.alias.dots?.strip) {
         normalizedUsername = normalizedUsername.replace(/\./g, '');
       }
     }

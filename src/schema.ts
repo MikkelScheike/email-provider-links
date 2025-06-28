@@ -36,15 +36,15 @@ export interface Provider {
   type: ProviderType;
   /** Alias rules for username part */
   alias?: {
-    dots: {
+    dots?: {
       ignore: boolean;    // true = dots don't matter (gmail), false = dots matter (outlook)
       strip: boolean;     // true = remove dots, false = keep dots
     };
-    plus: {
+    plus?: {
       ignore: boolean;    // true = plus addressing supported, false = not supported
       strip: boolean;     // true = remove plus part, false = keep plus part
     };
-    case: {
+    case?: {
       ignore: boolean;    // true = case doesn't matter, false = case matters
       strip: boolean;     // true = convert to lowercase, false = preserve case
     };

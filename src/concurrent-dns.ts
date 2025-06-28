@@ -482,7 +482,7 @@ export class ConcurrentDNSDetector {
     const proxyProviders = this.providers.filter(p => p.type === 'proxy_service');
     const proxyPatterns = proxyProviders.map(provider => ({
       service: provider.companyProvider,
-      patterns: [...(provider.mx || []), ...(provider.domains || [])].map(p => p.toLowerCase())
+      patterns: [...(provider.customDomainDetection?.mxPatterns || []), ...(provider.domains || [])].map(p => p.toLowerCase())
     }));
 
     for (const record of mxQuery.records) {
