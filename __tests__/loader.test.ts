@@ -265,13 +265,87 @@ describe('Provider Data Loader Tests', () => {
     });
   });
 
+  describe('Development mode and warnings', () => {
+    let originalEnv: NodeJS.ProcessEnv;
+
+    beforeEach(() => {
+      originalEnv = process.env;
+      process.env = { ...originalEnv };
+    });
+
+    afterEach(() => {
+      process.env = originalEnv;
+    });
+
+    it('should log memory usage in development mode', () => {
+      process.env.NODE_ENV = 'development';
+      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      loadProviders();
+
+      expect(logSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/🚀 Current memory usage: .* MB/)
+      );
+
+      logSpy.mockRestore();
+    });
+
+    it('should warn about missing provider type', () => {
+      // Mock readFileSync to return a provider without type
+      const mockData = {
+        version: '1.0.0',
+        providers: [{
+          id: 'test',
+          companyProvider: 'Test Provider',
+          domains: ['test.com']
+          // type is intentionally omitted
+        }]
+      };
+
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      jest.spyOn(require('fs'), 'readFileSync')
+        .mockReturnValueOnce(JSON.stringify(mockData));
+
+      loadProviders();
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/Missing type for provider test/)
+      );
+
+      warnSpy.mockRestore();
+    });
+  });
+
   describe('Error handling', () => {
-    it('should throw meaningful error for invalid file path', () => {
-      // This test is no longer applicable since loadProviders doesn't accept parameters
-      // The function always loads from the built-in data file
-      const result = loadProviders();
-      expect(result.providers).toBeDefined();
-      expect(result.providers.length).toBeGreaterThan(0);
+    it('should handle non-Error objects in catch block', () => {
+      // Mock readFileSync to throw a non-Error object
+      jest.spyOn(require('fs'), 'readFileSync')
+        .mockImplementationOnce(() => {
+          throw 'String error'; // Throwing a string instead of Error
+        });
+
+      expect(() => loadProviders()).toThrow('Failed to load provider data: Unknown error');
+    });
+
+    it('should throw error for invalid provider data format', () => {
+      // Mock readFileSync to return invalid data format
+      jest.spyOn(require('fs'), 'readFileSync')
+        .mockReturnValueOnce(JSON.stringify({
+          version: '1.0.0'
+          // missing providers array
+        }));
+
+      expect(() => loadProviders()).toThrow('Failed to load provider data: Invalid provider data format');
+    });
+
+    it('should handle Error objects in catch block', () => {
+      // Mock readFileSync to throw an Error
+      jest.spyOn(require('fs'), 'readFileSync')
+        .mockImplementationOnce(() => {
+          throw new Error('Custom error message');
+        });
+
+      expect(() => loadProviders()).toThrow('Failed to load provider data: Custom error message');
     });
 
     it('should handle empty providers array gracefully', () => {

@@ -170,6 +170,58 @@ describe('Email Alias Detection - Coverage Tests', () => {
     });
   });
 
+describe('Error handling and edge cases', () => {
+    test('should handle invalid email parts in Gmail rule', () => {
+      expect(() => detectEmailAlias('us er@gmail.com')).toThrow('Invalid email format');
+    });
+
+    test('should handle malformed email parts in provider rules', () => {
+      // Test cases that should all fail validation
+      const testCases = [
+        '@gmail.com',
+        'user@',
+        ' @gmail.com',
+        'user@ ',
+        'user@domain@extra.com'
+      ];
+
+      testCases.forEach(email => {
+        expect(() => detectEmailAlias(email)).toThrow('Invalid email format');
+      });
+    });
+
+    test('should handle edge case emails for each provider', () => {
+      // Valid emails that should not throw but might need special handling
+      const testCases = [
+        { email: 'user.name@outlook.com', expected: 'user.name@outlook.com' },
+        { email: 'user-name@yahoo.com', expected: 'user-name@yahoo.com' },
+        { email: 'user_name@protonmail.com', expected: 'user_name@protonmail.com' },
+      ];
+
+      testCases.forEach(({ email, expected }) => {
+        const result = detectEmailAlias(email);
+        expect(result.canonical).toBe(expected.toLowerCase());
+        expect(result.isAlias).toBe(false);
+      });
+    });
+
+    test('should handle provider-specific normalization without alias', () => {
+      const providers = [
+        'outlook.com', 'yahoo.com', 'fastmail.com', 'proton.me',
+        'tutanota.com', 'zoho.com', 'icloud.com', 'mail.com',
+        'mail.ru', 'yandex.com'
+      ];
+
+      providers.forEach(provider => {
+        const email = `user.name@${provider}`;
+        const result = detectEmailAlias(email);
+        expect(result.canonical).toBe(email.toLowerCase());
+        // Should not detect as alias since no plus sign
+        expect(result.isAlias).toBe(provider === 'gmail.com');
+      });
+    });
+  });
+
   describe('Additional normalization tests', () => {
     test('should test normalize function with different email formats', () => {
       // Test all normalization functions with various inputs

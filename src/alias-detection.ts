@@ -20,195 +20,12 @@ export interface AliasDetectionResult {
   provider?: string;
 }
 
-interface AliasRule {
-  /** Email domains this rule applies to */
-  domains: string[];
-  /** Whether this provider supports plus addressing (user+alias@domain.com) */
-  supportsPlusAddressing: boolean;
-  /** Whether this provider ignores dots in username (user.name@domain.com = username@domain.com) */
-  ignoresDots: boolean;
-  /** Function to normalize email for this provider */
-  normalize?: (email: string) => string;
+interface AliasConfig {
+  dots?: boolean;
+  plus?: boolean;
 }
 
-/**
- * Email alias rules for major providers
- */
-const ALIAS_RULES: AliasRule[] = [
-  {
-    domains: ['gmail.com', 'googlemail.com'],
-    supportsPlusAddressing: true,
-    ignoresDots: true,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      // Remove dots and everything after +
-      const cleanUsername = username.replace(/\./g, '').split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  },
-  {
-    domains: ['outlook.com', 'hotmail.com', 'live.com', 'msn.com', 'hotmail.co.uk', 'hotmail.fr', 'hotmail.it', 'hotmail.es', 'hotmail.de', 'live.co.uk', 'live.fr', 'live.it', 'live.nl', 'live.com.au', 'live.ca', 'live.jp'],
-    supportsPlusAddressing: true,
-    ignoresDots: false,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      // Only remove plus addressing for Outlook
-      const cleanUsername = username.split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  },
-  {
-    domains: ['yahoo.com', 'yahoo.co.uk', 'yahoo.fr', 'yahoo.co.in', 'yahoo.com.br', 'yahoo.co.jp', 'yahoo.it', 'yahoo.de', 'yahoo.in', 'yahoo.es', 'yahoo.ca', 'yahoo.com.au', 'yahoo.com.ar', 'yahoo.com.mx', 'yahoo.co.id', 'yahoo.com.sg', 'ymail.com', 'rocketmail.com'],
-    supportsPlusAddressing: true,
-    ignoresDots: false,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      const cleanUsername = username.split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  },
-  {
-    domains: ['fastmail.com', 'fastmail.fm'],
-    supportsPlusAddressing: true,
-    ignoresDots: false,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      const cleanUsername = username.split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  },
-  {
-    domains: ['proton.me', 'protonmail.com', 'protonmail.ch', 'pm.me'],
-    supportsPlusAddressing: true,
-    ignoresDots: false,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      const cleanUsername = username.split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  },
-  {
-    domains: ['tutanota.com', 'tutanota.de', 'tutamail.com', 'tuta.io', 'keemail.me', 'tuta.com'],
-    supportsPlusAddressing: true,
-    ignoresDots: false,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      const cleanUsername = username.split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  },
-  {
-    domains: ['zoho.com', 'zohomail.com', 'zoho.eu'],
-    supportsPlusAddressing: true,
-    ignoresDots: false,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      const cleanUsername = username.split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  },
-  {
-    domains: ['icloud.com', 'me.com', 'mac.com'],
-    supportsPlusAddressing: true,
-    ignoresDots: false,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      const cleanUsername = username.split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  },
-  {
-    domains: ['mail.com'],
-    supportsPlusAddressing: true,
-    ignoresDots: false,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      const cleanUsername = username.split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  },
-  {
-    domains: ['aol.com', 'love.com', 'ygm.com', 'games.com', 'wow.com', 'aim.com'],
-    supportsPlusAddressing: false,
-    ignoresDots: false,
-    normalize: (email: string) => email.toLowerCase()
-  },
-  {
-    domains: ['mail.ru'],
-    supportsPlusAddressing: true,
-    ignoresDots: false,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      const cleanUsername = username.split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  },
-  {
-    domains: ['yandex.com', 'yandex.ru'],
-    supportsPlusAddressing: true,
-    ignoresDots: false,
-    normalize: (email: string) => {
-      const parts = email.toLowerCase().split('@');
-      const username = parts[0];
-      const domain = parts[1];
-      if (!username || !domain) {
-        return email.toLowerCase();
-      }
-      const cleanUsername = username.split('+')[0];
-      return `${cleanUsername}@${domain}`;
-    }
-  }
-];
+import { loadProviders } from './loader';
 
 /**
  * Validates email format
@@ -218,14 +35,6 @@ function isValidEmail(email: string): boolean {
   return emailRegex.test(email);
 }
 
-/**
- * Gets the alias rule for a given domain
- */
-function getAliasRule(domain: string): AliasRule | null {
-  return ALIAS_RULES.find(rule => 
-    rule.domains.includes(domain.toLowerCase())
-  ) || null;
-}
 
 /**
  * Detects and analyzes email aliases
@@ -247,7 +56,8 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
     throw new Error('Invalid email format - missing username or domain');
   }
   
-  const rule = getAliasRule(domain);
+  const { domainMap } = loadProviders();
+  const provider = domainMap.get(domain);
 
   const result: AliasDetectionResult = {
     canonical: originalEmail.toLowerCase(),
@@ -256,46 +66,54 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
     aliasType: 'none'
   };
 
-  if (!rule) {
-    // No specific rule, just normalize case
+  if (!provider) {
     result.canonical = originalEmail.toLowerCase();
     return result;
   }
 
   result.provider = domain;
 
-  // Check for plus addressing
-  if (rule.supportsPlusAddressing && username.includes('+')) {
-    const plusIndex = username.indexOf('+');
-    const baseUsername = username.substring(0, plusIndex);
-    const aliasPart = username.substring(plusIndex + 1);
-    result.isAlias = true;
-    result.aliasType = 'plus';
-    result.aliasPart = aliasPart;
-    result.canonical = rule.normalize ? rule.normalize(originalEmail) : `${baseUsername}@${domain}`;
-    return result;
-  }
+  // Start with the username as the base for our canonical form
+  let canonicalPart = username;
+  let plusPart = '';
+  let plusIndex = -1;
+  let originalBeforePlus = username;
 
-  // Check for dot variations (Gmail)
-  if (rule.ignoresDots && username.includes('.')) {
-    const baseUsername = username.replace(/\./g, '');
-    if (baseUsername !== username) {
-      result.isAlias = true;
-      result.aliasType = 'dot';
-      result.aliasPart = username;
-      result.canonical = rule.normalize ? rule.normalize(originalEmail) : `${baseUsername}@${domain}`;
-      return result;
+  const aliasConfig = provider.alias as AliasConfig | undefined;
+  
+  if (aliasConfig) {
+    const hasPlus = aliasConfig.plus;
+    const hasDots = aliasConfig.dots;
+
+    // First locate any plus addressing
+    if (hasPlus) {
+      plusIndex = canonicalPart.indexOf('+');
+      if (plusIndex !== -1) {
+        result.isAlias = true;
+        result.aliasType = 'plus';
+        plusPart = canonicalPart.slice(plusIndex + 1);
+        originalBeforePlus = canonicalPart.slice(0, plusIndex);
+        canonicalPart = originalBeforePlus;
+        result.aliasPart = plusPart;
+      }
+    }
+
+    // Then handle dots if supported
+    if (hasDots) {
+      const noDots = canonicalPart.replace(/\./g, '');
+      if (noDots !== canonicalPart) {
+        result.isAlias = true;
+        if (!result.aliasType || result.aliasType === 'none') {
+          result.aliasType = 'dot';
+          result.aliasPart = canonicalPart;
+        }
+        canonicalPart = noDots;
+      }
     }
   }
 
-  // Apply provider-specific normalization
-  if (rule.normalize) {
-    const normalized = rule.normalize(originalEmail);
-    if (normalized !== originalEmail.toLowerCase()) {
-      result.isAlias = true;
-      result.canonical = normalized;
-    }
-  }
+  // Set the final canonical form
+  result.canonical = `${canonicalPart}@${domain.toLowerCase()}`;
 
   return result;
 }

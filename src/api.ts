@@ -336,20 +336,23 @@ export function normalizeEmail(email: string): string {
   let localPart = lowercaseEmail.slice(0, atIndex);
   const domainPart = lowercaseEmail.slice(atIndex + 1);
   
-  // Gmail-specific rules: remove dots and plus addressing
-  if (domainPart === 'gmail.com' || domainPart === 'googlemail.com') {
-    // Remove all dots from local part
-    localPart = localPart.replace(/\./g, '');
-    // Remove plus addressing (everything after +)
-    const plusIndex = localPart.indexOf('+');
-    if (plusIndex !== -1) {
-      localPart = localPart.slice(0, plusIndex);
+  // Use cached providers for domain lookup
+  const { domainMap } = loadProviders();
+  const provider = domainMap.get(domainPart);
+  
+  if (provider?.alias) {
+    // Provider supports aliasing
+    if (provider.alias.dots) {
+      // Remove all dots from local part (e.g. Gmail)
+      localPart = localPart.replace(/\./g, '');
     }
-  } else {
-    // For other providers, only remove plus addressing
-    const plusIndex = localPart.indexOf('+');
-    if (plusIndex !== -1) {
-      localPart = localPart.slice(0, plusIndex);
+    
+    if (provider.alias.plus) {
+      // Remove plus addressing (everything after +)
+      const plusIndex = localPart.indexOf('+');
+      if (plusIndex !== -1) {
+        localPart = localPart.slice(0, plusIndex);
+      }
     }
   }
   
