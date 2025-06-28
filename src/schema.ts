@@ -34,10 +34,20 @@ export interface Provider {
   txt?: string[];
   /** Provider type */
   type: ProviderType;
-  /** Alias capabilities */
+  /** Alias rules for username part */
   alias?: {
-    dots?: boolean;   // Gmail dot normalization
-    plus?: boolean;   // Plus addressing support
+    dots: {
+      ignore: boolean;    // true = dots don't matter (gmail), false = dots matter (outlook)
+      strip: boolean;     // true = remove dots, false = keep dots
+    };
+    plus: {
+      ignore: boolean;    // true = plus addressing supported, false = not supported
+      strip: boolean;     // true = remove plus part, false = keep plus part
+    };
+    case: {
+      ignore: boolean;    // true = case doesn't matter, false = case matters
+      strip: boolean;     // true = convert to lowercase, false = preserve case
+    };
   };
 }
 

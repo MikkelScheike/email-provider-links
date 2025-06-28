@@ -11,6 +11,8 @@ import {
   auditProviderSecurity
 } from '../src/url-validator';
 
+import { loadProviders } from '../src/loader';
+
 describe('URL Validator - Coverage Tests', () => {
   describe('validateEmailProviderUrl - Edge Cases', () => {
     it('should handle malformed URLs that cannot be decoded (line ~164)', () => {
@@ -115,19 +117,30 @@ describe('URL Validator - Coverage Tests', () => {
       });
     });
 
-    it('should handle subdomain allowlist matching', () => {
-      // Test that subdomains of allowed domains are accepted
-      const subdomainUrls = [
-        'https://secure.outlook.office365.com/mail',
-        'https://accounts.google.com/signin',
-        'https://mail.yahoo.com/login'
+    it('should only allow exact URLs from provider data', () => {
+      const { providers } = loadProviders();
+      const provider = providers.find(p => p.loginUrl);
+      if (!provider || !provider.loginUrl) throw new Error('No provider with loginUrl found');
+
+      // Exact match should work
+      const result = validateEmailProviderUrl(provider.loginUrl);
+      expect(result.isValid).toBe(true);
+      expect(result.domain).toBeDefined();
+      expect(result.normalizedUrl).toBeDefined();
+
+// Non-allowlisted domains should fail
+      const baseUrl = new URL(provider.loginUrl);
+      const invalidDomains = [
+        `fake.${baseUrl.hostname}`,
+        `${baseUrl.hostname}.phishing.com`,
+        `evil-${baseUrl.hostname}`
       ];
 
-      subdomainUrls.forEach(url => {
+      invalidDomains.forEach(domain => {
+        const url = baseUrl.protocol + '//' + domain + baseUrl.pathname;
         const result = validateEmailProviderUrl(url);
-        expect(result.isValid).toBe(true);
-        expect(result.domain).toBeDefined();
-        expect(result.normalizedUrl).toBeDefined();
+        expect(result.isValid).toBe(false);
+        expect(result.reason).toContain('is not in the allowlist');
       });
     });
 
@@ -288,11 +301,12 @@ describe('URL Validator - Coverage Tests', () => {
 
   describe('Additional URL parsing edge cases', () => {
     it('should handle URLs with unusual but valid characters', () => {
-      const validUrls = [
-        'https://mail.google.com/mail/u/0/',
-        'https://outlook.office365.com/mail/inbox',
-        'https://mail.yahoo.com/d/folders/1'
-      ];
+      // Use actual provider URLs from the data
+      const { providers } = loadProviders();
+      const validUrls = providers
+        .filter(p => p.loginUrl && p.loginUrl.includes('https://'))
+        .map(p => p.loginUrl)
+        .slice(0, 3);  // Take first 3 valid URLs
 
       validUrls.forEach(url => {
         const result = validateEmailProviderUrl(url);
@@ -301,11 +315,15 @@ describe('URL Validator - Coverage Tests', () => {
     });
 
     it('should normalize URLs properly', () => {
-      const testUrl = 'https://MAIL.GOOGLE.COM/MAIL/';
+      const { providers } = loadProviders();
+      const provider = providers.find(p => p.loginUrl);
+      if (!provider || !provider.loginUrl) throw new Error('No provider with loginUrl found');
+      
+      const testUrl = provider.loginUrl.toUpperCase();
       const result = validateEmailProviderUrl(testUrl);
       
       expect(result.isValid).toBe(true);
-      expect(result.domain).toBe('mail.google.com');
+      expect(result.domain).toBe(new URL(provider.loginUrl).hostname);
       expect(result.normalizedUrl).toBeDefined();
     });
 

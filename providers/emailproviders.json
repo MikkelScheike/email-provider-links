@@ -66,7 +66,21 @@
       ],
       "type": "public_provider",
       "companyProvider": "AOL Mail",
-      "loginUrl": "https://mail.aol.com"
+      "loginUrl": "https://mail.aol.com",
+      "alias": {
+        "dots": {
+          "ignore": false,
+          "strip": false
+        },
+        "plus": {
+          "ignore": false,
+          "strip": false
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      }
     },
     {
       "id": "att",
@@ -173,7 +187,21 @@
       ],
       "type": "public_provider",
       "companyProvider": "FastMail",
-      "loginUrl": "https://www.fastmail.com"
+      "loginUrl": "https://www.fastmail.com",
+      "alias": {
+        "dots": {
+          "ignore": false,
+          "strip": false
+        },
+        "plus": {
+          "ignore": true,
+          "strip": true
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      }
     },
     {
       "id": "freefr",
@@ -199,13 +227,23 @@
         "gmail.com",
         "googlemail.com"
       ],
-      "alias": {
-        "dots": true,
-        "plus": true
-      },
       "type": "public_provider",
       "companyProvider": "Gmail",
-      "loginUrl": "https://mail.google.com/mail/"
+      "loginUrl": "https://mail.google.com/mail/",
+      "alias": {
+        "dots": {
+          "ignore": true,
+          "strip": true
+        },
+        "plus": {
+          "ignore": true,
+          "strip": true
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      }
     },
     {
       "id": "gmx",
@@ -311,7 +349,7 @@
       "loginUrl": "https://www.hushmail.com/signin/"
     },
     {
-      "id": "icloud",
+"id": "icloud",
       "domains": [
         "icloud.com",
         "me.com",
@@ -327,7 +365,21 @@
       ],
       "type": "public_provider",
       "companyProvider": "iCloud Mail",
-      "loginUrl": "https://www.icloud.com/mail"
+      "loginUrl": "https://www.icloud.com/mail",
+      "alias": {
+        "dots": {
+          "ignore": false,
+          "strip": false
+        },
+        "plus": {
+          "ignore": true,
+          "strip": true
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      }
     },
     {
       "id": "iij",
@@ -432,7 +484,7 @@
       "loginUrl": "https://www.mail.bg"
     },
     {
-      "id": "com",
+"id": "com",
       "domains": [
         "mail.com"
       ],
@@ -447,7 +499,21 @@
       ],
       "type": "public_provider",
       "companyProvider": "Mail.ru",
-      "loginUrl": "https://mail.ru/"
+      "loginUrl": "https://mail.ru/",
+      "alias": {
+        "dots": {
+          "ignore": false,
+          "strip": false
+        },
+        "plus": {
+          "ignore": true,
+          "strip": true
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      }
     },
     {
       "id": "fence",
@@ -503,12 +569,23 @@
         "live.com.au",
         "live.ca"
       ],
-      "alias": {
-        "plus": true
-      },
       "type": "public_provider",
       "companyProvider": "Microsoft Outlook",
-      "loginUrl": "https://outlook.office365.com"
+      "loginUrl": "https://outlook.office365.com",
+      "alias": {
+        "dots": {
+          "ignore": false,
+          "strip": false
+        },
+        "plus": {
+          "ignore": true,
+          "strip": true
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      }
     },
     {
       "id": "migadu",
@@ -675,12 +752,23 @@
         "spf:_spf.protonmail.ch",
         "protonmail-verification="
       ],
-      "alias": {
-        "plus": true
-      },
       "type": "public_provider",
       "companyProvider": "ProtonMail",
-      "loginUrl": "https://mail.proton.me"
+      "loginUrl": "https://mail.proton.me",
+      "alias": {
+        "dots": {
+          "ignore": false,
+          "strip": false
+        },
+        "plus": {
+          "ignore": true,
+          "strip": true
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      }
     },
     {
       "id": "qq",
@@ -849,7 +937,7 @@
       "loginUrl": "https://app.titan.email"
     },
     {
-      "id": "tutano",
+"id": "tutano",
       "domains": [
         "tutanota.com",
         "tutanota.de",
@@ -867,7 +955,21 @@
       ],
       "type": "public_provider",
       "companyProvider": "Tutanota",
-      "loginUrl": "https://mail.tutanota.com"
+      "loginUrl": "https://mail.tutanota.com",
+      "alias": {
+        "dots": {
+          "ignore": false,
+          "strip": false
+        },
+        "plus": {
+          "ignore": false,
+          "strip": false
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      }
     },
     {
       "id": "uol",
@@ -937,19 +1039,44 @@
         "rocketmail.com",
         "myyahoo.com"
       ],
-      "alias": {
-        "plus": true
-      },
       "type": "public_provider",
       "companyProvider": "Yahoo Mail",
-      "loginUrl": "https://login.yahoo.com"
+      "loginUrl": "https://login.yahoo.com",
+      "alias": {
+        "dots": {
+          "ignore": false,
+          "strip": false
+        },
+        "plus": {
+          "ignore": true,
+          "strip": true
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      }
     },
     {
-      "id": "yandex",
+"id": "yandex",
       "domains": [
         "yandex.ru",
         "yandex.com"
       ],
+      "alias": {
+        "dots": {
+          "ignore": false,
+          "strip": false
+        },
+        "plus": {
+          "ignore": true,
+          "strip": true
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      },
       "type": "public_provider",
       "companyProvider": "Yandex Mail",
       "loginUrl": "https://mail.yandex.com"
@@ -962,10 +1089,24 @@
       ],
       "type": "public_provider",
       "companyProvider": "Zoho Mail",
-      "loginUrl": "https://mail.zoho.com"
+      "loginUrl": "https://mail.zoho.com",
+      "alias": {
+        "dots": {
+          "ignore": false,
+          "strip": false
+        },
+        "plus": {
+          "ignore": true,
+          "strip": true
+        },
+        "case": {
+          "ignore": true,
+          "strip": true
+        }
+      }
     },
     {
-      "id": "zohoeu",
+"id": "zohoeu",
       "domains": [
         "zoho.eu"
       ],

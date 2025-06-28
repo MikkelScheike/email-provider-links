@@ -478,11 +478,12 @@ export class ConcurrentDNSDetector {
     const mxQuery = queries.find(q => q.type === 'mx' && q.success);
     if (!mxQuery?.records) return null;
 
-    const proxyPatterns = [
-      { service: 'Cloudflare', patterns: ['mxrecord.io', 'mxrecord.mx', 'cloudflare'] },
-      { service: 'CloudFront', patterns: ['cloudfront.net'] },
-      { service: 'Fastly', patterns: ['fastly.com'] }
-    ];
+    // Get proxy services from provider data
+    const proxyProviders = this.providers.filter(p => p.type === 'proxy_service');
+    const proxyPatterns = proxyProviders.map(provider => ({
+      service: provider.companyProvider,
+      patterns: [...(provider.mx || []), ...(provider.domains || [])].map(p => p.toLowerCase())
+    }));
 
     for (const record of mxQuery.records) {
       const exchange = record.exchange?.toLowerCase() || '';

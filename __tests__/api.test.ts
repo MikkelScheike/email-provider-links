@@ -256,7 +256,7 @@ describe('Email Provider API Tests', () => {
       // Re-import the function after mocking
       const { getEmailProvider } = require('../src/index');
       
-      const result = await getEmailProvider('test@example.com');
+      const result = await getEmailProvider('user@microsoft.com');
       expect(result.error?.type).toBe('RATE_LIMITED');
       expect(result.error?.retryAfter).toBe(60);
       
@@ -278,7 +278,7 @@ describe('Email Provider API Tests', () => {
       // Re-import the function after mocking
       const { getEmailProvider } = require('../src/index');
       
-      const result = await getEmailProvider('test@example.com', 2000);
+      const result = await getEmailProvider('user@microsoft.com', 2000);
       expect(result.error?.type).toBe('DNS_TIMEOUT');
       expect(result.error?.message).toContain('2000ms');
       
@@ -304,7 +304,7 @@ describe('Email Provider API Tests', () => {
       // Re-import the function after mocking
       const { getEmailProvider } = require('../src/index');
       
-      const result = await getEmailProvider('test@example.com');
+      const result = await getEmailProvider('user@microsoft.com');
       expect(result.proxyService).toBe('Cloudflare');
       expect(result.detectionMethod).toBe('proxy_detected');
       
@@ -326,7 +326,7 @@ describe('Email Provider API Tests', () => {
       // Re-import the function after mocking
       const { getEmailProvider } = require('../src/index');
       
-      const result = await getEmailProvider('test@example.com');
+      const result = await getEmailProvider('user@microsoft.com');
       expect(result.error?.type).toBe('NETWORK_ERROR');
       expect(result.error?.message).toBe('Network error');
       

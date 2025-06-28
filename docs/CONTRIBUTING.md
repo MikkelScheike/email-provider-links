@@ -134,6 +134,69 @@ Brief description of changes
 - Use GitHub's private security advisory feature
 - See [SECURITY.md](SECURITY.md) for detailed reporting guidelines
 
+## 📦 Release Process
+
+### Quick Release (Recommended)
+
+Use the automated release preparation script:
+
+```bash
+# Major version (breaking changes)
+npx tsx scripts/prepare-release.ts 3.0.0 --major
+
+# Minor version (new features)  
+npx tsx scripts/prepare-release.ts 2.1.0 --minor
+
+# Patch version (bug fixes)
+npx tsx scripts/prepare-release.ts 2.0.1 --patch
+```
+
+The script handles:
+1. Version updates
+2. Security hash recalculation
+3. Test verification
+4. Build validation
+5. Semantic release commit creation
+
+### Manual Release Steps
+
+1. **Prerequisites**
+   - Be on `main` branch
+   - Clean working directory
+   - Authenticated with npm
+   - All tests passing
+
+2. **Update Version**
+   - Update version in package.json
+   - Recalculate security hashes if needed
+
+3. **Testing & Build**
+   ```bash
+   npm test
+   npm run build
+   ```
+
+4. **Create Release Commit**
+   ```bash
+   # For breaking changes
+   git commit -m "feat!: v2.0.0 complete API rewrite
+   
+   BREAKING CHANGE: Complete API redesign"
+
+   # For new features
+   git commit -m "feat: v1.8.0 enhanced alias detection"
+
+   # For bug fixes
+   git commit -m "fix: v1.7.1 resolve DNS timeout issues"
+   ```
+
+5. **Push to GitHub**
+   ```bash
+   git push origin main
+   ```
+
+The semantic-release bot will handle the rest automatically.
+
 ## ❓ Questions?
 
 - **General Questions**: Open a GitHub issue

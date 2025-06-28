@@ -20,11 +20,6 @@ export interface AliasDetectionResult {
   provider?: string;
 }
 
-interface AliasConfig {
-  dots?: boolean;
-  plus?: boolean;
-}
-
 import { loadProviders } from './loader';
 
 /**
@@ -66,54 +61,59 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
     aliasType: 'none'
   };
 
-  if (!provider) {
-    result.canonical = originalEmail.toLowerCase();
+  if (!provider?.alias) {
     return result;
   }
 
   result.provider = domain;
 
-  // Start with the username as the base for our canonical form
-  let canonicalPart = username;
-  let plusPart = '';
-  let plusIndex = -1;
-  let originalBeforePlus = username;
+  let normalizedUsername = username;
+  let isAlias = false;
+  let aliasType: 'plus' | 'dot' | 'none' = 'none';
+  let aliasPart: string | undefined;
 
-  const aliasConfig = provider.alias as AliasConfig | undefined;
-  
-  if (aliasConfig) {
-    const hasPlus = aliasConfig.plus;
-    const hasDots = aliasConfig.dots;
-
-    // First locate any plus addressing
-    if (hasPlus) {
-      plusIndex = canonicalPart.indexOf('+');
-      if (plusIndex !== -1) {
-        result.isAlias = true;
-        result.aliasType = 'plus';
-        plusPart = canonicalPart.slice(plusIndex + 1);
-        originalBeforePlus = canonicalPart.slice(0, plusIndex);
-        canonicalPart = originalBeforePlus;
-        result.aliasPart = plusPart;
-      }
+  // Handle case sensitivity (all modern providers are case-insensitive)
+  if (provider.alias.case?.ignore) {
+    if (provider.alias.case.strip) {
+      normalizedUsername = normalizedUsername.toLowerCase();
     }
+  }
 
-    // Then handle dots if supported
-    if (hasDots) {
-      const noDots = canonicalPart.replace(/\./g, '');
-      if (noDots !== canonicalPart) {
-        result.isAlias = true;
-        if (!result.aliasType || result.aliasType === 'none') {
-          result.aliasType = 'dot';
-          result.aliasPart = canonicalPart;
-        }
-        canonicalPart = noDots;
+  // Handle plus addressing (common for Gmail, Outlook, Yahoo, etc.)
+  if (provider.alias.plus?.ignore) {
+    const plusIndex = username.indexOf('+');
+    if (plusIndex !== -1) {
+      aliasPart = username.substring(plusIndex + 1);
+      isAlias = true;
+      aliasType = 'plus';
+      if (provider.alias.plus.strip) {
+        normalizedUsername = username.slice(0, plusIndex);
       }
     }
   }
 
-  // Set the final canonical form
-  result.canonical = `${canonicalPart}@${domain.toLowerCase()}`;
+  // Handle dots (primarily for Gmail)
+  if (provider.alias.dots?.ignore) {
+    const hasDots = username.includes('.');
+    if (hasDots) {
+      if (!isAlias) {
+        aliasPart = username;
+        isAlias = true;
+        aliasType = 'dot';
+      }
+      if (provider.alias.dots.strip) {
+        normalizedUsername = normalizedUsername.replace(/\./g, '');
+      }
+    }
+  }
+
+  // Build the canonical form
+  result.canonical = `${normalizedUsername}@${domain}`;
+  result.isAlias = isAlias;
+  result.aliasType = aliasType;
+  if (aliasPart !== undefined) {
+    result.aliasPart = aliasPart;
+  }
 
   return result;
 }

@@ -58,7 +58,8 @@ function convertProviderToEmailProvider(compressedProvider: Provider): EmailProv
     companyProvider: compressedProvider.companyProvider,
     loginUrl: compressedProvider.loginUrl || null,
     domains: compressedProvider.domains || [],
-    type: compressedProvider.type
+    type: compressedProvider.type,
+    alias: compressedProvider.alias
   };
 
   // Include DNS detection patterns for business email services and proxy services

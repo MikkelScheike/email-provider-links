@@ -5,112 +5,30 @@
  * malicious redirects and supply chain attacks.
  */
 
+import { loadProviders } from './loader';
+
 /**
- * Allowlisted domains for email providers.
+ * Get allowlisted domains from provider data
  * Only URLs from these domains will be considered safe.
- * 
- * NOTE: This list should be maintained carefully and updated only
- * through security review processes.
  */
-const ALLOWED_DOMAINS = [
-  // Google services
-  'google.com',
-  'gmail.com',
-  'googlemail.com',
-  'mail.google.com',
-  'accounts.google.com',
-  
-  // Microsoft services
-  'microsoft.com',
-  'outlook.com',
-  'outlook.office365.com',
-  'hotmail.com',
-  'live.com',
-  'office.com',
-  
-  // Yahoo services
-  'yahoo.com',
-  'yahoo.co.uk',
-  'yahoo.fr',
-  'yahoo.de',
-  'login.yahoo.com',
-  
-  // Privacy-focused providers
-  'proton.me',
-  'protonmail.com',
-  'protonmail.ch',
-  'tutanota.com',
-  'tutanota.de',
-  'posteo.de',
-  'runbox.com',
-  'countermail.com',
-  'hushmail.com',
-  
-  // Business providers
-  'zoho.com',
-  'fastmail.com',
-  'rackspace.com',
-  'apps.rackspace.com',
-  
-  // Other legitimate providers
-  'aol.com',
-  'mail.aol.com',
-  'gmx.com',
-  'gmx.net',
-  'mail.com',
-  'yandex.com',
-  'yandex.ru',
-  'web.de',
-  'mail.ru',
-  'libero.it',
-  'orange.fr',
-  'free.fr',
-  't-online.de',
-  'comcast.net',
-  'att.net',
-  'verizon.net',
-  'bluehost.com',
-  'godaddy.com',
-  'secureserver.net',
-  
-  // Additional providers from security audit
-  'kolabnow.com',
-  'connect.xfinity.com',
-  'login.verizon.com',
-  'www.simply.com',
-  'www.one.com',
-  'mailfence.com',
-  'neo.space',
-  'mail.126.com',
-  'mail.qq.com',
-  'mail.sina.com.cn',
-  'www.xtra.co.nz',
-  'mail.rediff.com',
-  'mail.rakuten.co.jp',
-  'mail.nifty.com',
-  'mail.iij.ad.jp',
-  'email.uol.com.br',
-  'email.bol.com.br',
-  'email.globo.com',
-  'webmail.terra.com.br',
-  'webmail.movistar.es',
-  'webmail.ono.com',
-  'webmail.telkom.co.za',
-  'webmail.vodacom.co.za',
-  'webmail.mtnonline.com',
-  'bdmail.net',
-  'mail.aamra.com.bd',
-  'mail.link3.net',
-  'mail.ionos.com',
-  'www.icloud.com',
-  'icloud.com',
-  'mail.hostinger.com',
-  'ngx257.inmotionhosting.com',
-  'privateemail.com',
-  'app.titan.email',
-  'tools.siteground.com',
-  'portal.hostgator.com'
-];
+function getAllowedDomains(): Set<string> {
+  const { providers } = loadProviders();
+  const allowedDomains = new Set<string>();
+
+  for (const provider of providers) {
+    if (provider.loginUrl) {
+      try {
+        const url = new URL(provider.loginUrl);
+        allowedDomains.add(url.hostname);
+      } catch {
+        // Skip invalid URLs
+        continue;
+      }
+    }
+  }
+
+  return allowedDomains;
+}
 
 /**
  * Suspicious URL patterns that should always be rejected
@@ -229,13 +147,9 @@ export function validateEmailProviderUrl(url: string): URLValidationResult {
       };
     }
 
-    // Check against allowlist
-    const isAllowed = ALLOWED_DOMAINS.some(allowedDomain => {
-      // Exact match or subdomain match
-      return domain === allowedDomain || domain.endsWith(`.${allowedDomain}`);
-    });
-
-    if (!isAllowed) {
+    // Check if the domain is allowed
+    const allowedDomains = getAllowedDomains();
+    if (!allowedDomains.has(domain)) {
       return {
         isValid: false,
         reason: `Domain '${domain}' is not in the allowlist`,

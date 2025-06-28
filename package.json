@@ -11,8 +11,9 @@
     "!dist/**/*.map"
   ],
   "scripts": {
+    "clean": "rm -rf dist",
     "verify-hashes": "tsx scripts/verify-hashes.ts",
-    "build": "tsx scripts/verify-hashes.ts && tsc",
+    "build": "npm run clean && tsx scripts/verify-hashes.ts && tsc",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

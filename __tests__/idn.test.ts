@@ -8,8 +8,8 @@ import {
 describe('IDN (Internationalized Domain Names) Utilities', () => {
   describe('domainToPunycode', () => {
     it('should handle ASCII domains unchanged', () => {
-      expect(domainToPunycode('example.com')).toBe('example.com');
-      expect(domainToPunycode('sub.example.com')).toBe('sub.example.com');
+      expect(domainToPunycode('gmail.com')).toBe('gmail.com');
+      expect(domainToPunycode('mail.gmail.com')).toBe('mail.gmail.com');
     });
 
     it('should convert IDN domains to punycode', () => {
@@ -32,7 +32,7 @@ describe('IDN (Internationalized Domain Names) Utilities', () => {
 
   describe('emailToPunycode', () => {
     it('should handle ASCII emails unchanged', () => {
-      expect(emailToPunycode('user@example.com')).toBe('user@example.com');
+      expect(emailToPunycode('user@gmail.com')).toBe('user@gmail.com');
     });
 
     it('should convert IDN domains in emails', () => {
@@ -40,7 +40,7 @@ describe('IDN (Internationalized Domain Names) Utilities', () => {
     });
 
     it('should preserve local part case', () => {
-      expect(emailToPunycode('User.Name@example.com')).toBe('User.Name@example.com');
+      expect(emailToPunycode('User.Name@gmail.com')).toBe('User.Name@gmail.com');
     });
 
     it('should handle invalid email format', () => {
@@ -51,9 +51,9 @@ describe('IDN (Internationalized Domain Names) Utilities', () => {
   describe('validateInternationalEmail', () => {
     describe('Valid Email Addresses', () => {
       it('should validate correct email addresses', () => {
-        expect(validateInternationalEmail('user@example.com')).toBeUndefined();
-        expect(validateInternationalEmail('user@sub.example.com')).toBeUndefined();
-        expect(validateInternationalEmail('user+tag@example.com')).toBeUndefined();
+        expect(validateInternationalEmail('user@gmail.com')).toBeUndefined();
+        expect(validateInternationalEmail('user@mail.gmail.com')).toBeUndefined();
+        expect(validateInternationalEmail('user+tag@gmail.com')).toBeUndefined();
       });
 
       it('should validate international email addresses', () => {
@@ -74,7 +74,7 @@ describe('IDN (Internationalized Domain Names) Utilities', () => {
       it('should validate email length', () => {
         // Test local part length (max 64)
         const longLocal = 'a'.repeat(65);
-        const result = validateInternationalEmail(`${longLocal}@example.com`);
+        const result = validateInternationalEmail(`${longLocal}@gmail.com`);
         expect(result?.code).toBe(IDNValidationError.LOCAL_PART_TOO_LONG);
         expect(result?.message).toBe('The username part of the email is too long');
 
@@ -88,17 +88,17 @@ describe('IDN (Internationalized Domain Names) Utilities', () => {
     describe('Local Part Validation', () => {
       it('should validate local part format', () => {
         // Test invalid characters
-        const invalidChars = validateInternationalEmail('user[box]@example.com');
+        const invalidChars = validateInternationalEmail('user[box]@gmail.com');
         expect(invalidChars?.code).toBe(IDNValidationError.LOCAL_PART_INVALID);
 
         // Test dot placement rules
-        const consecutiveDots = validateInternationalEmail('user..name@example.com');
+        const consecutiveDots = validateInternationalEmail('user..name@gmail.com');
         expect(consecutiveDots?.code).toBe(IDNValidationError.LOCAL_PART_INVALID);
 
-        const startDot = validateInternationalEmail('.user@example.com');
+        const startDot = validateInternationalEmail('.user@gmail.com');
         expect(startDot?.code).toBe(IDNValidationError.LOCAL_PART_INVALID);
 
-        const endDot = validateInternationalEmail('user.@example.com');
+        const endDot = validateInternationalEmail('user.@gmail.com');
         expect(endDot?.code).toBe(IDNValidationError.LOCAL_PART_INVALID);
       });
     });
@@ -125,8 +125,8 @@ describe('IDN (Internationalized Domain Names) Utilities', () => {
       });
 
       it('should accept valid international email addresses', () => {
-        expect(validateInternationalEmail('user.name@example.com')).toBeUndefined();
-        expect(validateInternationalEmail("user!#$%&'*+-/=?^_`{|}~@example.com")).toBeUndefined();
+        expect(validateInternationalEmail('user.name@gmail.com')).toBeUndefined();
+        expect(validateInternationalEmail("user!#$%&'*+-/=?^_`{|}~@gmail.com")).toBeUndefined();
       });
 
       it('should detect invalid UTF-16 encoding', () => {

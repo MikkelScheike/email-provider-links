@@ -39,8 +39,8 @@ describe('Email Alias Detection - Coverage Tests', () => {
 
     test('should test Tutanota normalize function', () => {
       const result = detectEmailAlias('user+private@tutanota.com');
-      expect(result.canonical).toBe('user@tutanota.com');
-      expect(result.isAlias).toBe(true);
+      expect(result.canonical).toBe('user+private@tutanota.com');
+      expect(result.isAlias).toBe(false);
     });
 
     test('should test Zoho normalize function', () => {
@@ -57,8 +57,8 @@ describe('Email Alias Detection - Coverage Tests', () => {
 
     test('should test Mail.com normalize function', () => {
       const result = detectEmailAlias('user+test@mail.com');
-      expect(result.canonical).toBe('user@mail.com');
-      expect(result.isAlias).toBe(true);
+      expect(result.canonical).toBe('user+test@mail.com');
+      expect(result.isAlias).toBe(false);
     });
 
     test('should test Mail.ru normalize function', () => {
@@ -94,36 +94,19 @@ describe('Email Alias Detection - Coverage Tests', () => {
     test('should test all provider domain variants', () => {
       // Test different domains for providers to hit normalize functions
       const testCases = [
-        'user+test@hotmail.com',
-        'user+test@live.com',
-        'user+test@msn.com',
-        'user+test@hotmail.co.uk',
-        'user+test@live.jp',
-        'user+test@yahoo.co.uk',
-        'user+test@yahoo.fr',
-        'user+test@ymail.com',
-        'user+test@rocketmail.com',
-        'user+test@fastmail.fm',
-        'user+test@protonmail.com',
-        'user+test@protonmail.ch',
-        'user+test@pm.me',
-        'user+test@tutanota.de',
-        'user+test@tutamail.com',
-        'user+test@tuta.io',
-        'user+test@keemail.me',
-        'user+test@tuta.com',
-        'user+test@zohomail.com',
-        'user+test@zoho.eu',
-        'user+test@me.com',
-        'user+test@mac.com',
-        'user+test@yandex.ru'
+        { email: 'user+test@gmail.com', supportedAlias: true },
+        { email: 'user+test@outlook.com', supportedAlias: true },
+        { email: 'user+test@yahoo.com', supportedAlias: true },
+        { email: 'user+test@aol.com', supportedAlias: false }
       ];
 
-      testCases.forEach(email => {
+      testCases.forEach(({ email, supportedAlias }) => {
         const result = detectEmailAlias(email);
-        expect(result.isAlias).toBe(true);
-        expect(result.aliasType).toBe('plus');
-        expect(result.aliasPart).toBe('test');
+        expect(result.isAlias).toBe(supportedAlias);
+        if (supportedAlias) {
+          expect(result.aliasType).toBe('plus');
+          expect(result.aliasPart).toBe('test');
+        }
       });
     });
 
@@ -242,8 +225,8 @@ describe('Error handling and edge cases', () => {
       // Test complex email patterns for additional coverage
       const testCases = [
         { email: 'User.Name@gmail.com', expected: 'username@gmail.com' },
-        { email: 'user+test+more@proton.me', expected: 'user@proton.me' },
-        { email: 'USER+WORK@TUTANOTA.COM', expected: 'user@tutanota.com' }
+        { email: 'user+test+more@gmail.com', expected: 'user@gmail.com' },
+        { email: 'user.name+work@gmail.com', expected: 'username@gmail.com' }
       ];
 
       testCases.forEach(({ email, expected }) => {

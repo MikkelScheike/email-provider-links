@@ -262,9 +262,9 @@ describe('Provider Types', () => {
 
     it('should allow optional fields to be undefined', () => {
       const minimalProvider: Provider = {
-        id: 'test',
-        companyProvider: 'Test Provider',
-        loginUrl: 'https://test.com'
+        id: 'yahoo',
+        companyProvider: 'Yahoo Mail',
+        loginUrl: 'https://login.yahoo.com'
       };
       const errors = validateProvider(minimalProvider);
       expect(errors).toEqual([]);
@@ -294,24 +294,24 @@ expect(errors).toContain('Login URL must be null or a string starting with HTTPS
   describe('Type Definitions', () => {
     it('should define Provider interface correctly', () => {
       const provider: Provider = {
-        id: 'test',
-        companyProvider: 'Test',
-        loginUrl: 'https://test.com',
-        domains: ['test.com'],
-        mx: ['mx.test.com'],
-        txt: ['spf:_spf.test.com'],
+        id: 'yahoo',
+        companyProvider: 'Yahoo Mail',
+        loginUrl: 'https://login.yahoo.com',
+        domains: ['yahoo.com'],
+        mx: ['mx.yahoo.com'],
+        txt: ['spf:_spf.yahoo.com'],
         alias: {
           dots: true,
           plus: false
         }
       };
 
-      expect(provider.id).toBe('test');
-expect(provider.companyProvider).toBe('Test');
-      expect(provider.loginUrl).toBe('https://test.com');
-      expect(provider.domains).toEqual(['test.com']);
-      expect(provider.mx).toEqual(['mx.test.com']);
-      expect(provider.txt).toEqual(['spf:_spf.test.com']);
+      expect(provider.id).toBe('yahoo');
+      expect(provider.companyProvider).toBe('Yahoo Mail');
+      expect(provider.loginUrl).toBe('https://login.yahoo.com');
+      expect(provider.domains).toEqual(['yahoo.com']);
+      expect(provider.mx).toEqual(['mx.yahoo.com']);
+      expect(provider.txt).toEqual(['spf:_spf.yahoo.com']);
       expect(provider.alias?.dots).toBe(true);
       expect(provider.alias?.plus).toBe(false);
     });
@@ -320,9 +320,9 @@ expect(provider.companyProvider).toBe('Test');
       const data: ProvidersData = {
         version: '2.0',
         providers: [{
-          id: 'test',
-          companyProvider: 'Test',
-          loginUrl: 'https://test.com'
+          id: 'yahoo',
+          companyProvider: 'Yahoo Mail',
+          loginUrl: 'https://login.yahoo.com'
         }],
         meta: {
           count: 1,

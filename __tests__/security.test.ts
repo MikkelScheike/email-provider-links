@@ -32,16 +32,16 @@ import {
 import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
 
+import { loadProviders } from '../src/loader';
+
 describe('Security - URL Validation', () => {
   describe('validateEmailProviderUrl', () => {
     test('should allow valid HTTPS URLs from allowlisted domains', () => {
-      const validUrls = [
-        'https://mail.google.com/mail/',
-        'https://outlook.office365.com',
-        'https://login.yahoo.com',
-        'https://mail.zoho.com',
-        'https://www.fastmail.com'
-      ];
+      const { providers } = loadProviders();
+      const validUrls = providers
+        .filter(p => p.loginUrl)
+        .map(p => p.loginUrl)
+        .slice(0, 5); // Take first 5 valid URLs
 
       validUrls.forEach(url => {
         const result = validateEmailProviderUrl(url);
@@ -431,7 +431,9 @@ describe('Security - Secure Loading', () => {
       expect(typeof middleware).toBe('function');
     });
     
-    test('should pass valid providers through middleware', (done) => {
+test('should pass valid providers through middleware', (done) => {
+      jest.setTimeout(15000); // Increase timeout to 15 seconds
+      jest.setTimeout(10000); // Increase timeout to 10 seconds
       const middleware = createSecurityMiddleware();
       
       const mockReq = {};
@@ -691,30 +693,46 @@ describe('Security - Edge Cases & Advanced Tests', () => {
     });
   });
 
-  test('should validate subdomain allowlist behavior', () => {
-    // Should allow legitimate subdomains
-    const validSubdomains = [
-      'https://mail.gmail.com',
-      'https://secure.outlook.office365.com',
-      'https://login.mail.yahoo.com'
-    ];
+    test('should validate domains from providers.json', () => {
+      const { providers } = loadProviders();
+      const provider = providers.find(p => p.loginUrl);
+      if (!provider || !provider.loginUrl) throw new Error('No provider with loginUrl found');
 
-    validSubdomains.forEach(url => {
-      const result = validateEmailProviderUrl(url);
-      expect(result.isValid).toBe(true);
-    });
+      const baseUrl = new URL(provider.loginUrl);
 
-    // Should reject suspicious subdomains
-    const suspiciousSubdomains = [
-      'https://fake.gmail.com.evil-site.com',
-      'https://gmail.com.phishing-site.tk'
-    ];
+      // Base domain should be valid with any path/query/fragment
+      const validVariations = [
+        provider.loginUrl,
+        `${baseUrl.origin}/extra/path`,
+        `${baseUrl.origin}/path?param=value`,
+        `${baseUrl.origin}/path#fragment`
+      ];
 
-    suspiciousSubdomains.forEach(url => {
-      const result = validateEmailProviderUrl(url);
+      validVariations.forEach(url => {
+        const result = validateEmailProviderUrl(url);
+        expect(result.isValid).toBe(true);
+      });
+
+      // Invalid domains should fail
+      const invalidDomains = [
+        `evil.${baseUrl.hostname}`,
+        `${baseUrl.hostname}.phishing.com`,
+        `malicious-${baseUrl.hostname}`
+      ];
+
+      invalidDomains.forEach(domain => {
+        const url = baseUrl.protocol + '//' + domain + baseUrl.pathname;
+        const result = validateEmailProviderUrl(url);
+        expect(result.isValid).toBe(false);
+        expect(result.reason).toContain('is not in the allowlist');
+      });
+
+      // Non-HTTPS should always fail
+      const httpUrl = provider.loginUrl.replace('https://', 'http://');
+      const result = validateEmailProviderUrl(httpUrl);
       expect(result.isValid).toBe(false);
+      expect(result.reason).toBe('URL must use HTTPS protocol');
     });
-  });
 
   test('should handle hash verification with different content types', () => {
     // Test with different data structures

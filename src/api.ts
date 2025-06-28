@@ -25,6 +25,10 @@ export interface EmailProvider {
     mxPatterns?: string[];
     txtPatterns?: string[];
   };
+  alias?: {
+    dots?: boolean;
+    plus?: boolean;
+  };
 }
 
 /**
@@ -65,14 +69,14 @@ export interface EmailProviderResult {
  * @example
  * ```typescript
  * // Consumer email
- * const gmail = await getEmailProvider('user@gmail.com');
- * console.log(gmail.provider?.companyProvider); // "Gmail"
- * console.log(gmail.loginUrl);                  // "https://mail.google.com/mail/"
+ * const result = await getEmailProvider('local@domain.tld');
+ * console.log(result.provider?.companyProvider); // Provider name
+ * console.log(result.loginUrl);                  // Login URL
  * 
  * // Business domain
- * const business = await getEmailProvider('user@mycompany.com');
- * console.log(business.provider?.companyProvider); // "Google Workspace" (if detected)
- * console.log(business.detectionMethod);          // "mx_record"
+ * const business = await getEmailProvider('local@business.tld');
+ * console.log(business.provider?.companyProvider); // Detected provider
+ * console.log(business.detectionMethod);          // Detection method
  * 
  * // Error handling
  * const invalid = await getEmailProvider('invalid-email');
@@ -312,11 +316,11 @@ export function getEmailProviderSync(email: string): EmailProviderResult {
  * 
  * @example
  * ```typescript
- * const canonical = normalizeEmail('U.S.E.R+work@GMAIL.COM');
- * console.log(canonical); // 'user@gmail.com'
+ * const canonical = normalizeEmail('L.O.C.A.L+work@DOMAIN.TLD');
+ * console.log(canonical); // 'local@domain.tld'
  * 
- * const outlook = normalizeEmail('user+newsletter@outlook.com');
- * console.log(outlook); // 'user@outlook.com'
+ * const provider = normalizeEmail('local+newsletter@provider.tld');
+ * console.log(provider); // 'local@provider.tld'
  * ```
  */
 export function normalizeEmail(email: string): string {
@@ -371,10 +375,10 @@ export function normalizeEmail(email: string): string {
  * 
  * @example
  * ```typescript
- * const match = emailsMatch('user@gmail.com', 'u.s.e.r+work@gmail.com');
+ * const match = emailsMatch('local@domain.tld', 'l.o.c.a.l+work@domain.tld');
  * console.log(match); // true
  * 
- * const different = emailsMatch('user@gmail.com', 'other@gmail.com');
+ * const different = emailsMatch('local@domain.tld', 'other@domain.tld');
  * console.log(different); // false
  * ```
  */
