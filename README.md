@@ -1,6 +1,8 @@
 # Email Provider Links
 
-🔒 **Modern email provider detection library with enhanced TypeScript support and enterprise security**
+[![npm version](https://badge.fury.io/js/@mikkelscheike%2Femail-provider-links.svg)](https://www.npmjs.com/package/@mikkelscheike/email-provider-links)
+
+> **Generate direct login links for any email address across 93+ providers (Gmail, Outlook, Yahoo, etc.) to streamline user authentication flows.**
 
 A robust TypeScript library providing direct links to **93 email providers** (180 domains) with **concurrent DNS resolution**, **optimized performance**, **comprehensive email validation**, and advanced security features for login and password reset flows.
 
@@ -253,7 +255,7 @@ Extensively optimized for both speed and memory efficiency:
 **Speed Metrics**:
 - Initial provider load: ~0.5ms
 - Known provider lookup: <1ms
-- DNS-based detection: ~27ms average
+- DNS-based detection: ~10ms average
 - Batch processing: 1000 operations in ~1.1ms
 - Email validation: <1ms for complex IDN domains
 
@@ -268,7 +270,7 @@ Extensively optimized for both speed and memory efficiency:
 - 50,000+ operations/second for known providers
 - 100 concurrent DNS lookups in <1 second
 - Average latency: <1ms for cached lookups
-- Maximum latency: <5ms per lookup
+- Maximum latency: <25ms per lookup
 
 To run benchmarks:
 ```bash
