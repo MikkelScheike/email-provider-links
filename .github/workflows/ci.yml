@@ -95,11 +95,12 @@ jobs:
         flags: unittests
         name: codecov-umbrella
 
-  # Import CodeQL analysis job from separate workflow
+  # Security gate - runs after all parallel jobs complete
   codeql:
     name: CodeQL Security Analysis
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    needs: [test, coverage]  # Wait for all parallel jobs to complete
     permissions:
       security-events: write
       packages: read
@@ -132,10 +133,11 @@ jobs:
         category: "/language:${{ matrix.language }}"
         upload-database: true
 
+  # Final step - only runs after CodeQL security analysis passes
   publish:
     name: Publish to NPM
     runs-on: ubuntu-latest
-    needs: [test, coverage, codeql]
+    needs: [codeql]  # Only depends on CodeQL (which depends on test + coverage)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     permissions:
       contents: write

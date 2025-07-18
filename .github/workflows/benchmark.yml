@@ -3,10 +3,10 @@ name: Performance Benchmarks
 on:
   pull_request:
     branches: [ main ]
-  push:
-    branches: [ main ]
   release:
     types: [ published ]
+  # Manual trigger for testing
+  workflow_dispatch:
 
 jobs:
   benchmark:
