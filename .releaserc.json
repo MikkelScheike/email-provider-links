@@ -49,6 +49,10 @@
     {
       "type": "style",
       "release": "patch"
+    },
+    {
+      "type": "security",
+      "release": "patch"
     }
   ]
 }
