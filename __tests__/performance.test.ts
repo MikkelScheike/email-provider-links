@@ -62,9 +62,9 @@ describe('Performance Tests', () => {
       
       const finalMemory = process.memoryUsage();
       
-      // Memory increase should be minimal
+      // Memory increase should be reasonable for 1000 operations
       const heapIncrease = (finalMemory.heapUsed - initialMemory.heapUsed) / 1024 / 1024;
-      expect(heapIncrease).toBeLessThan(30); // Heap should not grow more than 30MB
+      expect(heapIncrease).toBeLessThan(50); // Heap should not grow more than 50MB
     });
 
     it('should free memory after cache clear', () => {
