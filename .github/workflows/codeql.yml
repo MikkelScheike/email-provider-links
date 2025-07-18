@@ -1,10 +1,7 @@
 name: "CodeQL Security Analysis"
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # Only run on schedule and manual dispatch to avoid duplication with CI/CD pipeline
   schedule:
     # Run CodeQL analysis every Monday at 2 AM UTC
     - cron: '0 2 * * 1'
