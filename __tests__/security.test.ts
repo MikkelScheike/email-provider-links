@@ -24,15 +24,14 @@ import {
 } from '../src/hash-verifier';
 
 import { 
-  secureLoadProviders,
+  loadProviders,
   initializeSecurity,
-  createSecurityMiddleware
-} from '../src/secure-loader';
+  createSecurityMiddleware,
+  clearCache
+} from '../src/provider-loader';
 
 import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
-
-import { loadProviders } from '../src/loader';
 
 describe('Security - URL Validation', () => {
   describe('validateEmailProviderUrl', () => {
@@ -309,21 +308,35 @@ describe('Security - Hash Verification', () => {
 });
 
 describe('Security - Secure Loading', () => {
-  describe('secureLoadProviders', () => {
+  beforeEach(() => {
+    clearCache();
+  });
+  
+  describe('loadProviders', () => {
     const testProvidersPath = join(__dirname, 'test-secure-providers.json');
     const validTestData = {
+      version: '1.0.0',
       providers: [
         {
+          id: 'gmail',
           companyProvider: 'Gmail',
           loginUrl: 'https://mail.google.com/mail/',
-          domains: ['gmail.com']
+          domains: ['gmail.com'],
+          type: 'public_provider' as const
         },
         {
+          id: 'outlook',
           companyProvider: 'Outlook',
           loginUrl: 'https://outlook.office365.com',
-          domains: ['outlook.com']
+          domains: ['outlook.com'],
+          type: 'public_provider' as const
         }
-      ]
+      ],
+      meta: {
+        count: 2,
+        domains: 2,
+        generated: new Date().toISOString()
+      }
     };
 
     beforeEach(() => {
@@ -338,7 +351,7 @@ describe('Security - Secure Loading', () => {
 
     test('should successfully load valid provider data', () => {
       const expectedHash = calculateHash(JSON.stringify(validTestData, null, 2));
-      const result = secureLoadProviders(testProvidersPath, expectedHash);
+      const result = loadProviders(testProvidersPath, expectedHash);
       
       expect(result.success).toBe(true);
       expect(result.providers).toHaveLength(2);
@@ -349,7 +362,7 @@ describe('Security - Secure Loading', () => {
 
     test('should detect hash mismatches', () => {
       const wrongHash = 'wrong_hash_value';
-      const result = secureLoadProviders(testProvidersPath, wrongHash);
+      const result = loadProviders(testProvidersPath, wrongHash);
       
       expect(result.success).toBe(false);
       expect(result.securityReport.securityLevel).toBe('CRITICAL');
@@ -361,24 +374,34 @@ describe('Security - Secure Loading', () => {
 
     test('should filter out invalid URLs', () => {
       const mixedTestData = {
+        version: '1.0.0',
         providers: [
           {
+            id: 'gmail',
             companyProvider: 'Gmail',
             loginUrl: 'https://mail.google.com/mail/',
-            domains: ['gmail.com']
+            domains: ['gmail.com'],
+            type: 'public_provider' as const
           },
           {
+            id: 'evil',
             companyProvider: 'Evil Site',
             loginUrl: 'https://evil-site.com/fake-gmail',
-            domains: ['evil-site.com']
+            domains: ['evil-site.com'],
+            type: 'public_provider' as const
           }
-        ]
+        ],
+        meta: {
+          count: 2,
+          domains: 2,
+          generated: new Date().toISOString()
+        }
       };
 
       writeFileSync(testProvidersPath, JSON.stringify(mixedTestData, null, 2));
       const expectedHash = calculateHash(JSON.stringify(mixedTestData, null, 2));
       
-      const result = secureLoadProviders(testProvidersPath, expectedHash);
+      const result = loadProviders(testProvidersPath, expectedHash);
       
       expect(result.success).toBe(true);
       expect(result.providers).toHaveLength(1); // Only valid provider
@@ -390,7 +413,7 @@ describe('Security - Secure Loading', () => {
     test('should handle malformed JSON gracefully', () => {
       writeFileSync(testProvidersPath, '{ invalid json }');
       
-      const result = secureLoadProviders(testProvidersPath, 'any_hash');
+      const result = loadProviders(testProvidersPath, 'any_hash');
       
       expect(result.success).toBe(false);
       expect(result.securityReport.securityLevel).toBe('CRITICAL');
@@ -589,12 +612,12 @@ test('should pass valid providers through middleware', (done) => {
   });
   
   describe('secure-loader error path coverage', () => {
-    test('should handle JSON parse errors in secureLoadProviders', () => {
+    test('should handle JSON parse errors in loadProviders', () => {
       const invalidJsonPath = join(__dirname, 'test-invalid.json');
       writeFileSync(invalidJsonPath, '{ "invalid": json }'); // Invalid JSON
       
       try {
-        const result = secureLoadProviders(invalidJsonPath, 'any_hash');
+        const result = loadProviders(invalidJsonPath, 'any_hash');
         
         expect(result.success).toBe(false);
         expect(result.securityReport.securityLevel).toBe('CRITICAL');
@@ -610,25 +633,35 @@ test('should pass valid providers through middleware', (done) => {
     test('should handle providers without loginUrl in filtering', () => {
       const testPath = join(__dirname, 'test-no-login-url.json');
       const testData = {
+        version: '1.0.0',
         providers: [
           {
+            id: 'with-url',
             companyProvider: 'With URL',
             loginUrl: 'https://mail.google.com/mail/',
-            domains: ['gmail.com']
+            domains: ['gmail.com'],
+            type: 'public_provider' as const
           },
           {
+            id: 'without-url',
             companyProvider: 'Without URL',
-            domains: ['no-url.com']
-            // No loginUrl property
+            loginUrl: null,
+            domains: ['no-url.com'],
+            type: 'public_provider' as const
           }
-        ]
+        ],
+        meta: {
+          count: 2,
+          domains: 2,
+          generated: new Date().toISOString()
+        }
       };
       
       writeFileSync(testPath, JSON.stringify(testData, null, 2));
       const expectedHash = calculateHash(JSON.stringify(testData, null, 2));
       
       try {
-        const result = secureLoadProviders(testPath, expectedHash);
+        const result = loadProviders(testPath, expectedHash);
         
         expect(result.success).toBe(true);
         expect(result.providers).toHaveLength(2); // Both should be included
@@ -649,7 +682,7 @@ test('should pass valid providers through middleware', (done) => {
       process.env.JEST_WORKER_ID = '1';
       
       try {
-        const result = secureLoadProviders('/nonexistent/path.json', 'wrong_hash');
+        const result = loadProviders('/nonexistent/path.json', 'wrong_hash');
         
         expect(result.success).toBe(false);
         // Console should not have been called due to test environment
@@ -804,7 +837,7 @@ describe('Security - Production File Integrity', () => {
   
   (process.versions.bun ? test.skip : test)('CRITICAL: secure loader must pass with production file', () => {
     // This ensures the entire security system works with the real providers file
-    const result = secureLoadProviders();
+    const result = loadProviders();
     
     expect(result.success).toBe(true);
     expect(result.securityReport.hashVerification).toBe(true);

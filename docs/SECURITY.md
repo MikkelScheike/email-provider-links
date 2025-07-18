@@ -34,6 +34,7 @@ Email Provider Links implements enterprise-grade security measures to protect ag
    - SHA-256 hash verification for provider database
    - Detects unauthorized modifications
    - Tamper-evident security controls
+   - Zero-trust architecture with no insecure fallbacks
 
 ## 🚨 Vulnerability Reporting
 
@@ -102,6 +103,8 @@ This package performs DNS queries for custom domain detection. Be aware that:
 - **DNS Timeout Protection**: Configurable timeouts prevent hanging requests
 - **Error Isolation**: DNS failures don't crash the application
 - **No External APIs**: No dependencies on third-party services for core functionality
+- **Zero-Trust Architecture**: All data verified with cryptographic hashes before use
+- **Fail-Safe Security**: System fails securely when verification fails
 
 ### Proxy Detection
 

@@ -1,17 +1,18 @@
 /**
- * Secure Loader for Email Providers
+ * Email Provider Loader
  * 
- * Integrates URL validation and hash verification to create a secure
- * loading system for email provider data.
+ * Integrates URL validation and hash verification to load and validate
+ * email provider data with security checks.
  */
 
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { validateEmailProviderUrl, auditProviderSecurity } from './url-validator';
 import { verifyProvidersIntegrity, generateSecurityHashes } from './hash-verifier';
+import { Provider, ProvidersData, decompressTxtPattern } from './schema';
 import type { EmailProvider } from './index';
 
-export interface SecureLoadResult {
+export interface LoadResult {
   success: boolean;
   providers: EmailProvider[];
   securityReport: {
@@ -25,17 +26,67 @@ export interface SecureLoadResult {
   };
 }
 
+// Cache for load results
+let cachedLoadResult: LoadResult | null = null;
+
 /**
- * Securely loads and validates email provider data
+ * Clear the cache (useful for testing or when providers file changes)
+ */
+export function clearCache(): void {
+  cachedLoadResult = null;
+}
+
+/**
+ * Convert compressed provider to EmailProvider format
+ */
+function convertProviderToEmailProvider(compressedProvider: Provider): EmailProvider {
+  if (!compressedProvider.type) {
+    console.warn(`Missing type for provider ${compressedProvider.id}`);
+  }
+  const provider: EmailProvider = {
+    companyProvider: compressedProvider.companyProvider,
+    loginUrl: compressedProvider.loginUrl || null,
+    domains: compressedProvider.domains || [],
+    type: compressedProvider.type,
+    alias: compressedProvider.alias
+  };
+
+  // Include DNS detection patterns for business email services and proxy services
+  const needsCustomDomainDetection = 
+    compressedProvider.type === 'custom_provider' || 
+    compressedProvider.type === 'proxy_service';
+
+  if (needsCustomDomainDetection && (compressedProvider.mx?.length || compressedProvider.txt?.length)) {
+    provider.customDomainDetection = {};
+    
+    if (compressedProvider.mx?.length) {
+      provider.customDomainDetection.mxPatterns = compressedProvider.mx;
+    }
+    
+    if (compressedProvider.txt?.length) {
+      // Decompress TXT patterns
+      provider.customDomainDetection.txtPatterns = compressedProvider.txt.map(decompressTxtPattern);
+    }
+  }
+
+  return provider;
+}
+
+/**
+ * Loads and validates email provider data with security checks
  * 
  * @param providersPath - Path to the providers JSON file
  * @param expectedHash - Optional expected hash for verification
- * @returns Secure load result with validation details
+ * @returns Load result with validation details
  */
-export function secureLoadProviders(
+export function loadProviders(
   providersPath?: string,
   expectedHash?: string
-): SecureLoadResult {
+): LoadResult {
+  // Return cached result if available (both success and failure)
+  if (cachedLoadResult) {
+    return cachedLoadResult;
+  }
   const filePath = providersPath || join(__dirname, '..', 'providers', 'emailproviders.json');
   const issues: string[] = [];
   let providers: EmailProvider[] = [];
@@ -59,8 +110,15 @@ export function secureLoadProviders(
   // Step 2: Load and parse JSON
   try {
     const fileContent = readFileSync(filePath, 'utf8');
-    const data = JSON.parse(fileContent);
-    providers = data.providers || [];
+    const data: ProvidersData = JSON.parse(fileContent);
+    
+    // Validate format
+    if (!data.version || !data.providers || !Array.isArray(data.providers)) {
+      throw new Error('Invalid provider data format');
+    }
+    
+    // Convert to EmailProvider format
+    providers = data.providers.map(convertProviderToEmailProvider);
   } catch (error) {
     issues.push(`Failed to load providers file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return {
@@ -112,7 +170,7 @@ export function secureLoadProviders(
     securityLevel = 'WARNING';
   }
   
-  return {
+  const loadResult = {
     success: securityLevel !== 'CRITICAL',
     providers: secureProviders,
     securityReport: {
@@ -125,6 +183,11 @@ export function secureLoadProviders(
       issues
     }
   };
+
+  // Cache the result for future calls
+  cachedLoadResult = loadResult;
+
+  return loadResult;
 }
 
 /**
@@ -144,19 +207,19 @@ export function initializeSecurity() {
 }
 
 /**
- * Express middleware for secure provider loading (if using in web apps)
+ * Express middleware for provider loading with security checks (if using in web apps)
  */
 interface SecurityMiddlewareOptions {
   expectedHash?: string;
   allowInvalidUrls?: boolean;
-  onSecurityIssue?: (report: SecureLoadResult['securityReport']) => void;
-  getProviders?: () => SecureLoadResult;
+  onSecurityIssue?: (report: LoadResult['securityReport']) => void;
+  getProviders?: () => LoadResult;
 }
 
 export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}) {
   return (req: any, res: any, next: any) => {
     // If a custom providers getter is provided, use that instead of loading from file
-    const result = options.getProviders ? options.getProviders() : secureLoadProviders(undefined, options.expectedHash);
+    const result = options.getProviders ? options.getProviders() : loadProviders(undefined, options.expectedHash);
     
     // Handle security level
     if (result.securityReport.securityLevel === 'CRITICAL' && !options.allowInvalidUrls) {
@@ -178,8 +241,9 @@ export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}
 }
 
 export default {
-  secureLoadProviders,
+  loadProviders,
   initializeSecurity,
-  createSecurityMiddleware
+  createSecurityMiddleware,
+  clearCache
 };
 

@@ -23,9 +23,6 @@
     "pretest": "node scripts/sync-versions.js",
     "prebuild": "node scripts/sync-versions.js",
     "update-hashes": "tsx scripts/update-hashes.ts",
-    "release:major": "tsx scripts/prepare-release.ts",
-    "release:minor": "tsx scripts/prepare-release.ts",
-    "release:patch": "tsx scripts/prepare-release.ts",
     "benchmark:memory": "tsx --expose-gc scripts/benchmark-memory.ts",
     "benchmark:dns": "tsx scripts/benchmark-concurrent-dns.ts"
   },

@@ -8,7 +8,7 @@
 import { 
   detectProviderConcurrent
 } from './concurrent-dns';
-import { loadProviders } from './loader';
+import { loadProviders } from './provider-loader';
 
 // EmailProvider interface
 export type ProviderType = 
@@ -146,7 +146,19 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
     }
 
     // Fall back to DNS detection for business domains
-    const { providers } = loadProviders();
+    const loadResult = loadProviders();
+    if (!loadResult.success) {
+      return {
+        provider: null,
+        email,
+        loginUrl: null,
+        error: {
+          type: 'NETWORK_ERROR',
+          message: 'Service temporarily unavailable'
+        }
+      };
+    }
+    const providers = loadResult.providers;
     const concurrentResult = await detectProviderConcurrent(domain, providers, {
       timeout: timeout || 5000,
       enableParallel: true,
@@ -280,9 +292,51 @@ export function getEmailProviderSync(email: string): EmailProviderResult {
       };
     }
 
-    // Use cached providers and domain map for efficient lookup
-    const { domainMap } = loadProviders();
-    const provider = domainMap.get(domain);
+    // Load providers with verification
+    let provider: EmailProvider | null = null;
+    try {
+      const result = loadProviders();
+      
+      // Ensure providers loaded successfully
+      if (!result.success) {
+        if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+          console.error('🚨 Provider lookup blocked due to validation failure');
+        }
+        return {
+          provider: null,
+          email,
+          loginUrl: null,
+          error: {
+            type: 'NETWORK_ERROR',
+            message: 'Service temporarily unavailable'
+          }
+        };
+      }
+      
+      const domainMap = new Map<string, EmailProvider>();
+      
+      // Build domain map from loaded providers
+      for (const loadedProvider of result.providers) {
+        for (const domain of loadedProvider.domains) {
+          domainMap.set(domain.toLowerCase(), loadedProvider);
+        }
+      }
+      
+      provider = domainMap.get(domain) || null;
+    } catch (error) {
+      if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+        console.error('🚨 Provider lookup failed:', error);
+      }
+      return {
+        provider: null,
+        email,
+        loginUrl: null,
+        error: {
+          type: 'NETWORK_ERROR',
+          message: 'Service temporarily unavailable'
+        }
+      };
+    }
 
     const result: EmailProviderResult = {
       provider: provider || null,
@@ -350,9 +404,25 @@ export function normalizeEmail(email: string): string {
   let localPart = lowercaseEmail.slice(0, atIndex);
   const domainPart = lowercaseEmail.slice(atIndex + 1);
   
-  // Use cached providers for domain lookup
-  const { domainMap } = loadProviders();
-  const provider = domainMap.get(domainPart);
+  // Use providers for domain lookup
+  let provider: EmailProvider | null = null;
+  try {
+    const result = loadProviders();
+    if (!result.success) {
+      return lowercaseEmail; // Return as-is if providers can't be loaded
+    }
+    
+    const domainMap = new Map<string, EmailProvider>();
+    for (const loadedProvider of result.providers) {
+      for (const domain of loadedProvider.domains) {
+        domainMap.set(domain.toLowerCase(), loadedProvider);
+      }
+    }
+    
+    provider = domainMap.get(domainPart) || null;
+  } catch (error) {
+    return lowercaseEmail; // Return as-is if error occurs
+  }
   
   if (provider?.alias) {
     // Provider supports aliasing
@@ -500,7 +570,19 @@ export async function getEmailProviderFast(
     }
 
     // Fall back to concurrent DNS detection for business domains
-    const { providers } = loadProviders();
+    const result = loadProviders();
+    if (!result.success) {
+      return {
+        provider: null,
+        email,
+        loginUrl: null,
+        error: {
+          type: 'NETWORK_ERROR',
+          message: 'Service temporarily unavailable'
+        }
+      };
+    }
+    const providers = result.providers;
     const concurrentResult = await detectProviderConcurrent(domain, providers, {
       timeout,
       enableParallel,

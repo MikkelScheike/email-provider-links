@@ -1,7 +1,7 @@
-import { secureLoadProviders, initializeSecurity, createSecurityMiddleware } from '../src/secure-loader';
+import { loadProviders, initializeSecurity, createSecurityMiddleware, clearCache } from '../src/provider-loader';
 import path from 'path';
 
-describe('Secure Loader', () => {
+describe('Provider Loader', () => {
   // Store original env
   const originalEnv = process.env;
 
@@ -10,6 +10,8 @@ describe('Secure Loader', () => {
     process.env = { ...originalEnv };
     delete process.env.NODE_ENV;
     delete process.env.JEST_WORKER_ID;
+    // Clear cache to ensure tests run independently
+    clearCache();
   });
 
   afterEach(() => {
@@ -18,13 +20,13 @@ describe('Secure Loader', () => {
     jest.restoreAllMocks();
   });
 
-  describe('secureLoadProviders', () => {
+  describe('loadProviders', () => {
     it('should handle hash verification failure with logging', () => {
       // Mock console.error
       const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
       
       // Trigger hash verification failure
-      const result = secureLoadProviders(
+      const result = loadProviders(
         path.join(__dirname, '../providers/emailproviders.json'),
         'invalid_hash'
       );
@@ -41,17 +43,25 @@ describe('Secure Loader', () => {
       
       // Create a temp file with invalid URLs
       const invalidProviders = {
+        version: '1.0.0',
         providers: [{
+          id: 'test',
           companyProvider: 'Test Provider',
           loginUrl: 'http://insecure-url.com', // Non-HTTPS URL
-          domains: ['test.com']
-        }]
+          domains: ['test.com'],
+          type: 'public_provider' as const
+        }],
+        meta: {
+          count: 1,
+          domains: 1,
+          generated: new Date().toISOString()
+        }
       };
       
       // Mock readFileSync to return our invalid providers
       jest.spyOn(require('fs'), 'readFileSync').mockReturnValue(JSON.stringify(invalidProviders));
 
-      const result = secureLoadProviders();
+      const result = loadProviders();
 
       expect(result.securityReport.urlValidation).toBe(false);
       expect(result.securityReport.invalidUrls).toBeGreaterThan(0);
@@ -68,16 +78,24 @@ describe('Secure Loader', () => {
 
       // Trigger both hash and URL validation failures
       const invalidProviders = {
+        version: '1.0.0',
         providers: [{
+          id: 'test',
           companyProvider: 'Test Provider',
           loginUrl: 'http://insecure-url.com',
-          domains: ['test.com']
-        }]
+          domains: ['test.com'],
+          type: 'public_provider' as const
+        }],
+        meta: {
+          count: 1,
+          domains: 1,
+          generated: new Date().toISOString()
+        }
       };
       
       jest.spyOn(require('fs'), 'readFileSync').mockReturnValue(JSON.stringify(invalidProviders));
 
-      const result = secureLoadProviders(undefined, 'invalid_hash');
+      const result = loadProviders(undefined, 'invalid_hash');
 
       expect(result.securityReport.hashVerification).toBe(false);
       expect(result.securityReport.urlValidation).toBe(false);

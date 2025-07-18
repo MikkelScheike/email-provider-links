@@ -165,7 +165,6 @@ export function buildDomainMap(providers: EmailProvider[]): Map<string, EmailPro
     return cachedDomainMap;
   }
 
-  const startTime = Date.now();
   const domainMap = new Map<string, EmailProvider>();
   
   for (const provider of providers) {
@@ -175,10 +174,6 @@ export function buildDomainMap(providers: EmailProvider[]): Map<string, EmailPro
   }
   
   cachedDomainMap = domainMap;
-  
-  if (loadingStats) {
-    console.log(`🗺️  Domain map built in ${Date.now() - startTime}ms (${domainMap.size} entries)`);
-  }
   
   return domainMap;
 }
