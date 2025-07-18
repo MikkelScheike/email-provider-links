@@ -10,17 +10,18 @@ A robust TypeScript library providing direct links to **93 email providers** (18
 
 **[Live Demo](https://demo.mikkelscheike.com)** - Test the library with any email address and see it in action!
 
-## ✨ New in Version 3.0.0
+## ✨ New in Version 4.0.0
 
-- 🚀 **Performance Optimizations**: Further improved DNS resolution and caching
-- 🎯 **Enhanced Precision**: Adjusted performance thresholds based on real-world metrics
-- 🛡️ **Security Updates**: Removed legacy detection methods and updated security hashes
-- 📝 **TypeScript Improvements**: Resolved TypeScript errors and enhanced type safety
-- 📚 **Documentation**: Consolidated and improved documentation for better clarity
-- ⚡ **Infrastructure**: Optimized build process and development workflow
-- 🧪 **Testing**: Expanded test coverage to 445 comprehensive tests
-- 🔄 **Provider Updates**: Added support for 23 new email providers
-- 🔍 **Advanced Alias Detection**: Refined provider-specific email alias handling for dots, plus addressing, and case sensitivity
+**Major Performance & Security Release** - Full backward compatibility maintained
+
+- 🚀 **Performance Revolution**: Achieved 100,000+ operations/second throughput with sub-millisecond response times
+- ⚡ **Lightning Performance**: Domain lookups in ~0.07ms, cached access in ~0.003ms
+- 🛡️ **Zero-Trust Architecture**: Runtime data validation with cryptographic integrity verification
+- 🔒 **Enhanced Security**: SHA-256 hash verification and supply chain protection
+- 🎯 **Rigorous Testing**: 445 comprehensive tests with enhanced performance validation
+- 📊 **Extreme Optimization**: 99.9% cache hit rate and ultra-low memory footprint
+- 🧪 **Quality Assurance**: 94.65% code coverage with stress testing under enterprise loads
+- 🔄 **Seamless Upgrade**: All existing APIs remain fully compatible
 
 ## ✨ Core Features
 

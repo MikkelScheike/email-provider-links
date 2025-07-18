@@ -1,8 +1,10 @@
 # Changelog
 
-## [3.1.0] - 2025-07-18
+## [4.0.0] - 2025-07-18
 
-### 🚀 Performance Revolution - Industry-Leading Speed
+### 🚀 Major Release - Performance Revolution & Zero-Trust Architecture
+
+**Note**: This release was intended as a minor update but was automatically promoted to major due to semantic versioning interpretation. All APIs remain fully backward compatible.
 
 #### ⚡ Extreme Performance Improvements
 - **100,000+ Operations/Second**: Achieved unprecedented throughput for email provider lookups
