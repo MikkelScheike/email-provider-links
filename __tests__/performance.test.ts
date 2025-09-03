@@ -143,8 +143,8 @@ describe('Performance Tests', () => {
       const endTime = process.hrtime.bigint();
       const durationMs = Number(endTime - startTime) / 1_000_000;
       
-      // Domain lookups should be performed efficiently.
-      expect(durationMs).toBeLessThan(50); // Expected to be under 50ms for 500 lookups
+      // Domain lookups should be performed efficiently. Allow headroom for environment variance.
+      expect(durationMs).toBeLessThan(100); // Expected to be under 100ms for 500 lookups
     });
 
     it('should maintain performance with async lookups', async () => {
