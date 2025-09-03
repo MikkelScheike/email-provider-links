@@ -1,6 +1,6 @@
 {
   "name": "@mikkelscheike/email-provider-links",
-  "version": "4.0.2",
+  "version": "4.0.7",
   "description": "TypeScript library for email provider detection with 93 providers (207 domains), concurrent DNS resolution, optimized performance, 94.65% test coverage, and enterprise security for login and password reset flows",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -47,7 +47,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mikkelscheike/email-provider-links.git"
+    "url": "https://github.com/MikkelScheike/email-provider-links"
   },
   "homepage": "https://github.com/mikkelscheike/email-provider-links#readme",
   "bugs": {
@@ -58,7 +58,8 @@
     "comment": "Supports Node.js 18.x, 20.x, 22.x, and 24.x"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "overrides": {
     "glob": "^10.4.5",

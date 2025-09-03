@@ -7,6 +7,14 @@
  * - Runs comprehensive tests and build verification
  * - Creates semantic-release compatible commits
  * - NO manual version management (semantic-release handles this)
+ * 
+ * IMPORTANT: Commit Message Policy (Conventional Commits)
+ * - This script will ONLY generate commit types that semantic-release recognizes for versioning:
+ *   - patch  -> "fix"
+ *   - minor  -> "feat"
+ *   - major  -> "feat!" (breaking change)
+ * - It will NEVER use non-releasing types such as "test", "chore", "docs", etc. for release prep commits.
+ * - Scopes may vary, but type will always be one of: fix | feat | feat!
  */
 
 import { execSync } from 'child_process';
@@ -254,17 +262,18 @@ class SemanticReleaseManager {
    */
   private generateSemanticCommitMessage(config: SemanticReleaseConfig): string {
     const { releaseType } = config;
-    
-    // Map release type to semantic commit type
-    let commitType = 'fix'; // patch
-    if (releaseType === 'minor') {
-      commitType = 'feat';
-    } else if (releaseType === 'major') {
-      commitType = 'feat!';
-    }
+
+    // Strict mapping to releasing commit types only
+    const typeMap: Record<SemanticReleaseConfig['releaseType'], string> = {
+      patch: 'fix',
+      minor: 'feat',
+      major: 'feat!'
+    } as const;
+
+    const commitType = typeMap[releaseType];
 
     let message = `${commitType}: update security hashes and prepare for release`;
-    
+
     // Add detailed body for semantic-release
     message += '\n\n';
     message += 'This commit updates security verification hashes and prepares ';
@@ -274,7 +283,7 @@ class SemanticReleaseManager {
     message += '- Verified all tests passing\n';
     message += '- Confirmed build compatibility';
 
-    return message.replace(/"/g, '\\"'); // Escape quotes for shell
+    return message.replace(/\"/g, '\\\"'); // Escape quotes for shell
   }
 
   /**
