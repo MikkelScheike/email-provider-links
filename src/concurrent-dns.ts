@@ -323,7 +323,7 @@ export class ConcurrentDNSDetector {
     const startTime = Date.now();
     
     try {
-      const records = await this.withTimeout(resolveMxAsync(domain), this.config.timeout);
+      const records = await this.withTimeout(() => resolveMxAsync(domain), this.config.timeout);
       
       return {
         type: 'mx',
@@ -349,7 +349,7 @@ export class ConcurrentDNSDetector {
     const startTime = Date.now();
     
     try {
-      const records = await this.withTimeout(resolveTxtAsync(domain), this.config.timeout);
+      const records = await this.withTimeout(() => resolveTxtAsync(domain), this.config.timeout);
       const flatRecords = records.flat();
       
       return {
@@ -515,32 +515,38 @@ export class ConcurrentDNSDetector {
   /**
    * Wrap a promise with a timeout
    */
-  private withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  private withTimeout<T>(fn: () => Promise<T>, ms: number): Promise<T> {
+    // For extremely small timeouts, avoid starting the underlying DNS query at all
+    if (ms <= 1) {
+      return Promise.reject(new Error(`DNS query timeout after ${ms}ms`));
+    }
+
     let rejectFn: ((error: Error) => void) | undefined;
-    
-    const timeoutPromise = new Promise<T>((resolve, reject) => {
+
+    const wrappedPromise = new Promise<T>((resolve, reject) => {
       rejectFn = reject;
       const timeout = setTimeout(() => reject(new Error(`DNS query timeout after ${ms}ms`)), ms).unref();
-      
-      promise
+
+      // Start the underlying operation only after setting up the timeout
+      fn()
         .then(resolve)
         .catch(reject)
         .finally(() => {
           clearTimeout(timeout);
           // Clean up active query
-          const queryEntry = Array.from(this.activeQueries).find(entry => entry.promise === timeoutPromise);
+          const queryEntry = Array.from(this.activeQueries).find(entry => entry.promise === wrappedPromise);
           if (queryEntry) {
             this.activeQueries.delete(queryEntry);
           }
         });
     });
 
-    // Only add to active queries if we have a reject function
+    // Track active query for potential cleanup in tests
     if (rejectFn) {
-      const queryEntry = { promise: timeoutPromise, reject: rejectFn };
+      const queryEntry = { promise: wrappedPromise, reject: rejectFn };
       this.activeQueries.add(queryEntry);
     }
-    return timeoutPromise;
+    return wrappedPromise;
   }
 }
 

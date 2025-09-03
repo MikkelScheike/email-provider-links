@@ -5,6 +5,42 @@
  * including error scenarios, fallback handling, and edge cases.
  */
 
+// Mock Node's dns module to avoid native handle leaks in open-handle detection
+// This keeps tests deterministic and prevents lingering c-ares sockets
+jest.mock('dns', () => {
+  const mockResolveMx = (domain: string, cb: (err: any, addresses: any[]) => void) => {
+    process.nextTick(() => {
+const invalidLike = !domain || domain.startsWith('.') || domain.endsWith('.') || domain.includes('..') || !domain.includes('.');
+      if (domain.includes('invalid')) {
+        const err: any = new Error('ENOTFOUND');
+        err.code = 'ENOTFOUND';
+        cb(err, []);
+      } else if (invalidLike || domain === 'com') {
+        // Simulate no MX records for invalid-ish inputs
+        cb(null, []);
+      } else {
+        // Simulate a generic MX that matches common patterns
+        cb(null, [{ exchange: 'mx.google.com', priority: 10 }]);
+      }
+    });
+  };
+  const mockResolveTxt = (domain: string, cb: (err: any, records: string[][]) => void) => {
+    process.nextTick(() => {
+const invalidLike = !domain || domain.startsWith('.') || domain.endsWith('.') || domain.includes('..') || !domain.includes('.');
+      if (domain.includes('invalid')) {
+        const err: any = new Error('ENOTFOUND');
+        err.code = 'ENOTFOUND';
+        cb(err, []);
+      } else if (invalidLike || domain === 'com') {
+        cb(null, []);
+      } else {
+        cb(null, [['v=spf1 include:gmail.com']]);
+      }
+    });
+  };
+  return { resolveMx: mockResolveMx, resolveTxt: mockResolveTxt };
+});
+
 /* global describe, it, expect */
 import {
   ConcurrentDNSDetector,
