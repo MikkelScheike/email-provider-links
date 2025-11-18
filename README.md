@@ -51,17 +51,18 @@ npm install @mikkelscheike/email-provider-links
 
 ## Requirements
 
-- **Node.js**: `>=18.0.0` (Tested on 18.x, 20.x, 22.x, **24.x**)
+- **Node.js**: `>=18.0.0` (Tested on 18.x, 20.x, 22.x, **24.x**, **25.x**)
 - **TypeScript**: `>=4.0.0` (optional, but recommended)
 - **Zero runtime dependencies** - No external packages required
 
-### Node.js 24 Support ✨
+### Node.js 24/25 Support ✨
 
-Fully compatible with the latest Node.js 24.x! The library is tested on:
+Fully compatible with the latest Node.js 24.x and 25.x! The library is tested on:
 - Node.js 18.x (LTS)
-- Node.js 20.x (LTS) 
-- Node.js 22.x (Current)
-- **Node.js 24.x (Latest)** - Full support with latest features
+- Node.js 20.x (LTS)
+- Node.js 22.x
+- **Node.js 24.x** - Full support
+- **Node.js 25.x (Latest)** - Full support with latest features
 
 ## Supported Providers
 

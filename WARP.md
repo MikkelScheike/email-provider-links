@@ -5,7 +5,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 Project: @mikkelscheike/email-provider-links (TypeScript library)
 
 Setup
-- Requirements: Node.js >= 18 (tested on 18.x, 20.x, 22.x, 24.x)
+- Requirements: Node.js >= 18 (tested on 18.x, 20.x, 22.x, 24.x, 25.x)
 - Install dependencies: npm ci (preferred with package-lock) or npm install
 
 Common commands

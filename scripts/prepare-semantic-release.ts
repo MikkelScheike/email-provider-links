@@ -33,6 +33,15 @@ class SemanticReleaseManager {
     this.projectRoot = process.cwd();
   }
 
+  private hasGit(): boolean {
+    try {
+      execSync('git --version', { stdio: 'ignore' });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /**
    * Main semantic release preparation workflow
    */
@@ -75,29 +84,37 @@ class SemanticReleaseManager {
     console.log('🔍 STEP 1: Validating Prerequisites');
     console.log('-'.repeat(40));
 
-    // Check if we're on main branch
-    try {
-      const branch = execSync('git branch --show-current', { encoding: 'utf-8' }).trim();
-      if (branch !== 'main') {
-        throw new Error(`Must be on main branch, currently on: ${branch}`);
+    // Check if git is available and on main branch
+    if (this.hasGit()) {
+      try {
+        const branch = execSync('git branch --show-current', { encoding: 'utf-8' }).trim();
+        if (branch !== 'main') {
+          throw new Error(`Must be on main branch, currently on: ${branch}`);
+        }
+        console.log('✅ On main branch');
+      } catch (error) {
+        throw new Error('Failed to check git branch');
       }
-      console.log('✅ On main branch');
-    } catch (error) {
-      throw new Error('Failed to check git branch');
+    } else {
+      console.log('ℹ️  Git not found; skipping branch check (CI will validate later)');
     }
 
-    // Check for uncommitted changes
-    try {
-      const status = execSync('git status --porcelain', { encoding: 'utf-8' }).trim();
-      if (status) {
-        console.log('⚠️  Uncommitted changes detected:');
-        console.log(status);
-        console.log('ℹ️  These will be included in the semantic commit');
-      } else {
-        console.log('✅ Working directory clean');
+    // Check for uncommitted changes (only if git available)
+    if (this.hasGit()) {
+      try {
+        const status = execSync('git status --porcelain', { encoding: 'utf-8' }).trim();
+        if (status) {
+          console.log('⚠️  Uncommitted changes detected:');
+          console.log(status);
+          console.log('ℹ️  These will be included in the semantic commit');
+        } else {
+          console.log('✅ Working directory clean');
+        }
+      } catch (error) {
+        throw new Error('Failed to check git status');
       }
-    } catch (error) {
-      throw new Error('Failed to check git status');
+    } else {
+      console.log('ℹ️  Skipping git status check (git not available)');
     }
 
     console.log('');
@@ -228,6 +245,11 @@ class SemanticReleaseManager {
     console.log('📝 STEP 5: Creating Semantic Release Commit');
     console.log('-'.repeat(40));
 
+    if (!this.hasGit()) {
+      console.log('ℹ️  Git not found; skipping semantic commit. CI will release based on existing commits.');
+      return;
+    }
+
     // Stage only security hash changes (no version changes)
     execSync('git add src/hash-verifier.ts');
 
@@ -248,7 +270,7 @@ class SemanticReleaseManager {
     
     // Create commit
     try {
-      execSync(`git commit -m "${commitMessage}"`, { encoding: 'utf-8' });
+      execSync(`git commit -m \"${commitMessage}\"`, { encoding: 'utf-8' });
       console.log('✅ Semantic release commit created');
     } catch (error) {
       console.log('ℹ️  Commit creation skipped (no changes or already committed)');
