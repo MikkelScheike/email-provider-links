@@ -19,7 +19,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x, 24.7.x, 25.x]
+        node-version: [18.x, 20.x, 22.x, 24.10.x, 25.x]
     
     steps:
     - name: Checkout code
@@ -78,7 +78,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '24.7.x'
+        node-version: '24.10.x'
         cache: 'npm'
 
     - name: Install dependencies
@@ -116,19 +116,19 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '24.7.x'
+        node-version: '24.10.x'
         cache: 'npm'
     - name: Install dependencies
       run: npm ci
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
         queries: +security-and-quality
     - name: Build project
       run: npm run build
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{ matrix.language }}"
         upload-database: true
@@ -157,7 +157,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '24.7.x'
+        node-version: '24.10.x'
         registry-url: 'https://registry.npmjs.org'
         cache: 'npm'
 
@@ -166,6 +166,9 @@ jobs:
       
     - name: Build package
       run: npm run build
+      
+    - name: Silence npm always-auth warning
+      run: npm config delete always-auth || true
       
     - name: Semantic Release
       env:
