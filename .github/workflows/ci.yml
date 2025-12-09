@@ -19,7 +19,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x, 24.10.x, 25.x]
+        node-version: [18.x, 20.x, 22.x, 24.10.x, 25.2.1]
     
     steps:
     - name: Checkout code
@@ -78,7 +78,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '24.10.x'
+        node-version: '25.2.1'
         cache: 'npm'
 
     - name: Install dependencies
@@ -116,7 +116,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '24.10.x'
+        node-version: '25.2.1'
         cache: 'npm'
     - name: Install dependencies
       run: npm ci
@@ -157,7 +157,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '24.10.x'
+        node-version: '25.2.1'
         registry-url: 'https://registry.npmjs.org'
         cache: 'npm'
 

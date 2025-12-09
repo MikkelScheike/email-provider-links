@@ -77,7 +77,6 @@
         "aol.com",
         "love.com",
         "ygm.com",
-        "games.com",
         "wow.com",
         "aim.com"
       ],
@@ -1024,15 +1023,6 @@
       "loginUrl": "https://poczta.onet.pl"
     },
     {
-      "id": "ono",
-      "domains": [
-        "ono.com"
-      ],
-      "type": "public_provider",
-      "companyProvider": "Ono Mail",
-      "loginUrl": "https://webmail.ono.com"
-    },
-    {
       "id": "optimum",
       "type": "public_provider",
       "companyProvider": "Optimum",
@@ -1089,6 +1079,66 @@
       "type": "public_provider",
       "companyProvider": "Posteo",
       "loginUrl": "https://posteo.de"
+    },
+    {
+      "id": "mailboxorg",
+      "domains": [
+        "mailbox.org"
+      ],
+      "mx": [
+        "mx.mailbox.org"
+      ],
+      "txt": [
+        "spf:mailbox.org -all"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Mailbox.org",
+      "loginUrl": "https://mailbox.org"
+    },
+    {
+      "id": "privatemail",
+      "domains": [
+        "privatemail.com"
+      ],
+      "mx": [
+        "mx.privatemail.com"
+      ],
+      "txt": [
+        "spf:spf.privatemail.com -all"
+      ],
+      "type": "public_provider",
+      "companyProvider": "PrivateMail",
+      "loginUrl": "https://mail.privatemail.com/"
+    },
+    {
+      "id": "disroot",
+      "domains": [
+        "disroot.org"
+      ],
+      "mx": [
+        "mx.disroot.org"
+      ],
+      "txt": [
+        "spf1:mx ~all"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Disroot",
+      "loginUrl": "https://mail.disroot.org"
+    },
+    {
+      "id": "autistici",
+      "domains": [
+        "autistici.org"
+      ],
+      "mx": [
+        "mx.autistici.org"
+      ],
+      "txt": [
+        "spf1:mx a ~all"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Autistici.org",
+      "loginUrl": "https://accounts.autistici.org/"
     },
     {
       "id": "proton",
@@ -1316,14 +1366,14 @@
         "siteground.com"
       ],
       "mx": [
-        "mx10.mailspamprotection.com",
-        "mx20.mailspamprotection.com",
-        "mx30.mailspamprotection.com"
+        "mx10.antispam.mailspamprotection.com",
+        "mx20.antispam.mailspamprotection.com",
+        "mx30.antispam.mailspamprotection.com"
       ],
       "txt": [
         "spf:_spf.mailspamprotection.com"
       ],
-      "type": "public_provider",
+      "type": "custom_provider",
       "companyProvider": "SiteGround",
       "loginUrl": "https://tools.siteground.com/email"
     },
@@ -1340,13 +1390,29 @@
       "loginUrl": "https://skyid.sky.com/signin/email"
     },
     {
-      "id": "skynet",
+      "id": "startmail",
       "domains": [
-        "skynet.be"
+        "startmail.com"
+      ],
+      "mx": [
+        "mx.startmail.com"
+      ],
+      "txt": [
+        "spf:spf.startmail.com -all"
       ],
       "type": "public_provider",
-      "companyProvider": "Skynet Mail",
-      "loginUrl": "https://webmail.skynet.be"
+      "companyProvider": "StartMail",
+      "loginUrl": "https://startmail.com"
+    },
+    {
+      "id": "skynet",
+      "domains": [
+        "skynet.be",
+        "proximus.be"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Proximus Mail",
+      "loginUrl": "https://www.proximus.be/login/en/webmail.html"
     },
     {
       "id": "talktalk",
@@ -1359,6 +1425,21 @@
       ],
       "companyProvider": "TalkTalk Mail",
       "loginUrl": "https://apps.talktalk.co.uk/appsuite/"
+    },
+    {
+      "id": "proximus",
+      "mx": [
+        "mx.glb.proximus.be"
+      ],
+      "txt": [
+        "spf:ispmail.spf.secure-mail.be",
+        "spf:bgc.spf.secure-mail.be",
+        "spf:pxspartners.spf.secure-mail.be",
+        "spf:pxspartners2.spf.secure-mail.be"
+      ],
+      "type": "custom_provider",
+      "companyProvider": "Proximus Mail",
+      "loginUrl": "https://www.proximus.be/login/en/webmail.html"
     },
     {
       "id": "teleko",
@@ -1403,8 +1484,7 @@
     {
       "id": "terra",
       "domains": [
-        "terra.com.br",
-        "terra.es"
+        "terra.com.br"
       ],
       "type": "public_provider",
       "companyProvider": "Terra Mail",
@@ -1547,8 +1627,7 @@
     {
       "id": "vsnl",
       "domains": [
-        "vsnl.net",
-        "vsnl.com"
+        "vsnl.net"
       ],
       "type": "public_provider",
       "mx": [
@@ -1710,8 +1789,8 @@
     }
   ],
   "meta": {
-    "count": 125,
-    "domains": 216,
-    "generated": "2025-08-06T12:22:05.290Z"
+    "count": 130,
+    "domains": 218,
+    "generated": "2025-12-09T10:38:50.000Z"
   }
 }

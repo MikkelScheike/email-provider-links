@@ -2,9 +2,9 @@
 
 [![npm version](https://img.shields.io/npm/v/%40mikkelscheike%2Femail-provider-links)](https://www.npmjs.com/package/@mikkelscheike/email-provider-links)
 
-> **Generate direct login links for any email address across 93+ providers (Gmail, Outlook, Yahoo, etc.) to streamline user authentication flows.**
+> **Generate direct login links for any email address across 129+ providers (Gmail, Outlook, Yahoo, etc.) to streamline user authentication flows.**
 
-A robust TypeScript library providing direct links to **93 email providers** (180 domains) with **concurrent DNS resolution**, **optimized performance**, **comprehensive email validation**, and advanced security features for login and password reset flows.
+A robust TypeScript library providing direct links to **129 email providers** (217 domains) with **concurrent DNS resolution**, **optimized performance**, **comprehensive email validation**, and advanced security features for login and password reset flows.
 
 ## 🚀 Try it out
 
@@ -26,8 +26,8 @@ A robust TypeScript library providing direct links to **93 email providers** (18
 ## ✨ Core Features
 
 - 🚀 **Fast & Lightweight**: Zero dependencies, ultra-low memory (0.10MB initial, 0.00004MB per 1000 ops), small footprint (~39.5KB compressed)
-- 📧 **93 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
-- 🌐 **207 Domains Supported**: Comprehensive international coverage
+- 📧 **129 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
+- 🌐 **217 Domains Supported**: Comprehensive international coverage
 - 🌍 **Full IDN Support**: International domain names with RFC compliance and Punycode
 - ✅ **Advanced Email Validation**: International email validation with detailed error reporting
 - 🏢 **Business Domain Detection**: DNS-based detection for custom domains (Google Workspace, Microsoft 365, etc.)
@@ -66,7 +66,7 @@ Fully compatible with the latest Node.js 24.x and 25.x! The library is tested on
 
 ## Supported Providers
 
-**📊 Current Coverage: 93 providers supporting 207 domains**
+**📊 Current Coverage: 129 providers supporting 217 domains**
 
 **Consumer Email Providers:**
 - **Gmail** (2 domains): gmail.com, googlemail.com

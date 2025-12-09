@@ -2,7 +2,7 @@
  * Email Provider Links
  * 
  * A modern, robust email provider detection library with:
- * - 93+ verified email providers covering 180+ domains
+ * - 130+ verified email providers covering 210+ domains
  * - Concurrent DNS detection for business domains
  * - Zero runtime dependencies
  * - Comprehensive error handling with detailed context
@@ -400,8 +400,8 @@ export const isValidEmailAddress = isValidEmail;
 /**
  * Library metadata (legacy constants)
  */
-export const PROVIDER_COUNT = 93;
-export const DOMAIN_COUNT = 178;
+export const PROVIDER_COUNT = 130;
+export const DOMAIN_COUNT = 218;
 
 /**
  * Default export for convenience

@@ -364,8 +364,8 @@ describe('Email Provider Links', () => {
       expect(typeof index.normalizeEmail).toBe('function');
       expect(typeof index.emailsMatch).toBe('function');
       expect(index.Config).toBeDefined();
-      expect(index.PROVIDER_COUNT).toBe(93);
-      expect(index.DOMAIN_COUNT).toBe(178);
+expect(index.PROVIDER_COUNT).toBe(130);
+      expect(index.DOMAIN_COUNT).toBe(218);
 
       // Test named exports
       const {

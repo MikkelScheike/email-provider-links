@@ -186,8 +186,8 @@ describe('Email Provider API Tests', () => {
     it('should have correct configuration values', () => {
       expect(Config.DEFAULT_DNS_TIMEOUT).toBe(5000);
       expect(Config.MAX_DNS_REQUESTS_PER_MINUTE).toBe(10);
-      expect(Config.SUPPORTED_PROVIDERS_COUNT).toBe(93);
-      expect(Config.SUPPORTED_DOMAINS_COUNT).toBe(180);
+expect(Config.SUPPORTED_PROVIDERS_COUNT).toBe(130);
+      expect(Config.SUPPORTED_DOMAINS_COUNT).toBe(218);
     });
   });
 
