@@ -17,6 +17,8 @@ Email Provider Links implements enterprise-grade security measures to protect ag
    - Only pre-approved domains are allowed
    - 93+ verified email providers in allowlist
    - Subdomain validation with precise matching
+   - Allowlist is derived from the hash-verified providers database and fails closed on hash mismatch
+   - Hostnames are normalized (lowercase + Punycode) before allowlist checks
 
 3. **Malicious Pattern Detection**
    - Blocks IP addresses and localhost

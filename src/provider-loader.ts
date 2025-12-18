@@ -5,12 +5,22 @@
  * email provider data with security checks.
  */
 
-import { readFileSync } from 'fs';
 import { join } from 'path';
 import { validateEmailProviderUrl, auditProviderSecurity } from './url-validator';
 import { verifyProvidersIntegrity, generateSecurityHashes } from './hash-verifier';
-import { Provider, ProvidersData, decompressTxtPattern } from './schema';
-import type { EmailProvider } from './index';
+import { convertProviderToEmailProviderShared, readProvidersDataFile } from './provider-store';
+import type { EmailProvider } from './api';
+
+type MiddlewareRequestLike = Record<string, unknown> & {
+  secureProviders?: EmailProvider[];
+  securityReport?: LoadResult['securityReport'];
+};
+
+type MiddlewareResponseLike = {
+  status: (code: number) => { json: (body: unknown) => unknown };
+};
+
+type MiddlewareNextLike = () => void;
 
 export interface LoadResult {
   success: boolean;
@@ -34,42 +44,6 @@ let cachedLoadResult: LoadResult | null = null;
  */
 export function clearCache(): void {
   cachedLoadResult = null;
-}
-
-/**
- * Convert compressed provider to EmailProvider format
- */
-function convertProviderToEmailProvider(compressedProvider: Provider): EmailProvider {
-  if (!compressedProvider.type) {
-    console.warn(`Missing type for provider ${compressedProvider.id}`);
-  }
-  const provider: EmailProvider = {
-    companyProvider: compressedProvider.companyProvider,
-    loginUrl: compressedProvider.loginUrl || null,
-    domains: compressedProvider.domains || [],
-    type: compressedProvider.type,
-    alias: compressedProvider.alias
-  };
-
-  // Include DNS detection patterns for business email services and proxy services
-  const needsCustomDomainDetection = 
-    compressedProvider.type === 'custom_provider' || 
-    compressedProvider.type === 'proxy_service';
-
-  if (needsCustomDomainDetection && (compressedProvider.mx?.length || compressedProvider.txt?.length)) {
-    provider.customDomainDetection = {};
-    
-    if (compressedProvider.mx?.length) {
-      provider.customDomainDetection.mxPatterns = compressedProvider.mx;
-    }
-    
-    if (compressedProvider.txt?.length) {
-      // Decompress TXT patterns
-      provider.customDomainDetection.txtPatterns = compressedProvider.txt.map(decompressTxtPattern);
-    }
-  }
-
-  return provider;
 }
 
 /**
@@ -109,16 +83,8 @@ export function loadProviders(
   
   // Step 2: Load and parse JSON
   try {
-    const fileContent = readFileSync(filePath, 'utf8');
-    const data: ProvidersData = JSON.parse(fileContent);
-    
-    // Validate format
-    if (!data.version || !data.providers || !Array.isArray(data.providers)) {
-      throw new Error('Invalid provider data format');
-    }
-    
-    // Convert to EmailProvider format
-    providers = data.providers.map(convertProviderToEmailProvider);
+    const { data } = readProvidersDataFile(filePath);
+    providers = data.providers.map(convertProviderToEmailProviderShared);
   } catch (error) {
     issues.push(`Failed to load providers file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return {
@@ -217,7 +183,7 @@ interface SecurityMiddlewareOptions {
 }
 
 export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}) {
-  return (req: any, res: any, next: any) => {
+  return (req: MiddlewareRequestLike, res: MiddlewareResponseLike, next: MiddlewareNextLike) => {
     // If a custom providers getter is provided, use that instead of loading from file
     const result = options.getProviders ? options.getProviders() : loadProviders(undefined, options.expectedHash);
     
@@ -226,17 +192,19 @@ export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}
       if (options.onSecurityIssue) {
         options.onSecurityIssue(result.securityReport);
       }
-      return res.status(500).json({
+      res.status(500).json({
         error: 'Security validation failed',
         details: result.securityReport
       });
+      return;
     }
     
     // Attach secure providers to request
-    (req as any).secureProviders = result.providers;
-    (req as any).securityReport = result.securityReport;
+    req.secureProviders = result.providers;
+    req.securityReport = result.securityReport;
     
     next();
+    return;
   };
 }
 

@@ -159,7 +159,7 @@ describe('Email Provider Links', () => {
       expect(stats).toEqual({
         providerCount: 0,
         domainCount: 0,
-        version: '2.7.0',
+        version: require('../package.json').version,
         supportsAsync: true,
         supportsIDN: true,
         supportsAliasDetection: true,
@@ -217,7 +217,7 @@ describe('Email Provider Links', () => {
 
     it('should handle errors in normalization', () => {
       const originalNormalizeEmail = normalizeEmail;
-      global.normalizeEmail = jest.fn().mockImplementation(() => {
+      (global as any).normalizeEmail = jest.fn().mockImplementation(() => {
         throw new Error('Simulated normalization error');
       });
 
@@ -227,7 +227,7 @@ describe('Email Provider Links', () => {
 
       expect(results[0].normalized).toBe('test@gmail.com');
 
-      global.normalizeEmail = originalNormalizeEmail;
+      (global as any).normalizeEmail = originalNormalizeEmail;
     });
 
     it('should handle errors in provider lookup', () => {

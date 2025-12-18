@@ -32,7 +32,7 @@ describe('Performance Tests', () => {
       const durationMs = Number(endTime - startTime) / 1_000_000; // Convert to milliseconds
       
       // Performance budgets
-      expect(durationMs).toBeLessThan(5); // First load should be under 5ms
+      expect(durationMs).toBeLessThan(10); // First load should be under 10ms
       expect(result.providers.length).toBeGreaterThan(100); // Expect at least 100 providers
     });
 

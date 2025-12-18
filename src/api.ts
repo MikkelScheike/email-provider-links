@@ -9,6 +9,93 @@ import {
   detectProviderConcurrent
 } from './concurrent-dns';
 import { loadProviders } from './provider-loader';
+import { validateInternationalEmail, domainToPunycode, IDNValidationError } from './idn';
+
+let cachedProvidersRef: EmailProvider[] | null = null;
+let cachedDomainMap: Map<string, EmailProvider> | null = null;
+
+function getDomainMapFromProviders(providers: EmailProvider[]): Map<string, EmailProvider> {
+  if (cachedProvidersRef === providers && cachedDomainMap) {
+    return cachedDomainMap;
+  }
+
+  const domainMap = new Map<string, EmailProvider>();
+
+  for (const loadedProvider of providers) {
+    for (const domain of loadedProvider.domains) {
+      domainMap.set(domain.toLowerCase(), loadedProvider);
+    }
+  }
+
+  cachedProvidersRef = providers;
+  cachedDomainMap = domainMap;
+  return domainMap;
+}
+
+function validateAndParseEmailForLookup(email: string): {
+  ok: true;
+  trimmedEmail: string;
+  domain: string;
+} | {
+  ok: false;
+  email: string;
+  error: NonNullable<EmailProviderResult['error']>;
+} {
+  if (!email || typeof email !== 'string') {
+    return {
+      ok: false,
+      email: email || '',
+      error: {
+        type: 'INVALID_EMAIL',
+        message: 'Email address is required and must be a string'
+      }
+    };
+  }
+
+  const trimmedEmail = email.trim();
+
+  // Strict validation: treat any IDN validation failure as invalid input.
+  // Only surface IDN_VALIDATION_ERROR for true encoding issues.
+  const idnError = validateInternationalEmail(trimmedEmail);
+  if (idnError) {
+    if (idnError.code === IDNValidationError.INVALID_ENCODING) {
+      return {
+        ok: false,
+        email: trimmedEmail,
+        error: {
+          type: 'IDN_VALIDATION_ERROR',
+          message: idnError.message,
+          idnError: idnError.code
+        }
+      };
+    }
+    return {
+      ok: false,
+      email: trimmedEmail,
+      error: {
+        type: 'INVALID_EMAIL',
+        message: 'Invalid email format'
+      }
+    };
+  }
+
+  const atIndex = trimmedEmail.lastIndexOf('@');
+  if (atIndex === -1) {
+    return {
+      ok: false,
+      email: trimmedEmail,
+      error: {
+        type: 'INVALID_EMAIL',
+        message: 'Invalid email format'
+      }
+    };
+  }
+
+  const domainRaw = trimmedEmail.slice(atIndex + 1).toLowerCase();
+  const domain = domainToPunycode(domainRaw);
+
+  return { ok: true, trimmedEmail, domain };
+}
 
 // EmailProvider interface
 export type ProviderType = 
@@ -96,45 +183,17 @@ export interface EmailProviderResult {
  */
 export async function getEmailProvider(email: string, timeout?: number): Promise<EmailProviderResult> {
   try {
-    // Input validation
-    if (!email || typeof email !== 'string') {
+    const parsed = validateAndParseEmailForLookup(email);
+    if (!parsed.ok) {
       return {
         provider: null,
-        email: email || '',
+        email: parsed.email,
         loginUrl: null,
-        error: {
-          type: 'INVALID_EMAIL',
-          message: 'Email address is required and must be a string'
-        }
+        error: parsed.error
       };
     }
 
-    // Basic email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return {
-        provider: null,
-        email,
-        loginUrl: null,
-        error: {
-          type: 'INVALID_EMAIL',
-          message: 'Invalid email format'
-        }
-      };
-    }
-
-    const domain = email.split('@')[1]?.toLowerCase();
-    if (!domain) {
-      return {
-        provider: null,
-        email,
-        loginUrl: null,
-        error: {
-          type: 'INVALID_EMAIL',
-          message: 'Invalid email format - missing domain'
-        }
-      };
-    }
+    const domain = parsed.domain;
 
     // First try synchronous domain matching
     const syncResult = getEmailProviderSync(email);
@@ -186,11 +245,11 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
 
     return result;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Enhanced error handling
-    if (error.message?.includes('Rate limit exceeded')) {
+    if (error instanceof Error && error.message.includes('Rate limit exceeded')) {
       const retryMatch = error.message.match(/Try again in (\d+) seconds/);
-      const retryAfter = retryMatch ? parseInt(retryMatch[1], 10) : undefined;
+      const retryAfter = retryMatch?.[1] ? parseInt(retryMatch[1], 10) : undefined;
       
       return {
         provider: null,
@@ -204,7 +263,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
       };
     }
 
-    if (error.message?.includes('timeout')) {
+    if (error instanceof Error && error.message.includes('timeout')) {
       return {
         provider: null,
         email,
@@ -222,7 +281,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
       loginUrl: null,
       error: {
         type: 'NETWORK_ERROR',
-        message: error.message || 'Unknown network error'
+        message: error instanceof Error ? error.message : 'Unknown network error'
       }
     };
   }
@@ -251,46 +310,17 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
  */
 export function getEmailProviderSync(email: string): EmailProviderResult {
   try {
-    // Input validation
-    if (!email || typeof email !== 'string') {
+    const parsed = validateAndParseEmailForLookup(email);
+    if (!parsed.ok) {
       return {
         provider: null,
-        email: email || '',
+        email: parsed.email,
         loginUrl: null,
-        error: {
-          type: 'INVALID_EMAIL',
-          message: 'Email address is required and must be a string'
-        }
+        error: parsed.error
       };
     }
 
-    // Basic email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return {
-        provider: null,
-        email,
-        loginUrl: null,
-        error: {
-          type: 'INVALID_EMAIL',
-          message: 'Invalid email format'
-        }
-      };
-    }
-
-    // Pure synchronous domain matching
-    const domain = email.split('@')[1]?.toLowerCase();
-    if (!domain) {
-      return {
-        provider: null,
-        email,
-        loginUrl: null,
-        error: {
-          type: 'INVALID_EMAIL',
-          message: 'Invalid email format - missing domain'
-        }
-      };
-    }
+    const domain = parsed.domain;
 
     // Load providers with verification
     let provider: EmailProvider | null = null;
@@ -312,16 +342,8 @@ export function getEmailProviderSync(email: string): EmailProviderResult {
           }
         };
       }
-      
-      const domainMap = new Map<string, EmailProvider>();
-      
-      // Build domain map from loaded providers
-      for (const loadedProvider of result.providers) {
-        for (const domain of loadedProvider.domains) {
-          domainMap.set(domain.toLowerCase(), loadedProvider);
-        }
-      }
-      
+
+      const domainMap = getDomainMapFromProviders(result.providers);
       provider = domainMap.get(domain) || null;
     } catch (error) {
       if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
@@ -355,14 +377,14 @@ export function getEmailProviderSync(email: string): EmailProviderResult {
 
     return result;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       provider: null,
       email,
       loginUrl: null,
       error: {
         type: 'INVALID_EMAIL',
-        message: error.message || 'Invalid email address'
+        message: error instanceof Error ? error.message : 'Invalid email address'
       }
     };
   }
@@ -402,7 +424,7 @@ export function normalizeEmail(email: string): string {
   }
   
   let localPart = lowercaseEmail.slice(0, atIndex);
-  const domainPart = lowercaseEmail.slice(atIndex + 1);
+  const domainPart = domainToPunycode(lowercaseEmail.slice(atIndex + 1));
   
   // Use providers for domain lookup
   let provider: EmailProvider | null = null;
@@ -411,14 +433,8 @@ export function normalizeEmail(email: string): string {
     if (!result.success) {
       return lowercaseEmail; // Return as-is if providers can't be loaded
     }
-    
-    const domainMap = new Map<string, EmailProvider>();
-    for (const loadedProvider of result.providers) {
-      for (const domain of loadedProvider.domains) {
-        domainMap.set(domain.toLowerCase(), loadedProvider);
-      }
-    }
-    
+
+    const domainMap = getDomainMapFromProviders(result.providers);
     provider = domainMap.get(domainPart) || null;
   } catch (error) {
     return lowercaseEmail; // Return as-is if error occurs
@@ -509,7 +525,7 @@ export async function getEmailProviderFast(
     total: number;
   };
   confidence?: number;
-  debug?: any;
+  debug?: unknown;
 }> {
   const {
     timeout = 5000,
@@ -518,48 +534,21 @@ export async function getEmailProviderFast(
   } = options;
 
   try {
-    // Input validation
-    if (!email || typeof email !== 'string') {
+    const parsed = validateAndParseEmailForLookup(email);
+    if (!parsed.ok) {
       return {
         provider: null,
-        email: email || '',
+        email: parsed.email,
         loginUrl: null,
-        error: {
-          type: 'INVALID_EMAIL',
-          message: 'Email address is required and must be a string'
-        }
+        error: parsed.error
       };
     }
 
-    // Basic email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return {
-        provider: null,
-        email,
-        loginUrl: null,
-        error: {
-          type: 'INVALID_EMAIL',
-          message: 'Invalid email format'
-        }
-      };
-    }
-
-    const domain = email.split('@')[1]?.toLowerCase();
-    if (!domain) {
-      return {
-        provider: null,
-        email,
-        loginUrl: null,
-        error: {
-          type: 'INVALID_EMAIL',
-          message: 'Invalid email format - missing domain'
-        }
-      };
-    }
+    const domain = parsed.domain;
+    const trimmedEmail = parsed.trimmedEmail;
 
     // First try standard domain matching (fast path)
-    const syncResult = getEmailProviderSync(email);
+    const syncResult = getEmailProviderSync(trimmedEmail);
     if (syncResult.provider) {
       return {
         ...syncResult,
@@ -574,7 +563,7 @@ export async function getEmailProviderFast(
     if (!result.success) {
       return {
         provider: null,
-        email,
+        email: trimmedEmail,
         loginUrl: null,
         error: {
           type: 'NETWORK_ERROR',
@@ -596,10 +585,10 @@ export async function getEmailProviderFast(
         total: number;
       };
       confidence?: number;
-      debug?: any;
+      debug?: unknown;
     } = {
       provider: concurrentResult.provider,
-      email,
+      email: trimmedEmail,
       loginUrl: concurrentResult.provider?.loginUrl || null,
       detectionMethod: concurrentResult.detectionMethod || 'mx_record',
       timing: concurrentResult.timing,
@@ -617,14 +606,14 @@ export async function getEmailProviderFast(
 
     return fastResult;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       provider: null,
       email,
       loginUrl: null,
       error: {
         type: 'NETWORK_ERROR',
-        message: error.message || 'DNS detection failed'
+        message: error instanceof Error ? error.message : 'DNS detection failed'
       }
     };
   }
