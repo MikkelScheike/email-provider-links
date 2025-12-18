@@ -12,8 +12,20 @@
  * 
  * @author Email Provider Links Team
  * @license MIT
- * @version 2.7.0
+ * @version See package.json
  */
+
+import { loadProviders } from './loader';
+import {
+  getEmailProvider,
+  getEmailProviderSync,
+  getEmailProviderFast,
+  normalizeEmail,
+  emailsMatch,
+  Config
+} from './api';
+import { detectProviderConcurrent } from './concurrent-dns';
+import { validateInternationalEmail, emailToPunycode, domainToPunycode } from './idn';
 
 // ===== PRIMARY API =====
 // Core functions that 95% of users need
@@ -25,7 +37,7 @@ export {
   normalizeEmail,
   emailsMatch,
   Config
-} from './api';
+};
 
 // ===== TYPES =====
 // TypeScript interfaces for better developer experience
@@ -38,9 +50,7 @@ export type {
 // ===== ADVANCED FEATURES =====
 // For power users and custom implementations
 
-export { loadProviders } from './loader';
-export { detectProviderConcurrent } from './concurrent-dns';
-export { validateInternationalEmail, emailToPunycode, domainToPunycode } from './idn';
+export { loadProviders, detectProviderConcurrent, validateInternationalEmail, emailToPunycode, domainToPunycode };
 
 // Advanced types
 export type {
@@ -124,18 +134,6 @@ export function validateEmailAddress(email: string): {
 
 // ===== UTILITY FUNCTIONS =====
 // Helper functions for common tasks
-
-import { loadProviders } from './loader';
-import { 
-  getEmailProvider,
-  getEmailProviderSync,
-  getEmailProviderFast,
-  normalizeEmail,
-  emailsMatch,
-  Config
-} from './api';
-import { detectProviderConcurrent } from './concurrent-dns';
-import { validateInternationalEmail } from './idn';
 
 /**
  * Get comprehensive list of all supported email providers
@@ -263,7 +261,7 @@ export function getLibraryStats() {
     return {
       providerCount: providers.length,
       domainCount,
-      version: '2.7.0',
+      version: VERSION,
       supportsAsync: true,
       supportsIDN: true,
       supportsAliasDetection: true,
@@ -273,7 +271,7 @@ export function getLibraryStats() {
     return {
       providerCount: 0,
       domainCount: 0,
-      version: '2.7.0',
+      version: VERSION,
       supportsAsync: true,
       supportsIDN: true,
       supportsAliasDetection: true,
@@ -400,8 +398,8 @@ export const isValidEmailAddress = isValidEmail;
 /**
  * Library metadata (legacy constants)
  */
-export const PROVIDER_COUNT = 130;
-export const DOMAIN_COUNT = 218;
+export const PROVIDER_COUNT = Config?.SUPPORTED_PROVIDERS_COUNT ?? 130;
+export const DOMAIN_COUNT = Config?.SUPPORTED_DOMAINS_COUNT ?? 218;
 
 /**
  * Default export for convenience
@@ -446,4 +444,13 @@ export default {
 /**
  * Version information
  */
-export const VERSION = '2.7.0';
+function readPackageVersion(): string {
+  try {
+    const pkg = require('../package.json') as { version?: string };
+    return pkg.version || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+
+export const VERSION = readPackageVersion();

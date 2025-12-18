@@ -4,14 +4,9 @@
  * Handles loading email provider data with performance optimizations.
  */
 
-import { readFileSync } from 'fs';
 import { join } from 'path';
-import {
-  Provider,
-  ProvidersData,
-  decompressTxtPattern
-} from './schema';
 import { EmailProvider } from './api';
+import { convertProviderToEmailProviderShared, readProvidersDataFile, buildDomainMapShared } from './provider-store';
 
 /**
  * Provider loader configuration
@@ -48,42 +43,6 @@ const DEFAULT_CONFIG: LoaderConfig = {
 };
 
 /**
- * Convert compressed provider to EmailProvider format
- */
-function convertProviderToEmailProvider(compressedProvider: Provider): EmailProvider {
-  if (!compressedProvider.type) {
-    console.warn(`Missing type for provider ${compressedProvider.id}`);
-  }
-  const provider: EmailProvider = {
-    companyProvider: compressedProvider.companyProvider,
-    loginUrl: compressedProvider.loginUrl || null,
-    domains: compressedProvider.domains || [],
-    type: compressedProvider.type,
-    alias: compressedProvider.alias
-  };
-
-  // Include DNS detection patterns for business email services and proxy services
-  const needsCustomDomainDetection = 
-    compressedProvider.type === 'custom_provider' || 
-    compressedProvider.type === 'proxy_service';
-
-  if (needsCustomDomainDetection && (compressedProvider.mx?.length || compressedProvider.txt?.length)) {
-    provider.customDomainDetection = {};
-    
-    if (compressedProvider.mx?.length) {
-      provider.customDomainDetection.mxPatterns = compressedProvider.mx;
-    }
-    
-    if (compressedProvider.txt?.length) {
-      // Decompress TXT patterns
-      provider.customDomainDetection.txtPatterns = compressedProvider.txt.map(decompressTxtPattern);
-    }
-  }
-
-  return provider;
-}
-
-/**
  * Internal provider data loader with configuration
  */
 function loadProvidersInternal(config: Partial<LoaderConfig> = {}): {
@@ -108,16 +67,8 @@ function loadProvidersInternal(config: Partial<LoaderConfig> = {}): {
 
     if (mergedConfig.debug) console.log('🔄 Loading provider data...');
     
-    const content = readFileSync(dataPath, 'utf8');
-    const data: ProvidersData = JSON.parse(content);
-    
-    // Validate format
-    if (!data.version || !data.providers || !Array.isArray(data.providers)) {
-      throw new Error('Invalid provider data format');
-    }
-    
-    const providers = data.providers.map(convertProviderToEmailProvider);
-    const fileSize = content.length;
+    const { data, fileSize } = readProvidersDataFile(dataPath);
+    const providers = data.providers.map(convertProviderToEmailProviderShared);
 
     if (mergedConfig.debug) {
       console.log(`✅ Loaded ${providers.length} providers`);
@@ -165,17 +116,8 @@ export function buildDomainMap(providers: EmailProvider[]): Map<string, EmailPro
     return cachedDomainMap;
   }
 
-  const domainMap = new Map<string, EmailProvider>();
-  
-  for (const provider of providers) {
-    for (const domain of provider.domains) {
-      domainMap.set(domain.toLowerCase(), provider);
-    }
-  }
-  
-  cachedDomainMap = domainMap;
-  
-  return domainMap;
+  cachedDomainMap = buildDomainMapShared(providers);
+  return cachedDomainMap;
 }
 
 /**

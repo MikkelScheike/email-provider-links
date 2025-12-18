@@ -9,6 +9,9 @@ import { createHash } from 'crypto';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+type ProvidersDataLike = Record<string, unknown>;
+type ProviderLike = { companyProvider?: string; loginUrl?: string | null };
+
 /**
  * Known good hashes for the providers database.
  * These should be updated whenever the legitimate data changes.
@@ -105,12 +108,22 @@ export function verifyProvidersIntegrity(
  * @returns Verification result
  */
 export function verifyProvidersDataIntegrity(
-  providersData: any,
+  providersData: unknown,
   expectedHash?: string
 ): HashVerificationResult {
   try {
+    if (providersData === null || typeof providersData !== 'object') {
+      return {
+        isValid: false,
+        actualHash: '',
+        reason: 'Invalid providers data format',
+        file: 'providersData'
+      };
+    }
+
     // Create deterministic JSON string (sorted keys)
-    const jsonString = JSON.stringify(providersData, Object.keys(providersData).sort(), 2);
+    const providersObject = providersData as ProvidersDataLike;
+    const jsonString = JSON.stringify(providersObject, Object.keys(providersObject).sort(), 2);
     const actualHash = calculateHash(jsonString);
     
     const expectedHashToUse = expectedHash || KNOWN_GOOD_HASHES['emailproviders.json'];
@@ -312,7 +325,7 @@ export function performSecurityAudit(providersFilePath?: string): {
  * @param providers - Array of email providers
  * @returns Signed manifest with URL hashes
  */
-export function createProviderManifest(providers: any[]): {
+export function createProviderManifest(providers: ProviderLike[]): {
   timestamp: string;
   providerCount: number;
   urlHashes: Record<string, string>;
@@ -322,7 +335,7 @@ export function createProviderManifest(providers: any[]): {
   
   for (const provider of providers) {
     if (provider.loginUrl) {
-      const key = `${provider.companyProvider}::${provider.loginUrl}`;
+      const key = `${provider.companyProvider ?? 'Unknown'}::${provider.loginUrl}`;
       urlHashes[key] = calculateHash(provider.loginUrl);
     }
   }

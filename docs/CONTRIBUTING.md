@@ -42,24 +42,20 @@ All new email providers must meet these security criteria:
    }
    ```
 
-3. **Update Security Allowlist**
-   Add the domain to `ALLOWED_DOMAINS` in `src/url-validator.ts`:
-   ```typescript
-   const ALLOWED_DOMAINS = [
-     // ... existing domains
-     'mail.provider.com',  // Add new domain
-   ];
-   ```
-
-4. **Update Security Hashes**
+3. **Update Security Hashes**
    ```bash
    npx tsx scripts/recalculate-hashes.ts
    # Copy the output to src/hash-verifier.ts
    ```
 
-5. **Run Security Tests**
+4. **Run Security Tests**
    ```bash
    npm test -- __tests__/security.test.ts
+   ```
+
+5. **Optional: Run Live DNS Verification**
+   ```bash
+   RUN_LIVE_DNS=1 npm test -- __tests__/provider-live-dns.test.ts
    ```
 
 6. **Create Pull Request**

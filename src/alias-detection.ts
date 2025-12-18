@@ -42,6 +42,9 @@
  * as per RFC 5321 standard, regardless of provider configuration.
  */
 
+import { loadProviders } from './loader';
+import { domainToPunycode } from './idn';
+
 export interface AliasDetectionResult {
   /** The normalized/canonical email address */
   canonical: string;
@@ -56,8 +59,6 @@ export interface AliasDetectionResult {
   /** The provider that supports this alias type */
   provider?: string;
 }
-
-import { loadProviders } from './loader';
 
 /**
  * Validates email format
@@ -93,15 +94,14 @@ function isValidEmail(email: string): boolean {
  * ```
  */
 export function detectEmailAlias(email: string): AliasDetectionResult {
-  if (!isValidEmail(email)) {
+  const originalEmail = email.trim();
+  if (!isValidEmail(originalEmail)) {
     throw new Error('Invalid email format');
   }
-
-  const originalEmail = email.trim();
   // Split normally, lowering case both for username and domain by default
   const emailParts = originalEmail.toLowerCase().split('@');
   const username = emailParts[0];
-  const domain = emailParts[1]; // domain is always case-insensitive per RFC 5321
+  const domain = domainToPunycode(emailParts[1] || ''); // domain is always case-insensitive per RFC 5321
   
   if (!username || !domain) {
     throw new Error('Invalid email format - missing username or domain');

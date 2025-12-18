@@ -5,21 +5,36 @@
  * malicious redirects and supply chain attacks.
  */
 
-import { loadProviders } from './loader';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { verifyProvidersIntegrity } from './hash-verifier';
+import type { ProvidersData } from './schema';
 
 /**
  * Get allowlisted domains from provider data
  * Only URLs from these domains will be considered safe.
  */
 function getAllowedDomains(): Set<string> {
-  const { providers } = loadProviders();
+  const filePath = join(__dirname, '..', 'providers', 'emailproviders.json');
+  const integrity = verifyProvidersIntegrity(filePath);
+  if (!integrity.isValid) {
+    return new Set<string>();
+  }
+
+  if (cachedAllowedDomains && cachedAllowlistHash === integrity.actualHash) {
+    return cachedAllowedDomains;
+  }
+
+  const fileContent = readFileSync(filePath, 'utf8');
+  const data: ProvidersData = JSON.parse(fileContent);
+  const providers = data.providers;
   const allowedDomains = new Set<string>();
 
   for (const provider of providers) {
     if (provider.loginUrl) {
       try {
         const url = new URL(provider.loginUrl);
-        allowedDomains.add(url.hostname);
+        allowedDomains.add(domainToPunycode(url.hostname.toLowerCase()));
       } catch {
         // Skip invalid URLs
         continue;
@@ -27,8 +42,13 @@ function getAllowedDomains(): Set<string> {
     }
   }
 
+  cachedAllowedDomains = allowedDomains;
+  cachedAllowlistHash = integrity.actualHash;
   return allowedDomains;
 }
+
+let cachedAllowedDomains: Set<string> | null = null;
+let cachedAllowlistHash: string | null = null;
 
 /**
  * Suspicious URL patterns that should always be rejected
@@ -58,6 +78,11 @@ const URL_SHORTENERS = [
 ];
 
 import { domainToPunycode } from './idn';
+
+type ProviderUrlLike = {
+  companyProvider?: string;
+  loginUrl?: string | null;
+};
 
 export interface URLValidationResult {
   isValid: boolean;
@@ -200,7 +225,7 @@ export function validateEmailProviderUrl(url: string): URLValidationResult {
  * @param providers - Array of email providers to validate
  * @returns Array of validation results
  */
-export function validateAllProviderUrls(providers: any[]): Array<{
+export function validateAllProviderUrls(providers: ProviderUrlLike[]): Array<{
   provider: string;
   url: string;
   validation: URLValidationResult;
@@ -230,7 +255,7 @@ export function validateAllProviderUrls(providers: any[]): Array<{
  * @param providers - Array of email providers to audit
  * @returns Security audit report
  */
-export function auditProviderSecurity(providers: any[]) {
+export function auditProviderSecurity(providers: ProviderUrlLike[]) {
   const validations = validateAllProviderUrls(providers);
   const invalid = validations.filter(v => !v.validation.isValid);
   const valid = validations.filter(v => v.validation.isValid);

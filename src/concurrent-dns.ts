@@ -13,6 +13,9 @@ import { EmailProvider } from './api';
 const resolveMxAsync = promisify(resolveMx);
 const resolveTxtAsync = promisify(resolveTxt);
 
+type MXRecordLike = { exchange?: string };
+type TXTRecordLike = string;
+
 /**
  * Configuration for concurrent DNS detection
  */
@@ -38,13 +41,13 @@ export interface DNSQueryResult {
   /** Whether the query succeeded */
   success: boolean;
   /** DNS records returned (if successful) */
-  records?: any[];
+  records?: MXRecordLike[] | TXTRecordLike[];
   /** Error information (if failed) */
   error?: Error;
   /** Query execution time in milliseconds */
   timing: number;
   /** Raw DNS response for debugging */
-  rawResponse?: any;
+  rawResponse?: unknown;
 }
 
 /**
@@ -101,7 +104,7 @@ const DEFAULT_CONFIG: ConcurrentDNSConfig = {
  */
 export class ConcurrentDNSDetector {
   // Store active query states
-  private activeQueries: Set<{ promise: Promise<any>, reject: (error: Error) => void }> = new Set();
+  private activeQueries: Set<{ promise: Promise<unknown>, reject: (error: Error) => void }> = new Set();
 
   // Cleanup method for tests
   cleanup() {
@@ -323,7 +326,10 @@ export class ConcurrentDNSDetector {
     const startTime = Date.now();
     
     try {
-      const records = await this.withTimeout(() => resolveMxAsync(domain), this.config.timeout);
+      const records = await this.withTimeout(
+        () => resolveMxAsync(domain) as unknown as Promise<MXRecordLike[]>,
+        this.config.timeout
+      );
       
       return {
         type: 'mx',
@@ -349,7 +355,10 @@ export class ConcurrentDNSDetector {
     const startTime = Date.now();
     
     try {
-      const records = await this.withTimeout(() => resolveTxtAsync(domain), this.config.timeout);
+      const records = await this.withTimeout(
+        () => resolveTxtAsync(domain) as unknown as Promise<string[][]>,
+        this.config.timeout
+      );
       const flatRecords = records.flat();
       
       return {
@@ -401,7 +410,8 @@ export class ConcurrentDNSDetector {
 
     if (query.type === 'mx' && detection.mxPatterns) {
       for (const record of query.records) {
-        const exchange = record.exchange?.toLowerCase() || '';
+        if (typeof record !== 'object' || record === null) continue;
+        const exchange = (record as MXRecordLike).exchange?.toLowerCase() || '';
         
         for (const pattern of detection.mxPatterns) {
           if (exchange.includes(pattern.toLowerCase())) {
@@ -412,6 +422,7 @@ export class ConcurrentDNSDetector {
       }
     } else if (query.type === 'txt' && detection.txtPatterns) {
       for (const record of query.records) {
+        if (typeof record !== 'string') continue;
         const txtRecord = record.toLowerCase();
         
         for (const pattern of detection.txtPatterns) {
@@ -479,7 +490,8 @@ export class ConcurrentDNSDetector {
     if (!mxQuery?.records) return null;
 
     for (const record of mxQuery.records) {
-      const exchange = record.exchange?.toLowerCase() || '';
+      if (typeof record !== 'object' || record === null) continue;
+      const exchange = (record as MXRecordLike).exchange?.toLowerCase() || '';
       for (const provider of this.providers) {
         if (provider.type === 'proxy_service' && provider.customDomainDetection?.mxPatterns) {
           for (const pattern of provider.customDomainDetection.mxPatterns) {
@@ -522,10 +534,12 @@ export class ConcurrentDNSDetector {
     }
 
     let rejectFn: ((error: Error) => void) | undefined;
+    let queryEntry: { promise: Promise<unknown>; reject: (error: Error) => void } | undefined;
 
     const wrappedPromise = new Promise<T>((resolve, reject) => {
       rejectFn = reject;
-      const timeout = setTimeout(() => reject(new Error(`DNS query timeout after ${ms}ms`)), ms).unref();
+      const timeout = setTimeout(() => reject(new Error(`DNS query timeout after ${ms}ms`)), ms);
+      (timeout as unknown as { unref?: () => void }).unref?.();
 
       // Start the underlying operation only after setting up the timeout
       fn()
@@ -534,7 +548,6 @@ export class ConcurrentDNSDetector {
         .finally(() => {
           clearTimeout(timeout);
           // Clean up active query
-          const queryEntry = Array.from(this.activeQueries).find(entry => entry.promise === wrappedPromise);
           if (queryEntry) {
             this.activeQueries.delete(queryEntry);
           }
@@ -543,7 +556,7 @@ export class ConcurrentDNSDetector {
 
     // Track active query for potential cleanup in tests
     if (rejectFn) {
-      const queryEntry = { promise: wrappedPromise, reject: rejectFn };
+      queryEntry = { promise: wrappedPromise, reject: rejectFn };
       this.activeQueries.add(queryEntry);
     }
     return wrappedPromise;

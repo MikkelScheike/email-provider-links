@@ -103,8 +103,8 @@ describe('Edge Cases - Input Validation', () => {
         { email: '@domain.com', shouldBeInvalid: true },
         { email: 'user@@domain.com', shouldBeInvalid: true },
         { email: 'user@domain', shouldBeInvalid: true }, // No TLD, so invalid format
-        { email: 'user@.domain.com', shouldBeInvalid: false }, // Passes regex, treated as unknown domain
-        { email: 'user@domain..com', shouldBeInvalid: false } // Passes regex, treated as unknown domain
+        { email: 'user@.domain.com', shouldBeInvalid: true },
+        { email: 'user@domain..com', shouldBeInvalid: true }
       ];
 
       testCases.forEach(({ email, shouldBeInvalid }) => {
