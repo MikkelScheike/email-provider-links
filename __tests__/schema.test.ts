@@ -117,7 +117,7 @@ describe('Provider Types', () => {
       console.log('Provider types:', typeMap);
     }
     it('should have all required provider types in emailproviders.json', () => {
-      const { loadProviders } = require('../src/loader');
+      const { loadProviders } = require('../src/provider-loader');
       const { providers } = loadProviders();
       logProviderTypes(providers);  // Debug log
 
@@ -145,7 +145,7 @@ describe('Provider Types', () => {
     });
 
     it('should have valid provider configurations for each type', () => {
-      const { loadProviders } = require('../src/loader');
+      const { loadProviders } = require('../src/provider-loader');
       const { providers } = loadProviders();
 
       // Check public providers

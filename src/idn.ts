@@ -220,11 +220,21 @@ export function validateInternationalEmail(email: string): {
   // Check domain format (including IDN domains)
   try {
     // Check for lone surrogates and control characters
-    if (/[\uD800-\uDFFF]/.test(domain)) {
+    if (/[\uD800-\uDFFF]/.test(domain) || /[\u0000-\u001F\u007F]/.test(domain)) {
       return {
         type: 'IDN_VALIDATION_ERROR',
         code: IDNValidationError.INVALID_ENCODING,
         message: 'The domain contains invalid characters or encoding'
+      };
+    }
+
+    // Disallow symbols and punctuation that cannot appear in DNS labels.
+    // Allow letters/numbers/marks for IDN, plus dot separators and hyphens.
+    if (/[^\p{L}\p{M}\p{N}.\-]/u.test(domain)) {
+      return {
+        type: 'IDN_VALIDATION_ERROR',
+        code: IDNValidationError.DOMAIN_INVALID_FORMAT,
+        message: 'The domain format is invalid'
       };
     }
 

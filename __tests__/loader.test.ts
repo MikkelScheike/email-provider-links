@@ -10,7 +10,7 @@ import {
   buildDomainMap,
   clearCache,
   getLoadingStats
-} from '../src/loader';
+} from '../src/provider-loader';
 
 describe('Provider Data Loader Tests', () => {
   beforeEach(() => {

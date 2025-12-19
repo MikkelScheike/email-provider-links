@@ -285,7 +285,7 @@ describe('Provider conversion edge cases', () => {
 
     it('should include customDomainDetection for business-only providers', async () => {
       // Load providers directly to check one we know is business-only
-      const { loadProviders } = require('../src/loader');
+      const { loadProviders } = require('../src/provider-loader');
       const { providers } = loadProviders();
       const businessProvider = providers.find(p => 
         !p.domains?.length && // No direct domains

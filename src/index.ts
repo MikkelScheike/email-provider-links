@@ -15,7 +15,8 @@
  * @version See package.json
  */
 
-import { loadProviders } from './loader';
+import { loadProviders } from './provider-loader';
+import { detectEmailAlias } from './alias-detection';
 import {
   getEmailProvider,
   getEmailProviderSync,
@@ -36,6 +37,7 @@ export {
   getEmailProviderFast,
   normalizeEmail,
   emailsMatch,
+  detectEmailAlias,
   Config
 };
 
@@ -47,8 +49,19 @@ export type {
   EmailProviderResult
 } from './api';
 
+export type {
+  AliasDetectionResult
+} from './alias-detection';
+
 // ===== ADVANCED FEATURES =====
 // For power users and custom implementations
+
+// Runtime validation of provider loading
+const loadResult = loadProviders();
+if (!loadResult.success) {
+  // Use console.warn instead of throwing to avoid breaking apps in production
+  console.warn('Security warning: Provider loading had issues:', loadResult.securityReport);
+}
 
 export { loadProviders, detectProviderConcurrent, validateInternationalEmail, emailToPunycode, domainToPunycode };
 
