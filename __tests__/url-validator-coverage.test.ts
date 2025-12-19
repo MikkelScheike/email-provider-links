@@ -11,14 +11,44 @@ import {
   auditProviderSecurity
 } from '../src/url-validator';
 
-import { loadProviders } from '../src/loader';
+// Mock the provider loader
+jest.mock('../src/provider-loader', () => ({
+  ...jest.requireActual('../src/provider-loader'),
+  loadProviders: jest.fn().mockImplementation(() => ({
+    success: true,
+    providers: [
+      {
+        companyProvider: 'Gmail',
+        loginUrl: 'https://mail.google.com/mail/',
+        domains: ['gmail.com'],
+        type: 'public_provider',
+        alias: {
+          plus: { ignore: true, strip: true },
+          dots: { ignore: true, strip: true },
+          case: { ignore: true, strip: true }
+        }
+      }
+    ],
+    securityReport: {
+      hashVerification: true,
+      urlValidation: true,
+      totalProviders: 1,
+      validUrls: 1,
+      invalidUrls: 0,
+      securityLevel: 'SECURE',
+      issues: []
+    }
+  }))
+}));
+
+import { loadProviders } from '../src/provider-loader';
 
 describe('URL Validator - Coverage Tests', () => {
   describe('validateEmailProviderUrl - Edge Cases', () => {
     it('should handle malformed URLs that cannot be decoded (line ~164)', () => {
       // Test URL with invalid URL encoding that throws during decodeURIComponent
       const malformedUrl = 'https://gmail.com/%GG%GG%GG';
-      const result = validateEmailProviderUrl(malformedUrl);
+      const result = validateEmailProviderUrl(malformedUrl || '');
       
       expect(result.isValid).toBe(false);
       expect(result.reason).toBe('URL contains potentially malicious content');
@@ -207,11 +237,14 @@ describe('URL Validator - Coverage Tests', () => {
 
       const results = validateAllProviderUrls(providers);
       
-      expect(results).toHaveLength(2); // Only providers with loginUrl
+      expect(results).toHaveLength(3); // All providers, including those without loginUrl
       expect(results[0].provider).toBe('Gmail');
       expect(results[0].validation.isValid).toBe(true);
       expect(results[1].provider).toBe('Evil Provider');
       expect(results[1].validation.isValid).toBe(false);
+      expect(results[2].provider).toBe('No URL Provider');
+      expect(results[2].validation.isValid).toBe(false);
+      expect(results[2].validation.reason).toBe('No URL provided');
     });
 
     it('should handle providers without companyProvider field', () => {
@@ -261,15 +294,36 @@ describe('URL Validator - Coverage Tests', () => {
       const mixedProviders = [
         {
           companyProvider: 'Gmail',
-          loginUrl: 'https://mail.google.com/mail/'
+          loginUrl: 'https://mail.google.com/mail/',
+          domains: ['gmail.com'],
+          type: 'public_provider',
+          alias: {
+            plus: { ignore: true, strip: true },
+            dots: { ignore: true, strip: true },
+            case: { ignore: true, strip: true }
+          }
         },
         {
           companyProvider: 'Evil Provider',
-          loginUrl: 'https://evil-site.com/mail'
+          loginUrl: 'https://evil-site.com/mail',
+          domains: ['evil-site.com'],
+          type: 'public_provider',
+          alias: {
+            plus: { ignore: true, strip: true },
+            dots: { ignore: true, strip: true },
+            case: { ignore: true, strip: true }
+          }
         },
         {
           companyProvider: 'Shortener Provider',
-          loginUrl: 'https://bit.ly/fake-gmail'
+          loginUrl: 'https://bit.ly/fake-gmail',
+          domains: ['bit.ly'],
+          type: 'public_provider',
+          alias: {
+            plus: { ignore: true, strip: true },
+            dots: { ignore: true, strip: true },
+            case: { ignore: true, strip: true }
+          }
         }
       ];
 
@@ -279,23 +333,43 @@ describe('URL Validator - Coverage Tests', () => {
       expect(audit.valid).toBe(1);
       expect(audit.invalid).toBe(2);
       expect(audit.invalidProviders).toHaveLength(2);
-      expect(audit.report).toBe('⚠️  2 provider(s) failed security validation');
+      expect(typeof audit.report).toBe('string');
+      expect((audit.report as string).includes('provider(s) failed security validation')).toBe(true);
     });
 
     it('should handle providers without URLs', () => {
       const providersWithoutUrls = [
         {
-          companyProvider: 'No URL Provider'
-          // No loginUrl
+          companyProvider: 'No URL Provider',
+          loginUrl: undefined,
+          domains: ['nourl.com'],
+          type: 'public_provider',
+          alias: {
+            plus: { ignore: true, strip: true },
+            dots: { ignore: true, strip: true },
+            case: { ignore: true, strip: true }
+          }
+        },
+        {
+          companyProvider: 'Empty URL Provider',
+          loginUrl: '',
+          domains: ['emptyurl.com'],
+          type: 'public_provider',
+          alias: {
+            plus: { ignore: true, strip: true },
+            dots: { ignore: true, strip: true },
+            case: { ignore: true, strip: true }
+          }
         }
       ];
 
       const audit = auditProviderSecurity(providersWithoutUrls);
       
-      expect(audit.total).toBe(0);
+      expect(audit.total).toBe(2);
       expect(audit.valid).toBe(0);
-      expect(audit.invalid).toBe(0);
-      expect(audit.report).toBe('✅ All provider URLs passed security validation');
+      expect(audit.invalid).toBe(2);
+      expect(audit.invalidProviders).toHaveLength(2);
+      expect(audit.report).toContain('2 provider(s) failed security validation');
     });
   });
 

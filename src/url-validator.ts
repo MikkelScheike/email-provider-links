@@ -243,6 +243,16 @@ export function validateAllProviderUrls(providers: ProviderUrlLike[]): Array<{
         url: provider.loginUrl,
         validation: validateEmailProviderUrl(provider.loginUrl)
       });
+    } else {
+      // Providers without URLs are considered invalid
+      results.push({
+        provider: provider.companyProvider || 'Unknown',
+        url: provider.loginUrl || '',
+        validation: {
+          isValid: false,
+          reason: provider.loginUrl === '' ? 'Empty URL provided' : 'No URL provided'
+        }
+      });
     }
   }
 
