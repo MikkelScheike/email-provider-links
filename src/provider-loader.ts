@@ -285,6 +285,15 @@ export function loadProvidersDebug() {
     fileSize: 0 // Would need to track this during load
   };
   
+  // Debug output
+  console.log('=== Provider Loading Debug ===');
+  console.log(`Providers loaded: ${result.providers.length}`);
+  console.log(`Security level: ${result.securityReport.securityLevel}`);
+  console.log(`Load time: ${loadingStats.loadTime.toFixed(2)}ms`);
+  console.log(`Domain map time: ${loadingStats.domainMapTime.toFixed(2)}ms`);
+  console.log(`Total domains: ${loadingStats.domainCount}`);
+  console.log('=============================');
+  
   // Return enhanced result with debug info - ensure new objects each time
   return {
     ...result,

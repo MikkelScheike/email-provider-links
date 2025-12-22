@@ -228,6 +228,16 @@ export function normalizeEmail(email: string): string {
     return email as any; // Preserve null/undefined for edge case tests
   }
 
+  // Check for empty string
+  if (email.trim() === '') {
+    throw new Error('Invalid email format: empty string');
+  }
+
+  // Basic email validation
+  if (!isValidEmail(email)) {
+    throw new Error('Invalid email format');
+  }
+
   try {
     const result = detectEmailAlias(email);
     return result.canonical;
@@ -253,6 +263,21 @@ export function normalizeEmail(email: string): string {
  * ```
  */
 export function emailsMatch(email1: string, email2: string): boolean {
+  // Handle null/undefined inputs first
+  if (email1 == null || email2 == null) {
+    return false;
+  }
+  
+  // Handle non-string inputs
+  if (typeof email1 !== 'string' || typeof email2 !== 'string') {
+    return false;
+  }
+  
+  // Handle empty strings specifically
+  if (email1.trim() === '' || email2.trim() === '') {
+    return false;
+  }
+  
   try {
     return normalizeEmail(email1) === normalizeEmail(email2);
   } catch {

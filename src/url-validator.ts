@@ -14,7 +14,7 @@ import type { ProvidersData } from './schema';
  * Get allowlisted domains from provider data
  * Only URLs from these domains will be considered safe.
  */
-function getAllowedDomains(): Set<string> {
+export function getAllowedDomains(): Set<string> {
   const filePath = join(__dirname, '..', 'providers', 'emailproviders.json');
   const integrity = verifyProvidersIntegrity(filePath);
   if (!integrity.isValid) {

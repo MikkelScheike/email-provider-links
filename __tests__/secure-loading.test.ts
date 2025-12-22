@@ -2,6 +2,15 @@ import { loadProviders, clearCache } from '../src/provider-loader';
 import { readFileSync, writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 
+// Mock getAllowedDomains to allow provider URLs
+jest.mock('../src/url-validator', () => {
+  const actual = jest.requireActual('../src/url-validator');
+  return {
+    ...actual,
+    getAllowedDomains: jest.fn(() => new Set(['mail.google.com', 'gmail.com', 'tutanota.com', 'fastmail.com', 'outlook.com', 'yahoo.com', 'protonmail.com', 'icloud.com']))
+  };
+});
+
 describe('Secure Provider Loading', () => {
   const originalProvidersPath = join(__dirname, '../providers/emailproviders.json');
   const tempFilePath = join(__dirname, 'temp-providers.json');
