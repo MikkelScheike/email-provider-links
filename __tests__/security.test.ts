@@ -641,6 +641,9 @@ test('should pass valid providers through middleware', (done) => {
     });
     
     test('should handle providers without loginUrl in filtering', () => {
+      // Clear cache to ensure fresh load
+      clearCache();
+      
       const testPath = join(__dirname, 'test-no-login-url.json');
       const testData = {
         version: '1.0.0',
