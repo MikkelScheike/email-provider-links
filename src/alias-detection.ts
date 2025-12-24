@@ -62,27 +62,53 @@ export interface AliasDetectionResult {
 
 /**
  * Validates email format
+ * 
+ * Security: Uses length validation and safer regex patterns to prevent ReDoS attacks.
+ * The regex pattern is designed to avoid catastrophic backtracking by:
+ * 1. Limiting input length before regex processing
+ * 2. Using bounded quantifiers instead of unbounded ones
+ * 3. Validating structure with string operations before regex
  */
 function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Prevent ReDoS: limit email length (RFC 5321 max is 254 chars for local+domain)
+  // Reject extremely long inputs before regex processing to prevent ReDoS attacks
+  if (!email || email.length > 254) {
+    return false;
+  }
+
+  // Quick structural validation using string operations (faster and safer than regex)
+  const atIndex = email.lastIndexOf('@');
+  if (atIndex === -1 || atIndex === 0 || atIndex === email.length - 1) {
+    return false;
+  }
+
+  const localPart = email.slice(0, atIndex);
+  const domain = email.slice(atIndex + 1);
+  
+  // Validate lengths (RFC 5321 limits)
+  if (localPart.length === 0 || localPart.length > 64 || domain.length === 0 || domain.length > 253) {
+    return false;
+  }
+
+  // Check for at least one dot in domain (required for TLD)
+  if (!domain.includes('.')) {
+    return false;
+  }
+
+  // Use safer regex pattern with bounded quantifiers to prevent ReDoS
+  // Pattern: local part (1-64 chars, no whitespace/@), @, domain with dot (1-253 chars, no whitespace/@)
+  // The bounded quantifiers {1,64} and {1,253} prevent catastrophic backtracking
+  const emailRegex = /^[^\s@]{1,64}@[^\s@]{1,253}$/;
   if (!emailRegex.test(email)) {
     return false;
   }
 
-  const atIndex = email.lastIndexOf('@');
-  if (atIndex === -1) {
-    return false;
-  }
-
-  const domain = email.slice(atIndex + 1);
-  if (!domain) {
-    return false;
-  }
-
+  // Check for invalid characters (surrogates and control chars)
   if (/[\uD800-\uDFFF]/.test(domain) || /[\u0000-\u001F\u007F]/.test(domain)) {
     return false;
   }
 
+  // Validate domain characters (Unicode letters, marks, numbers, dots, hyphens)
   if (/[^\p{L}\p{M}\p{N}.\-]/u.test(domain)) {
     return false;
   }
