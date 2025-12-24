@@ -10,19 +10,6 @@ A robust TypeScript library providing direct links to **130 email providers** (2
 
 **[Live Demo](https://demo.mikkelscheike.com)** - Test the library with any email address and see it in action!
 
-## ✨ New in Version 4.0.0
-
-**Major Performance & Security Release** - Full backward compatibility maintained
-
-- 🚀 **Performance Revolution**: Achieved 100,000+ operations/second throughput with sub-millisecond response times
-- ⚡ **Lightning Performance**: Domain lookups in ~0.07ms, cached access in ~0.003ms
-- 🛡️ **Zero-Trust Architecture**: Runtime data validation with cryptographic integrity verification
-- 🔒 **Enhanced Security**: SHA-256 hash verification and supply chain protection
-- 🎯 **Rigorous Testing**: 431 comprehensive tests with enhanced performance validation
-- 📊 **Extreme Optimization**: 99.9% cache hit rate and ultra-low memory footprint
-- 🧪 **Quality Assurance**: 94.65% code coverage with stress testing under enterprise loads
-- 🔄 **Seamless Upgrade**: All existing APIs remain fully compatible
-
 ## ✨ Core Features
 
 - 🚀 **Fast & Lightweight**: Zero dependencies, ultra-low memory (0.10MB initial, 0.00004MB per 1000 ops), small footprint (~39.5KB compressed)
@@ -67,34 +54,33 @@ Fully compatible with the latest Node.js 24.x and 25.x! The library is tested on
 
 ## Supported Providers
 
-**📊 Current Coverage: 130 providers supporting 218 domains**
+**130 providers supporting 218 domains** including:
 
-**Consumer Email Providers:**
-- **Gmail** (2 domains): gmail.com, googlemail.com
-- **Microsoft Outlook** (15 domains): outlook.com, hotmail.com, live.com, msn.com, and 11 more
-- **Yahoo Mail** (19 domains): yahoo.com, yahoo.co.uk, yahoo.fr, ymail.com, rocketmail.com, and 14 more
-- **ProtonMail** (4 domains): proton.me, protonmail.com, protonmail.ch, pm.me
-- **iCloud Mail** (3 domains): icloud.com, me.com, mac.com
-- **Tutanota** (6 domains): tutanota.com, tutanota.de, tutamail.com, tuta.io, keemail.me, tuta.com
-- **SimpleLogin** (10 domains): simplelogin.io, 8alias.com, aleeas.com, slmail.me, and 6 more
-- **FastMail, Zoho Mail, AOL Mail, GMX, Web.de, Mail.ru, QQ Mail, NetEase, Yandex**, and many more
+- **Major Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, Tutanota
+- **Business Email**: Microsoft 365, Google Workspace, Amazon WorkMail (via DNS detection)
+- **International**: GMX, Web.de, QQ Mail, Yandex, Naver, and 100+ more
+- **Privacy-focused**: ProtonMail, Tutanota, Hushmail, SimpleLogin, AnonAddy
 
-**Business Email (via DNS detection):**
-- **Microsoft 365** (Business domains via MX/TXT records)
-- **Google Workspace** (Custom domains via DNS patterns)
-- **Amazon WorkMail** (AWS email infrastructure via awsapps.com patterns)
-- **Zoho Workplace, FastMail Business, GoDaddy Email, Bluehost Email**
-- **ProtonMail Business, Rackspace Email, IONOS**, and others
+See the full provider list in the [Advanced Usage](#advanced-usage) section.
 
-**Security & Privacy Focused:**
-- **ProtonMail, Tutanota, Hushmail, CounterMail, Posteo**
-- **Mailfence, SimpleLogin, AnonAddy**
+## Quick Start
 
-**International Providers:**
-- **Europe**: GMX, Web.de, Orange, Free.fr, T-Online, Libero, Virgilio, Telekom, Tiscali, Skynet, Telenet, Xs4All, Planet.nl, Bluewin, Eircom
-- **Asia**: QQ Mail, NetEase, Sina Mail, Alibaba Mail, Rakuten, Nifty, **Naver** (Korea), **Daum** (Korea), **Biglobe** (Japan), Sify, IndiatTimes (India)
-- **Eastern Europe**: Centrum (Czech/Slovak), Interia, Onet (Poland), Rambler (Russia)
-- **Other Regions**: UOL, Terra (Brazil), Telkom (South Africa), Xtra (New Zealand)
+```typescript
+import { getEmailProvider } from '@mikkelscheike/email-provider-links';
+
+// Get provider info for any email
+const result = await getEmailProvider('user@gmail.com');
+console.log(result.provider?.loginUrl); // "https://mail.google.com/mail/"
+
+// Works with business domains too (via DNS lookup)
+const business = await getEmailProvider('user@company.com');
+console.log(business.provider?.companyProvider); // "Google Workspace" or "Microsoft 365"
+```
+
+**Key Features:**
+- ✨ **Automatic Email Normalization**: Emails are normalized using provider-specific rules (e.g., `user+tag@gmail.com` → `user@gmail.com`)
+- 📦 **Simplified Response (Default)**: Returns only essential fields. Use `{ extended: true }` for full provider details
+- 🚀 **Fast**: Known providers detected instantly, business domains via concurrent DNS lookups
 
 ## API Reference
 
@@ -102,10 +88,6 @@ Fully compatible with the latest Node.js 24.x and 25.x! The library is tested on
 
 #### `getEmailProvider(email, options?)`
 **Recommended** - Complete provider detection with business domain support.
-
-**✨ Automatic Email Normalization**: The returned `email` field is automatically normalized using provider-specific alias rules. For example, `user+tag@gmail.com` returns `user@gmail.com` in the result.
-
-**📦 Simplified Response (Default)**: By default, returns only essential fields for frontend use. Use `{ extended: true }` to get full provider details including domains array and alias configuration.
 
 Error notes:
 - `INVALID_EMAIL` is returned for common malformed inputs (e.g. missing `@`, missing TLD).
@@ -153,11 +135,7 @@ const result3 = await getEmailProvider('user@company.com', { timeout: 2000 });
 ```
 
 #### `getEmailProviderSync(email, options?)`
-**Fast** - Instant checks for known providers (no DNS lookup).
-
-**✨ Automatic Email Normalization**: The returned `email` field is automatically normalized using provider-specific alias rules.
-
-**📦 Simplified Response (Default)**: By default, returns only essential fields. Use `{ extended: true }` to get full provider details.
+**Fast** - Instant checks for known providers (no DNS lookup). Synchronous version for when you can't use async.
 
 ```typescript
 // Default: Simplified response
@@ -181,29 +159,59 @@ const extended = getEmailProviderSync('user@gmail.com', { extended: true });
 // Returns full provider object with domains array and alias configuration
 ```
 
-### Email Alias Support
-
-The library handles provider-specific email alias rules:
+#### `getEmailProviderFast(email, options?)`
+**Performance-focused** - Enhanced provider detection with performance metrics (`timing`, `confidence`, `debug`) for monitoring and debugging.
 
 ```typescript
-// Gmail ignores dots and plus addressing
-emailsMatch('user.name+work@gmail.com', 'username@gmail.com') // true
+// Default: Simplified response with performance metrics
+const result = await getEmailProviderFast('user@gmail.com');
+// Returns: {
+//   provider: { companyProvider: "Gmail", loginUrl: "https://mail.google.com/mail/", type: "public_provider" },
+//   email: "user@gmail.com",
+//   detectionMethod: "domain_match",
+//   timing: { mx: 0, txt: 0, total: 0 },  // DNS query timings (0ms for known providers)
+//   confidence: 1.0                        // Confidence score (0-1)
+// }
 
-// Outlook preserves dots but ignores plus addressing
-emailsMatch('user.name+work@outlook.com', 'username@outlook.com') // false
+// Extended response with performance metrics
+const extended = await getEmailProviderFast('user@gmail.com', { extended: true });
+// Returns full provider object (domains, alias config, etc.) plus timing and confidence
 
-// Normalize emails to canonical form
-const canonical = normalizeEmail('u.s.e.r+tag@gmail.com');
-console.log(canonical); // 'user@gmail.com'
+// Business domain with debug info enabled
+const business = await getEmailProviderFast('user@company.com', {
+  timeout: 2000,
+  enableParallel: true,
+  collectDebugInfo: true,
+  extended: true
+});
+// Returns: {
+//   provider: { ...full provider details... },
+//   email: "user@company.com",
+//   detectionMethod: "mx_record",
+//   timing: { mx: 120, txt: 95, total: 125 },  // Actual DNS query times
+//   confidence: 0.95,                          // Confidence based on DNS match quality
+//   debug: {                                    // Detailed DNS query information
+//     mxMatches: ["aspmx.l.google.com"],
+//     txtMatches: [],
+//     queries: [...],
+//     fallbackUsed: false
+//   }
+// }
 ```
 
-**Provider Rules Overview**:
-- **Gmail**: Ignores dots, supports plus addressing
-- **Outlook**: Preserves dots, supports plus addressing
-- **Yahoo**: Preserves dots, supports plus addressing
-- **ProtonMail**: Preserves dots, supports plus addressing
-- **FastMail**: Preserves dots, supports plus addressing
-- **AOL**: Preserves everything except case
+**Options:**
+- `timeout?: number` - DNS query timeout in milliseconds (default: 5000)
+- `enableParallel?: boolean` - Enable parallel MX/TXT lookups for faster detection (default: true)
+- `collectDebugInfo?: boolean` - Include detailed debug information in result (default: false)
+- `extended?: boolean` - Return full provider details including domains and alias configuration (default: false)
+
+**When to use `getEmailProviderFast`:**
+- You need performance metrics (timing, confidence) for monitoring
+- You're debugging DNS detection issues
+- You want fine-grained control over DNS query behavior
+- You're building performance dashboards or analytics
+
+**Note**: For most use cases, `getEmailProvider()` is sufficient. Use `getEmailProviderFast()` when you specifically need the performance metrics or debugging capabilities.
 
 ## Real-World Example
 
@@ -242,48 +250,6 @@ async function analyzeEmailProvider(email: string) {
 }
 ```
 
-## Response Formats
-
-### Simplified Response (Default)
-The default response includes only essential fields needed by most applications:
-
-```typescript
-{
-  provider: {
-    companyProvider: "Gmail",           // Provider name
-    loginUrl: "https://mail.google.com/mail/",  // Login URL (access via provider.loginUrl)
-    type: "public_provider"              // Provider type
-  },
-  email: "user@gmail.com",             // Normalized email
-  detectionMethod: "domain_match"       // How provider was detected
-}
-```
-
-### Extended Response
-Use `{ extended: true }` to get full provider details including internal metadata:
-
-```typescript
-{
-  provider: {
-    companyProvider: "Gmail",
-    loginUrl: "https://mail.google.com/mail/",
-    domains: ["gmail.com", "googlemail.com"],  // All domains for this provider
-    alias: {                                   // Alias handling configuration
-      dots: { ignore: true, strip: false },
-      plus: { ignore: true, strip: true },
-      case: { ignore: true, strip: true }
-    },
-    type: "public_provider",
-    customDomainDetection: { ... }             // DNS detection patterns
-  },
-  email: "user@gmail.com",
-  loginUrl: "https://mail.google.com/mail/",
-  detectionMethod: "domain_match"
-}
-```
-
-**When to use Extended**: Only use `{ extended: true }` if you need access to the `domains` array or `alias` configuration for custom email processing logic. For most frontend use cases, the default simplified response is sufficient and more efficient.
-
 ## Configuration
 
 ```typescript
@@ -318,35 +284,24 @@ console.log(`Total providers: ${providers.length}`);
 
 ### Email Alias Detection & Normalization
 
-**✨ Note**: `getEmailProvider()`, `getEmailProviderSync()`, and `getEmailProviderFast()` automatically normalize emails in their results and return simplified responses by default (only essential fields). Use `{ extended: true }` to get full provider details. You can use `normalizeEmail()` directly when you only need normalization without provider detection.
+The library automatically normalizes emails using provider-specific rules. For example, `user+tag@gmail.com` becomes `user@gmail.com` because Gmail ignores plus addressing.
 
 ```typescript
-import { 
-  getEmailProvider,
-  normalizeEmail, 
-  emailsMatch 
-} from '@mikkelscheike/email-provider-links';
+import { normalizeEmail, emailsMatch } from '@mikkelscheike/email-provider-links';
 
-// Option 1: Use getEmailProvider for automatic normalization + provider detection
-async function registerUser(email: string) {
-  const result = await getEmailProvider(email);
-  const canonical = result.email; // Already normalized (e.g., 'user@gmail.com' from 'user+tag@gmail.com')
-  const existingUser = await findUserByEmail(canonical);
-  
-  if (existingUser) {
-    throw new Error('Email already registered');
-  }
-  
-  await createUser({ email: canonical });
-}
-
-// Option 2: Use normalizeEmail directly when you only need normalization
+// Normalize emails to canonical form
 const canonical = normalizeEmail('u.s.e.r+work@gmail.com');
-console.log(canonical);  // 'user@gmail.com'
+console.log(canonical); // 'user@gmail.com'
 
-// Check if login email matches registration
-const match = emailsMatch('user@gmail.com', 'u.s.e.r+work@gmail.com');
-console.log(match); // true - same person
+// Check if two emails are the same (accounting for aliases)
+emailsMatch('user.name@gmail.com', 'username@gmail.com'); // true (Gmail ignores dots)
+emailsMatch('user.name@outlook.com', 'username@outlook.com'); // false (Outlook preserves dots)
+
+// Provider-specific rules:
+// - Gmail: Ignores dots and plus addressing
+// - Outlook: Preserves dots, ignores plus addressing
+// - Yahoo: Preserves dots, ignores plus addressing
+// - Most others: Preserve everything except case
 ```
 
 ### Provider Support Checking
