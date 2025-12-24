@@ -10,7 +10,7 @@ import {
   buildDomainMap,
   clearCache,
   getLoadingStats
-} from '../src/loader';
+} from '../src/provider-loader';
 
 describe('Provider Data Loader Tests', () => {
   beforeEach(() => {
@@ -278,7 +278,9 @@ describe('Provider Data Loader Tests', () => {
     });
 
     it('should log memory usage in development mode', () => {
+      clearCache(); // Clear cache to ensure fresh load
       process.env.NODE_ENV = 'development';
+      delete process.env.JEST_WORKER_ID; // Ensure JEST_WORKER_ID is not set
       const logSpy = jest.spyOn(console, 'log').mockImplementation();
 
       loadProviders();
@@ -291,6 +293,7 @@ describe('Provider Data Loader Tests', () => {
     });
 
     it('should warn about missing provider type', () => {
+      clearCache(); // Clear cache to ensure fresh load
       // Mock readFileSync to return a provider without type
       const mockData = {
         version: '1.0.0',
@@ -299,12 +302,22 @@ describe('Provider Data Loader Tests', () => {
           companyProvider: 'Test Provider',
           domains: ['test.com']
           // type is intentionally omitted
-        }]
+        }],
+        meta: {
+          count: 1,
+          domains: 1,
+          generated: new Date().toISOString()
+        }
       };
 
       const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
-      jest.spyOn(require('fs'), 'readFileSync')
-        .mockReturnValueOnce(JSON.stringify(mockData));
+      const readFileSyncSpy = jest.spyOn(require('fs'), 'readFileSync');
+      
+      // Mock hash verification to pass
+      jest.spyOn(require('../src/hash-verifier'), 'verifyProvidersIntegrity')
+        .mockReturnValueOnce({ isValid: true, file: 'test.json', actualHash: 'test' });
+      
+      readFileSyncSpy.mockReturnValueOnce(JSON.stringify(mockData));
 
       loadProviders();
 
@@ -313,11 +326,17 @@ describe('Provider Data Loader Tests', () => {
       );
 
       warnSpy.mockRestore();
+      readFileSyncSpy.mockRestore();
     });
   });
 
   describe('Error handling', () => {
     it('should handle non-Error objects in catch block', () => {
+      clearCache(); // Clear cache to ensure fresh load
+      // Mock hash verification to pass
+      jest.spyOn(require('../src/hash-verifier'), 'verifyProvidersIntegrity')
+        .mockReturnValueOnce({ isValid: true, file: 'test.json', actualHash: 'test' });
+      
       // Mock readFileSync to throw a non-Error object
       jest.spyOn(require('fs'), 'readFileSync')
         .mockImplementationOnce(() => {
@@ -328,6 +347,11 @@ describe('Provider Data Loader Tests', () => {
     });
 
     it('should throw error for invalid provider data format', () => {
+      clearCache(); // Clear cache to ensure fresh load
+      // Mock hash verification to pass
+      jest.spyOn(require('../src/hash-verifier'), 'verifyProvidersIntegrity')
+        .mockReturnValueOnce({ isValid: true, file: 'test.json', actualHash: 'test' });
+      
       // Mock readFileSync to return invalid data format
       jest.spyOn(require('fs'), 'readFileSync')
         .mockReturnValueOnce(JSON.stringify({
@@ -339,6 +363,11 @@ describe('Provider Data Loader Tests', () => {
     });
 
     it('should handle Error objects in catch block', () => {
+      clearCache(); // Clear cache to ensure fresh load
+      // Mock hash verification to pass
+      jest.spyOn(require('../src/hash-verifier'), 'verifyProvidersIntegrity')
+        .mockReturnValueOnce({ isValid: true, file: 'test.json', actualHash: 'test' });
+      
       // Mock readFileSync to throw an Error
       jest.spyOn(require('fs'), 'readFileSync')
         .mockImplementationOnce(() => {

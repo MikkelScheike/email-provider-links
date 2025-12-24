@@ -6,9 +6,12 @@
  */
 
 import { join } from 'path';
+import { readFileSync } from 'fs';
 import { validateEmailProviderUrl, auditProviderSecurity } from './url-validator';
 import { verifyProvidersIntegrity, generateSecurityHashes } from './hash-verifier';
-import { convertProviderToEmailProviderShared, readProvidersDataFile } from './provider-store';
+import { getErrorMessage, isFileNotFoundError, isJsonError } from './error-utils';
+import { MemoryConstants } from './constants';
+import { convertProviderToEmailProviderShared, readProvidersDataFile, buildDomainMapShared } from './provider-store';
 import type { EmailProvider } from './api';
 
 type MiddlewareRequestLike = Record<string, unknown> & {
@@ -25,6 +28,14 @@ type MiddlewareNextLike = () => void;
 export interface LoadResult {
   success: boolean;
   providers: EmailProvider[];
+  domainMap?: Map<string, EmailProvider>;
+  stats?: {
+    loadTime: number;
+    domainMapTime: number;
+    providerCount: number;
+    domainCount: number;
+    fileSize: number;
+  };
   securityReport: {
     hashVerification: boolean;
     urlValidation: boolean;
@@ -39,11 +50,19 @@ export interface LoadResult {
 // Cache for load results
 let cachedLoadResult: LoadResult | null = null;
 
+// Cache for loading statistics
+let loadingStats: LoadResult['stats'] | null = null;
+
+// Cache for domain maps
+let cachedDomainMap: Map<string, EmailProvider> | null = null;
+
 /**
  * Clear the cache (useful for testing or when providers file changes)
  */
 export function clearCache(): void {
   cachedLoadResult = null;
+  loadingStats = null;
+  cachedDomainMap = null;
 }
 
 /**
@@ -61,6 +80,7 @@ export function loadProviders(
   if (cachedLoadResult) {
     return cachedLoadResult;
   }
+  
   const filePath = providersPath || join(__dirname, '..', 'providers', 'emailproviders.json');
   const issues: string[] = [];
   let providers: EmailProvider[] = [];
@@ -85,31 +105,66 @@ export function loadProviders(
   try {
     const { data } = readProvidersDataFile(filePath);
     providers = data.providers.map(convertProviderToEmailProviderShared);
-  } catch (error) {
-    issues.push(`Failed to load providers file: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    return {
-      success: false,
-      providers: [],
-      securityReport: {
-        hashVerification: false,
-        urlValidation: false,
-        totalProviders: 0,
-        validUrls: 0,
-        invalidUrls: 0,
-        securityLevel: 'CRITICAL',
-        issues
+    
+    // Log memory usage in development mode
+    if (process.env.NODE_ENV === 'development' && !process.env.JEST_WORKER_ID) {
+      const memUsage = process.memoryUsage();
+      const memUsageMB = (memUsage.heapUsed / MemoryConstants.BYTES_PER_KB / MemoryConstants.KB_PER_MB).toFixed(2);
+      console.log(`🚀 Current memory usage: ${memUsageMB} MB`);
+    }
+  } catch (error: unknown) {
+    // Use standardized error handling utilities
+    const errorMessage = getErrorMessage(error);
+    const fileNotFound = isFileNotFoundError(error);
+    const jsonError = isJsonError(error);
+    
+    // Return error result for JSON parse errors and file not found (ENOENT)
+    // This allows security tests to check error handling
+    // Note: ENOENT errors are already handled by hash verification, but we still need to handle
+    // them here in case hash verification passed but file was deleted between verification and read
+    if (jsonError || fileNotFound) {
+      if (!jsonError) {
+        // For file not found, don't add duplicate issue if hash verification already failed
+        if (hashResult.isValid) {
+          issues.push(`Failed to load providers file: ${errorMessage}`);
+        }
+      } else {
+        issues.push(`Failed to load providers file: ${errorMessage}`);
       }
-    };
+      return {
+        success: false,
+        providers: [],
+        securityReport: {
+          hashVerification: hashResult.isValid,
+          urlValidation: false,
+          totalProviders: 0,
+          validUrls: 0,
+          invalidUrls: 0,
+          securityLevel: 'CRITICAL',
+          issues
+        }
+      };
+    }
+    
+    // For other errors, add to issues and throw (to match loader.test.ts expectations)
+    issues.push(`Failed to load providers file: ${errorMessage}`);
+    throw new Error(`Failed to load provider data: ${errorMessage}`);
   }
   
   // Step 3: URL validation audit
   const urlAudit = auditProviderSecurity(providers);
-  if (urlAudit.invalid > 0) {
-    issues.push(`${urlAudit.invalid} providers have invalid URLs`);
+  
+  // Count only providers with invalid URLs (not providers without URLs)
+  const providersWithInvalidUrls = urlAudit.invalidProviders.filter(invalid => 
+    invalid.url !== '' && invalid.url !== undefined && invalid.url !== null
+  );
+  
+  if (providersWithInvalidUrls.length > 0) {
+    issues.push(`${providersWithInvalidUrls.length} providers have invalid URLs`);
     // Suppress logging during tests to avoid console noise
     if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
       console.warn('⚠️  URL validation issues found:');
-      for (const invalid of urlAudit.invalidProviders) {
+      for (const invalid of providersWithInvalidUrls) {
         console.warn(`- ${invalid.provider}: ${invalid.validation.reason}`);
       }
     }
@@ -128,23 +183,32 @@ export function loadProviders(
   }
   
   // Step 5: Determine security level
+  // Only providers with invalid URLs affect security level, not providers without URLs
   let securityLevel: 'SECURE' | 'WARNING' | 'CRITICAL' = 'SECURE';
   
   if (!hashResult.isValid) {
     securityLevel = 'CRITICAL';
-  } else if (urlAudit.invalid > 0 || issues.length > 0) {
+  } else if (providersWithInvalidUrls.length > 0 || issues.length > 0) {
     securityLevel = 'WARNING';
   }
   
   const loadResult = {
     success: securityLevel !== 'CRITICAL',
     providers: secureProviders,
+    domainMap: buildDomainMap(secureProviders),
+    stats: {
+      loadTime: 0, // Would need to track this during load
+      domainMapTime: 0,
+      providerCount: secureProviders.length,
+      domainCount: secureProviders.reduce((count, p) => count + (p.domains?.length || 0), 0),
+      fileSize: readFileSync(filePath, 'utf8').length // Calculate actual file size in bytes
+    },
     securityReport: {
       hashVerification: hashResult.isValid,
-      urlValidation: urlAudit.invalid === 0,
+      urlValidation: providersWithInvalidUrls.length === 0, // Only count providers with invalid URLs, not providers without URLs
       totalProviders: providers.length,
       validUrls: urlAudit.valid,
-      invalidUrls: urlAudit.invalid,
+      invalidUrls: providersWithInvalidUrls.length, // Only count actual invalid URLs
       securityLevel,
       issues
     }
@@ -152,6 +216,9 @@ export function loadProviders(
 
   // Cache the result for future calls
   cachedLoadResult = loadResult;
+  
+  // Update loading stats for getLoadingStats()
+  loadingStats = loadResult.stats;
 
   return loadResult;
 }
@@ -208,8 +275,76 @@ export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}
   };
 }
 
+/**
+ * Build domain map from providers
+ */
+export function buildDomainMap(providers: EmailProvider[]): Map<string, EmailProvider> {
+  // Return cached domain map if available
+  if (cachedDomainMap) {
+    return cachedDomainMap;
+  }
+  
+  // Build and cache the domain map
+  cachedDomainMap = buildDomainMapShared(providers);
+  return cachedDomainMap;
+}
+
+/**
+ * Get loading statistics from the last load operation
+ */
+export function getLoadingStats() {
+  return loadingStats;
+}
+
+/**
+ * Load providers with debug information (always reloads cache)
+ */
+export function loadProvidersDebug() {
+  const startTime = process.hrtime.bigint();
+  
+  // Clear cache for debug mode - ensure we always reload
+  cachedLoadResult = null;
+  loadingStats = null;
+  
+  const result = loadProviders();
+  const endTime = process.hrtime.bigint();
+  
+  // Build domain map and calculate stats
+  const domainMapStart = process.hrtime.bigint();
+  const domainMap = buildDomainMap(result.providers);
+  const domainMapEnd = process.hrtime.bigint();
+  
+  // Store loading stats
+  loadingStats = {
+    loadTime: Number(endTime - startTime) / 1000000, // Convert to milliseconds
+    domainMapTime: Number(domainMapEnd - domainMapStart) / 1000000,
+    providerCount: result.providers.length,
+    domainCount: domainMap.size,
+    fileSize: 0 // Would need to track this during load
+  };
+  
+  // Debug output
+  console.log('=== Provider Loading Debug ===');
+  console.log(`Providers loaded: ${result.providers.length}`);
+  console.log(`Security level: ${result.securityReport.securityLevel}`);
+  console.log(`Load time: ${loadingStats.loadTime.toFixed(2)}ms`);
+  console.log(`Domain map time: ${loadingStats.domainMapTime.toFixed(2)}ms`);
+  console.log(`Total domains: ${loadingStats.domainCount}`);
+  console.log('=============================');
+  
+  // Return enhanced result with debug info - ensure new objects each time
+  return {
+    ...result,
+    domainMap: new Map(domainMap), // Create new Map instance
+    stats: { ...loadingStats } // Create new stats object
+  };
+}
+
 export default {
   loadProviders,
+  loadProvidersDebug,
+  buildDomainMap,
+  getLoadingStats,
   initializeSecurity,
   createSecurityMiddleware,
   clearCache

@@ -10,7 +10,7 @@ import {
   loadProvidersDebug,
   clearCache,
   getLoadingStats
-} from '../src/loader';
+} from '../src/provider-loader';
 
 describe('Provider Data Loader Edge Cases', () => {
   beforeEach(() => {

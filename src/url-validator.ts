@@ -14,7 +14,7 @@ import type { ProvidersData } from './schema';
  * Get allowlisted domains from provider data
  * Only URLs from these domains will be considered safe.
  */
-function getAllowedDomains(): Set<string> {
+export function getAllowedDomains(): Set<string> {
   const filePath = join(__dirname, '..', 'providers', 'emailproviders.json');
   const integrity = verifyProvidersIntegrity(filePath);
   if (!integrity.isValid) {
@@ -242,6 +242,17 @@ export function validateAllProviderUrls(providers: ProviderUrlLike[]): Array<{
         provider: provider.companyProvider || 'Unknown',
         url: provider.loginUrl,
         validation: validateEmailProviderUrl(provider.loginUrl)
+      });
+    } else {
+      // Providers without URLs are counted but marked as invalid for audit purposes
+      // (they don't affect security level, but are tracked for completeness)
+      results.push({
+        provider: provider.companyProvider || 'Unknown',
+        url: provider.loginUrl || '',
+        validation: {
+          isValid: false,
+          reason: provider.loginUrl === '' ? 'Empty URL provided' : 'No URL provided'
+        }
       });
     }
   }

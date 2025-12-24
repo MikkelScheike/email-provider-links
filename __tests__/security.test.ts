@@ -8,7 +8,8 @@
 import { 
   validateEmailProviderUrl, 
   auditProviderSecurity,
-  validateAllProviderUrls 
+  validateAllProviderUrls,
+  getAllowedDomains 
 } from '../src/url-validator';
 
 import { 
@@ -33,13 +34,22 @@ import {
 import { writeFileSync, unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
 
+// Mock getAllowedDomains to allow test domains
+jest.mock('../src/url-validator', () => {
+  const actual = jest.requireActual('../src/url-validator');
+  return {
+    ...actual,
+    getAllowedDomains: jest.fn(() => new Set(['mail.google.com', 'gmail.com', 'tutanota.com', 'fastmail.com', 'no-url.com']))
+  };
+});
+
 describe('Security - URL Validation', () => {
   describe('validateEmailProviderUrl', () => {
     test('should allow valid HTTPS URLs from allowlisted domains', () => {
       const { providers } = loadProviders();
       const validUrls = providers
         .filter(p => p.loginUrl)
-        .map(p => p.loginUrl)
+        .map(p => p.loginUrl!)
         .slice(0, 5); // Take first 5 valid URLs
 
       validUrls.forEach(url => {
@@ -578,7 +588,7 @@ test('should pass valid providers through middleware', (done) => {
         allowInvalidUrls: true,
         getProviders: () => ({
           success: true,
-          providers: [testData.providers[0]], // Only include Gmail provider
+          providers: [{ ...testData.providers[0], type: 'public_provider' as const }], // Only include Gmail provider with type
           securityReport: {
             hashVerification: true,
             urlValidation: false,
@@ -631,6 +641,9 @@ test('should pass valid providers through middleware', (done) => {
     });
     
     test('should handle providers without loginUrl in filtering', () => {
+      // Clear cache to ensure fresh load
+      clearCache();
+      
       const testPath = join(__dirname, 'test-no-login-url.json');
       const testData = {
         version: '1.0.0',

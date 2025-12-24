@@ -118,6 +118,11 @@ describe('IDN (Internationalized Domain Names) Utilities', () => {
         expect(validateInternationalEmail('user@valid.com')).toBeUndefined();
       });
 
+      it('should reject domains with symbols that cannot appear in DNS labels', () => {
+        const result = validateInternationalEmail('greg@\u00A9regeg.se');
+        expect(result?.code).toBe(IDNValidationError.DOMAIN_INVALID_FORMAT);
+      });
+
       it('should validate domain labels', () => {
         // Test invalid Punycode label
         const invalidPunycode = validateInternationalEmail('user@xn--example');

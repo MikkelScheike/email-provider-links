@@ -18,7 +18,7 @@ A robust TypeScript library providing direct links to **130 email providers** (2
 - ⚡ **Lightning Performance**: Domain lookups in ~0.07ms, cached access in ~0.003ms
 - 🛡️ **Zero-Trust Architecture**: Runtime data validation with cryptographic integrity verification
 - 🔒 **Enhanced Security**: SHA-256 hash verification and supply chain protection
-- 🎯 **Rigorous Testing**: 445 comprehensive tests with enhanced performance validation
+- 🎯 **Rigorous Testing**: 431 comprehensive tests with enhanced performance validation
 - 📊 **Extreme Optimization**: 99.9% cache hit rate and ultra-low memory footprint
 - 🧪 **Quality Assurance**: 94.65% code coverage with stress testing under enterprise loads
 - 🔄 **Seamless Upgrade**: All existing APIs remain fully compatible
@@ -37,10 +37,11 @@ A robust TypeScript library providing direct links to **130 email providers** (2
 - 📝 **Type Safe**: Full TypeScript support with comprehensive interfaces
 - ⚡ **Performance Optimized**: Smart DNS fallback with configurable timeouts
 - 🚦 **Rate Limiting**: Built-in DNS query rate limiting to prevent abuse
+- 🔄 **Automatic Email Normalization**: Provider detection functions automatically normalize emails using provider-specific alias rules
 - 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
 - 🛡️ **Fraud Prevention**: Detect duplicate accounts through email alias manipulation
 - 📦 **Batch Processing**: Efficiently process multiple emails with deduplication
-- 🧪 **Thoroughly Tested**: 445 tests with 94.65% code coverage
+- 🧪 **Thoroughly Tested**: 431 tests (430 standard + 1 live DNS) with 94.65% code coverage
 
 ## Installation
 
@@ -102,6 +103,8 @@ Fully compatible with the latest Node.js 24.x and 25.x! The library is tested on
 #### `getEmailProvider(email, timeout?)`
 **Recommended** - Complete provider detection with business domain support.
 
+**✨ Automatic Email Normalization**: The returned `email` field is automatically normalized using provider-specific alias rules. For example, `user+tag@gmail.com` returns `user@gmail.com` in the result.
+
 Error notes:
 - `INVALID_EMAIL` is returned for common malformed inputs (e.g. missing `@`, missing TLD).
 - `IDN_VALIDATION_ERROR` is reserved for true encoding issues.
@@ -109,19 +112,29 @@ Error notes:
 ```typescript
 // Known providers (instant response)
 const result1 = await getEmailProvider('user@gmail.com');
-// Returns: { provider: "Gmail", loginUrl: "https://mail.google.com/mail/" }
+// Returns: { provider: "Gmail", email: "user@gmail.com", loginUrl: "https://mail.google.com/mail/" }
+
+// Email normalization is automatic
+const result2 = await getEmailProvider('user+tag@gmail.com');
+// Returns: { provider: "Gmail", email: "user@gmail.com", loginUrl: "https://mail.google.com/mail/" }
 
 // Business domains (DNS lookup with timeout)
-const result2 = await getEmailProvider('user@company.com', 2000);
-// Returns: { provider: "Google Workspace", detectionMethod: "mx_record" }
+const result3 = await getEmailProvider('user@company.com', 2000);
+// Returns: { provider: "Google Workspace", email: "user@company.com", detectionMethod: "mx_record" }
 ```
 
 #### `getEmailProviderSync(email)`
 **Fast** - Instant checks for known providers (no DNS lookup).
 
+**✨ Automatic Email Normalization**: The returned `email` field is automatically normalized using provider-specific alias rules.
+
 ```typescript
 const result = getEmailProviderSync('user@outlook.com');
-// Returns: { provider: "Outlook", loginUrl: "https://outlook.live.com/" }
+// Returns: { provider: "Outlook", email: "user@outlook.com", loginUrl: "https://outlook.live.com/" }
+
+// Email normalization is automatic
+const result2 = getEmailProviderSync('u.s.e.r+tag@gmail.com');
+// Returns: { provider: "Gmail", email: "user@gmail.com", loginUrl: "https://mail.google.com/mail/" }
 ```
 
 ### Email Alias Support
@@ -158,12 +171,13 @@ async function handlePasswordReset(email: string) {
     throw new Error(`Invalid email: ${validation.error?.message}`);
   }
 
-  // Get provider information
-  const result = await getEmailProvider(validation.normalizedEmail);
+  // Get provider information (email is automatically normalized in result)
+  const result = await getEmailProvider(email);
   
   return {
     providerUrl: result.loginUrl,
     providerName: result.provider?.companyProvider || null,
+    normalizedEmail: result.email, // Already normalized (e.g., 'user@gmail.com' from 'user+tag@gmail.com')
     isSupported: result.provider !== null,
     detectionMethod: result.detectionMethod
   };
@@ -201,15 +215,19 @@ console.log(`Total providers: ${providers.length}`);
 
 ### Email Alias Detection & Normalization
 
+**✨ Note**: `getEmailProvider()`, `getEmailProviderSync()`, and `getEmailProviderFast()` automatically normalize emails in their results. You can use `normalizeEmail()` directly when you only need normalization without provider detection.
+
 ```typescript
 import { 
+  getEmailProvider,
   normalizeEmail, 
   emailsMatch 
 } from '@mikkelscheike/email-provider-links';
 
-// Prevent duplicate accounts
+// Option 1: Use getEmailProvider for automatic normalization + provider detection
 async function registerUser(email: string) {
-  const canonical = normalizeEmail(email);
+  const result = await getEmailProvider(email);
+  const canonical = result.email; // Already normalized (e.g., 'user@gmail.com' from 'user+tag@gmail.com')
   const existingUser = await findUserByEmail(canonical);
   
   if (existingUser) {
@@ -219,13 +237,13 @@ async function registerUser(email: string) {
   await createUser({ email: canonical });
 }
 
+// Option 2: Use normalizeEmail directly when you only need normalization
+const canonical = normalizeEmail('u.s.e.r+work@gmail.com');
+console.log(canonical);  // 'user@gmail.com'
+
 // Check if login email matches registration
 const match = emailsMatch('user@gmail.com', 'u.s.e.r+work@gmail.com');
 console.log(match); // true - same person
-
-// Simple normalization
-const canonical = normalizeEmail('u.s.e.r+work@gmail.com');
-console.log(canonical);  // 'user@gmail.com'
 ```
 
 ### Provider Support Checking
@@ -292,23 +310,29 @@ npm run benchmark:dns
 
 ### Live DNS verification (optional)
 
-There is an optional test suite that performs real DNS lookups for all domains in `providers/emailproviders.json`:
+There is an optional test suite that performs real DNS lookups for all domains in `providers/emailproviders.json`. This test is skipped by default but can be enabled easily:
 
 ```bash
-RUN_LIVE_DNS=1 npm test -- __tests__/provider-live-dns.test.ts
+# Run all tests including live DNS verification
+npm run test:live-dns
+
+# Run only the live DNS test
+npm run test:live-dns -- __tests__/provider-live-dns.test.ts
 ```
+
+**Note**: The live DNS test performs actual network requests and may take a few seconds to complete. Some performance tests may fail when live DNS is enabled due to network latency.
 
 Optional strict mode (also validates configured MX/TXT patterns):
 
 ```bash
-RUN_LIVE_DNS=1 RUN_LIVE_DNS_STRICT=1 npm test -- __tests__/provider-live-dns.test.ts
+RUN_LIVE_DNS_STRICT=1 npm run test:live-dns -- __tests__/provider-live-dns.test.ts
 ```
 
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on adding new email providers.
 
-**Quality Assurance**: This project maintains high standards with 445 comprehensive tests achieving 94.65% code coverage (95.95% function coverage).
+**Quality Assurance**: This project maintains high standards with 431 comprehensive tests (430 standard + 1 live DNS) achieving 94.65% code coverage (95.95% function coverage).
 
 **Security**: All provider data is protected by cryptographic hash verification, URL validation, and strict security controls. The library uses a zero-trust architecture with no insecure fallbacks - ensuring all data is verified before use.
 

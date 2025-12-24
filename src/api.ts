@@ -10,6 +10,7 @@ import {
 } from './concurrent-dns';
 import { loadProviders } from './provider-loader';
 import { validateInternationalEmail, domainToPunycode, IDNValidationError } from './idn';
+import { normalizeEmail } from './alias-detection';
 
 let cachedProvidersRef: EmailProvider[] | null = null;
 let cachedDomainMap: Map<string, EmailProvider> | null = null;
@@ -185,9 +186,16 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
   try {
     const parsed = validateAndParseEmailForLookup(email);
     if (!parsed.ok) {
+      // Try to normalize even invalid emails (may help with some edge cases)
+      let normalizedEmail = parsed.email;
+      try {
+        normalizedEmail = normalizeEmail(parsed.email);
+      } catch {
+        // If normalization fails, use original email
+      }
       return {
         provider: null,
-        email: parsed.email,
+        email: normalizedEmail,
         loginUrl: null,
         error: parsed.error
       };
@@ -198,6 +206,7 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
     // First try synchronous domain matching
     const syncResult = getEmailProviderSync(email);
     if (syncResult.provider) {
+      // Email is already normalized in getEmailProviderSync
       return {
         ...syncResult,
         detectionMethod: 'domain_match'
@@ -224,9 +233,18 @@ export async function getEmailProvider(email: string, timeout?: number): Promise
       collectDebugInfo: false
     });
 
+    // Normalize email using alias detection (even if no provider found)
+    // This ensures consistent email format regardless of provider detection result
+    let normalizedEmail = email;
+    try {
+      normalizedEmail = normalizeEmail(email);
+    } catch {
+      // If normalization fails, use original email
+    }
+
     const result: EmailProviderResult = {
       provider: concurrentResult.provider,
-      email,
+      email: normalizedEmail,
       loginUrl: concurrentResult.provider?.loginUrl || null,
       detectionMethod: concurrentResult.detectionMethod || 'mx_record'
     };
@@ -312,9 +330,16 @@ export function getEmailProviderSync(email: string): EmailProviderResult {
   try {
     const parsed = validateAndParseEmailForLookup(email);
     if (!parsed.ok) {
+      // Try to normalize even invalid emails (may help with some edge cases)
+      let normalizedEmail = parsed.email;
+      try {
+        normalizedEmail = normalizeEmail(parsed.email);
+      } catch {
+        // If normalization fails, use original email
+      }
       return {
         provider: null,
-        email: parsed.email,
+        email: normalizedEmail,
         loginUrl: null,
         error: parsed.error
       };
@@ -360,9 +385,18 @@ export function getEmailProviderSync(email: string): EmailProviderResult {
       };
     }
 
+    // Normalize email using alias detection (even if no provider found)
+    // This ensures consistent email format regardless of provider detection result
+    let normalizedEmail = email;
+    try {
+      normalizedEmail = normalizeEmail(email);
+    } catch {
+      // If normalization fails, use original email
+    }
+
     const result: EmailProviderResult = {
       provider: provider || null,
-      email,
+      email: normalizedEmail,
       loginUrl: provider?.loginUrl || null,
       detectionMethod: 'domain_match'
     };
@@ -390,105 +424,8 @@ export function getEmailProviderSync(email: string): EmailProviderResult {
   }
 }
 
-/**
- * Normalize an email address to its canonical form.
- * 
- * This handles provider-specific aliasing rules:
- * - Gmail: removes dots and plus addressing
- * - Other providers: removes plus addressing only
- * 
- * @param email - The email address to normalize
- * @returns The canonical email address
- * 
- * @example
- * ```typescript
- * const canonical = normalizeEmail('L.O.C.A.L+work@DOMAIN.TLD');
- * console.log(canonical); // 'local@domain.tld'
- * 
- * const provider = normalizeEmail('local+newsletter@provider.tld');
- * console.log(provider); // 'local@provider.tld'
- * ```
- */
-export function normalizeEmail(email: string): string {
-  if (!email || typeof email !== 'string') {
-    return email;
-  }
-
-  // Convert to lowercase
-  const lowercaseEmail = email.toLowerCase().trim();
-  
-  // Split email into local and domain parts
-  const atIndex = lowercaseEmail.lastIndexOf('@');
-  if (atIndex === -1) {
-    return lowercaseEmail;
-  }
-  
-  let localPart = lowercaseEmail.slice(0, atIndex);
-  const domainPart = domainToPunycode(lowercaseEmail.slice(atIndex + 1));
-  
-  // Use providers for domain lookup
-  let provider: EmailProvider | null = null;
-  try {
-    const result = loadProviders();
-    if (!result.success) {
-      return lowercaseEmail; // Return as-is if providers can't be loaded
-    }
-
-    const domainMap = getDomainMapFromProviders(result.providers);
-    provider = domainMap.get(domainPart) || null;
-  } catch (error) {
-    return lowercaseEmail; // Return as-is if error occurs
-  }
-  
-  if (provider?.alias) {
-    // Provider supports aliasing
-    if (provider.alias.dots) {
-      // Remove all dots from local part (e.g. Gmail)
-      localPart = localPart.replace(/\./g, '');
-    }
-    
-    if (provider.alias.plus) {
-      // Remove plus addressing (everything after +)
-      const plusIndex = localPart.indexOf('+');
-      if (plusIndex !== -1) {
-        localPart = localPart.slice(0, plusIndex);
-      }
-    }
-  }
-  
-  return `${localPart}@${domainPart}`;
-}
-
-/**
- * Check if two email addresses are the same person (accounting for aliases).
- * 
- * This normalizes both emails and compares their canonical forms.
- * Useful for preventing duplicate accounts and matching login attempts.
- * 
- * @param email1 - First email address
- * @param email2 - Second email address
- * @returns true if the emails represent the same person
- * 
- * @example
- * ```typescript
- * const match = emailsMatch('local@domain.tld', 'l.o.c.a.l+work@domain.tld');
- * console.log(match); // true
- * 
- * const different = emailsMatch('local@domain.tld', 'other@domain.tld');
- * console.log(different); // false
- * ```
- */
-export function emailsMatch(email1: string, email2: string): boolean {
-  if (!email1 || !email2 || typeof email1 !== 'string' || typeof email2 !== 'string') {
-    return false;
-  }
-  
-  // Normalize both emails and compare
-  const normalized1 = normalizeEmail(email1);
-  const normalized2 = normalizeEmail(email2);
-  
-  return normalized1 === normalized2;
-}
+// Re-export alias detection functions from the dedicated module
+export { normalizeEmail, emailsMatch } from './alias-detection';
 
 /**
  * Enhanced email provider detection with concurrent DNS for maximum performance.
@@ -550,6 +487,7 @@ export async function getEmailProviderFast(
     // First try standard domain matching (fast path)
     const syncResult = getEmailProviderSync(trimmedEmail);
     if (syncResult.provider) {
+      // Email is already normalized in getEmailProviderSync
       return {
         ...syncResult,
         detectionMethod: 'domain_match',
@@ -578,6 +516,15 @@ export async function getEmailProviderFast(
       collectDebugInfo
     });
 
+    // Normalize email using alias detection (even if no provider found)
+    // This ensures consistent email format regardless of provider detection result
+    let normalizedEmail = trimmedEmail;
+    try {
+      normalizedEmail = normalizeEmail(trimmedEmail);
+    } catch {
+      // If normalization fails, use original email
+    }
+
     const fastResult: EmailProviderResult & {
       timing?: {
         mx: number;
@@ -588,7 +535,7 @@ export async function getEmailProviderFast(
       debug?: unknown;
     } = {
       provider: concurrentResult.provider,
-      email: trimmedEmail,
+      email: normalizedEmail,
       loginUrl: concurrentResult.provider?.loginUrl || null,
       detectionMethod: concurrentResult.detectionMethod || 'mx_record',
       timing: concurrentResult.timing,
