@@ -14,7 +14,7 @@ describe('Email Provider API Tests', () => {
       
       expect(result.provider).not.toBeNull();
       expect(result.provider?.companyProvider).toBe('Gmail');
-      expect(result.loginUrl).toBe('https://mail.google.com/mail/');
+      expect(result.provider?.loginUrl).toBe('https://mail.google.com/mail/');
       expect(result.detectionMethod).toBe('domain_match');
       expect(result.error).toBeUndefined();
     });
@@ -24,7 +24,7 @@ describe('Email Provider API Tests', () => {
       
       expect(result.provider).not.toBeNull();
       expect(result.provider?.companyProvider).toBe('Microsoft Outlook');
-      expect(result.loginUrl).toBe('https://outlook.office365.com');
+      expect(result.provider?.loginUrl).toBe('https://outlook.office365.com');
       expect(result.detectionMethod).toBe('domain_match');
       expect(result.error).toBeUndefined();
     });
@@ -33,7 +33,7 @@ describe('Email Provider API Tests', () => {
       const result = await getEmailProvider('invalid-email');
       
       expect(result.provider).toBeNull();
-      expect(result.loginUrl).toBeNull();
+      expect('loginUrl' in result).toBe(false); // Simplified response doesn't have top-level loginUrl
       expect(result.error).toBeDefined();
       expect(result.error?.type).toBe('INVALID_EMAIL');
       expect(result.error?.message).toBe('Invalid email format');
@@ -43,7 +43,7 @@ describe('Email Provider API Tests', () => {
       const result = await getEmailProvider('');
       
       expect(result.provider).toBeNull();
-      expect(result.loginUrl).toBeNull();
+      expect('loginUrl' in result).toBe(false); // Simplified response doesn't have top-level loginUrl
       expect(result.error).toBeDefined();
       expect(result.error?.type).toBe('INVALID_EMAIL');
       expect(result.error?.message).toBe('Email address is required and must be a string');
@@ -53,7 +53,7 @@ describe('Email Provider API Tests', () => {
       const result = await getEmailProvider(null as any);
       
       expect(result.provider).toBeNull();
-      expect(result.loginUrl).toBeNull();
+      expect('loginUrl' in result).toBe(false); // Simplified response doesn't have top-level loginUrl
       expect(result.error).toBeDefined();
       expect(result.error?.type).toBe('INVALID_EMAIL');
       expect(result.error?.message).toBe('Email address is required and must be a string');
@@ -63,7 +63,7 @@ describe('Email Provider API Tests', () => {
       const result = await getEmailProvider('user@completely-unknown-domain-12345.com');
       
       expect(result.provider).toBeNull();
-      expect(result.loginUrl).toBeNull();
+      expect('loginUrl' in result).toBe(false); // Simplified response doesn't have top-level loginUrl
       expect(result.error).toBeDefined();
       expect(result.error?.type).toBe('UNKNOWN_DOMAIN');
       expect(result.error?.message).toContain('No email provider found for domain');
@@ -97,7 +97,7 @@ describe('Email Provider API Tests', () => {
       
       expect(result.provider).not.toBeNull();
       expect(result.provider?.companyProvider).toBe('Gmail');
-      expect(result.loginUrl).toBe('https://mail.google.com/mail/');
+      expect(result.provider?.loginUrl).toBe('https://mail.google.com/mail/');
       expect(result.detectionMethod).toBe('domain_match');
       expect(result.error).toBeUndefined();
     });
@@ -107,7 +107,7 @@ describe('Email Provider API Tests', () => {
       
       expect(result.provider).not.toBeNull();
       expect(result.provider?.companyProvider).toBe('Yahoo Mail');
-      expect(result.loginUrl).toBe('https://login.yahoo.com');
+      expect(result.provider?.loginUrl).toBe('https://login.yahoo.com');
       expect(result.detectionMethod).toBe('domain_match');
       expect(result.error).toBeUndefined();
     });
@@ -116,7 +116,7 @@ describe('Email Provider API Tests', () => {
       const result = getEmailProviderSync('invalid-email');
       
       expect(result.provider).toBeNull();
-      expect(result.loginUrl).toBeNull();
+      expect('loginUrl' in result).toBe(false); // Simplified response doesn't have top-level loginUrl
       expect(result.error).toBeDefined();
       expect(result.error?.type).toBe('INVALID_EMAIL');
       expect(result.error?.message).toBe('Invalid email format');
@@ -126,7 +126,7 @@ describe('Email Provider API Tests', () => {
       const result = getEmailProviderSync('user@unknown-domain.com');
       
       expect(result.provider).toBeNull();
-      expect(result.loginUrl).toBeNull();
+      expect('loginUrl' in result).toBe(false); // Simplified response doesn't have top-level loginUrl
       expect(result.error).toBeDefined();
       expect(result.error?.type).toBe('UNKNOWN_DOMAIN');
       expect(result.error?.message).toContain('sync mode - business domains not supported');
@@ -217,10 +217,10 @@ expect(Config.SUPPORTED_PROVIDERS_COUNT).toBe(130);
     it('should return all required fields', async () => {
       const result = await getEmailProvider('user@gmail.com');
       
-      // Required fields
+      // Required fields (simplified response)
       expect(result).toHaveProperty('provider');
       expect(result).toHaveProperty('email');
-      expect(result).toHaveProperty('loginUrl');
+      expect(result.provider).toHaveProperty('loginUrl');
       
       // Optional fields should be defined when applicable
       expect(result).toHaveProperty('detectionMethod');
@@ -304,7 +304,7 @@ expect(Config.SUPPORTED_PROVIDERS_COUNT).toBe(130);
       // Re-import the function after mocking
       const { getEmailProvider } = require('../src/index');
       
-      const result = await getEmailProvider('user@microsoft.com');
+      const result = await getEmailProvider('user@microsoft.com', { extended: true });
       expect(result.proxyService).toBe('Cloudflare');
       expect(result.detectionMethod).toBe('proxy_detected');
       

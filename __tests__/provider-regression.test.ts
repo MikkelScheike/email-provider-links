@@ -33,7 +33,7 @@ describe('Provider regression (domain -> provider mapping)', () => {
     for (const { provider, domain } of cases) {
       const result = getEmailProviderSync(`test@${domain}`);
       const actualName = result.provider?.companyProvider || null;
-      const actualLogin = result.loginUrl ?? null;
+      const actualLogin = result.provider?.loginUrl ?? null;
 
       // Expected values
       const expectedName = provider.companyProvider;

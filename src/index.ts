@@ -46,7 +46,9 @@ export {
 
 export type {
   EmailProvider,
-  EmailProviderResult
+  EmailProviderResult,
+  SimplifiedProvider,
+  SimplifiedEmailProviderResult
 } from './api';
 
 export type {
@@ -381,7 +383,7 @@ export function batchProcessEmails(
         try {
           const providerResult = getEmailProviderSync(validation.normalizedEmail);
           result.provider = providerResult.provider?.companyProvider || null;
-          result.loginUrl = providerResult.loginUrl;
+          result.loginUrl = providerResult.provider?.loginUrl || null;
         } catch {
           result.provider = null;
         }
