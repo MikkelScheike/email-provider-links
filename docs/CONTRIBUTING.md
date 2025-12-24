@@ -55,6 +55,10 @@ All new email providers must meet these security criteria:
 
 5. **Optional: Run Live DNS Verification**
    ```bash
+   # Easy way using the test script
+   npm run test:live-dns -- __tests__/provider-live-dns.test.ts
+   
+   # Or using environment variable directly
    RUN_LIVE_DNS=1 npm test -- __tests__/provider-live-dns.test.ts
    ```
 
@@ -86,11 +90,17 @@ All new email providers must meet these security criteria:
 ### Running Tests
 
 ```bash
-# All tests
+# All tests (430 tests, 19 test suites)
 npm test
+
+# All tests including live DNS verification (431 tests, 20 test suites)
+npm run test:live-dns
 
 # Security tests only
 npm test -- __tests__/security.test.ts
+
+# Live DNS test only
+npm run test:live-dns -- __tests__/provider-live-dns.test.ts
 
 # With coverage
 npm test -- --coverage

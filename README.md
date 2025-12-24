@@ -18,7 +18,7 @@ A robust TypeScript library providing direct links to **130 email providers** (2
 - ⚡ **Lightning Performance**: Domain lookups in ~0.07ms, cached access in ~0.003ms
 - 🛡️ **Zero-Trust Architecture**: Runtime data validation with cryptographic integrity verification
 - 🔒 **Enhanced Security**: SHA-256 hash verification and supply chain protection
-- 🎯 **Rigorous Testing**: 445 comprehensive tests with enhanced performance validation
+- 🎯 **Rigorous Testing**: 431 comprehensive tests with enhanced performance validation
 - 📊 **Extreme Optimization**: 99.9% cache hit rate and ultra-low memory footprint
 - 🧪 **Quality Assurance**: 94.65% code coverage with stress testing under enterprise loads
 - 🔄 **Seamless Upgrade**: All existing APIs remain fully compatible
@@ -41,7 +41,7 @@ A robust TypeScript library providing direct links to **130 email providers** (2
 - 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
 - 🛡️ **Fraud Prevention**: Detect duplicate accounts through email alias manipulation
 - 📦 **Batch Processing**: Efficiently process multiple emails with deduplication
-- 🧪 **Thoroughly Tested**: 445 tests with 94.65% code coverage
+- 🧪 **Thoroughly Tested**: 431 tests (430 standard + 1 live DNS) with 94.65% code coverage
 
 ## Installation
 
@@ -310,23 +310,29 @@ npm run benchmark:dns
 
 ### Live DNS verification (optional)
 
-There is an optional test suite that performs real DNS lookups for all domains in `providers/emailproviders.json`:
+There is an optional test suite that performs real DNS lookups for all domains in `providers/emailproviders.json`. This test is skipped by default but can be enabled easily:
 
 ```bash
-RUN_LIVE_DNS=1 npm test -- __tests__/provider-live-dns.test.ts
+# Run all tests including live DNS verification
+npm run test:live-dns
+
+# Run only the live DNS test
+npm run test:live-dns -- __tests__/provider-live-dns.test.ts
 ```
+
+**Note**: The live DNS test performs actual network requests and may take a few seconds to complete. Some performance tests may fail when live DNS is enabled due to network latency.
 
 Optional strict mode (also validates configured MX/TXT patterns):
 
 ```bash
-RUN_LIVE_DNS=1 RUN_LIVE_DNS_STRICT=1 npm test -- __tests__/provider-live-dns.test.ts
+RUN_LIVE_DNS_STRICT=1 npm run test:live-dns -- __tests__/provider-live-dns.test.ts
 ```
 
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on adding new email providers.
 
-**Quality Assurance**: This project maintains high standards with 445 comprehensive tests achieving 94.65% code coverage (95.95% function coverage).
+**Quality Assurance**: This project maintains high standards with 431 comprehensive tests (430 standard + 1 live DNS) achieving 94.65% code coverage (95.95% function coverage).
 
 **Security**: All provider data is protected by cryptographic hash verification, URL validation, and strict security controls. The library uses a zero-trust architecture with no insecure fallbacks - ensuring all data is verified before use.
 

@@ -244,7 +244,8 @@ export function validateAllProviderUrls(providers: ProviderUrlLike[]): Array<{
         validation: validateEmailProviderUrl(provider.loginUrl)
       });
     } else {
-      // Providers without URLs are considered invalid
+      // Providers without URLs are counted but marked as invalid for audit purposes
+      // (they don't affect security level, but are tracked for completeness)
       results.push({
         provider: provider.companyProvider || 'Unknown',
         url: provider.loginUrl || '',
