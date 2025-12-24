@@ -24,7 +24,7 @@ const KNOWN_GOOD_HASHES = {
 'emailproviders.json': 'a4fe056edad44ae5479cc100d5cc67cb5f6df86e19c4209db6c5f715f5bf070e',
   
   // You can add hashes for other critical files
-'package.json': 'ea417a1548c59f3945ea727968c90a43d6a1e24f72c646ff708edd7da2dcc964',
+'package.json': 'fc7bab75bddc7af13adce8cd3e51f67f597c999eea500bcdc983cd79b60b13c0',
 };
 
 export interface HashVerificationResult {

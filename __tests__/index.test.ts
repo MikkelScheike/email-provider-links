@@ -56,35 +56,35 @@ describe('Email Provider Links', () => {
       const result = getEmailProviderSync('user@gmail.com');
       expect(result.email).toBe('user@gmail.com');
       expect(result.provider?.companyProvider).toBe('Gmail');
-      expect(result.loginUrl).toBe('https://mail.google.com/mail/');
+      expect(result.provider?.loginUrl).toBe('https://mail.google.com/mail/');
     });
 
     it('should return correct result for Yahoo Mail', () => {
       const result = getEmailProviderSync('user@yahoo.com');
       expect(result.email).toBe('user@yahoo.com');
       expect(result.provider?.companyProvider).toBe('Yahoo Mail');
-      expect(result.loginUrl).toBe('https://login.yahoo.com');
+      expect(result.provider?.loginUrl).toBe('https://login.yahoo.com');
     });
 
     it('should return correct result for iCloud', () => {
       const result = getEmailProviderSync('user@icloud.com');
       expect(result.email).toBe('user@icloud.com');
       expect(result.provider?.companyProvider).toBe('iCloud Mail');
-      expect(result.loginUrl).toBe('https://www.icloud.com/mail');
+      expect(result.provider?.loginUrl).toBe('https://www.icloud.com/mail');
     });
 
     it('should handle unknown providers', () => {
       const result = getEmailProviderSync('user@unknown-domain.com');
       expect(result.email).toBe('user@unknown-domain.com');
       expect(result.provider).toBe(null);
-      expect(result.loginUrl).toBe(null);
+      expect('loginUrl' in result).toBe(false); // Simplified response doesn't have top-level loginUrl
     });
 
     it('should handle invalid emails', () => {
       const result = getEmailProviderSync('invalid-email');
       expect(result.email).toBe('invalid-email');
       expect(result.provider).toBe(null);
-      expect(result.loginUrl).toBe(null);
+      expect('loginUrl' in result).toBe(false); // Simplified response doesn't have top-level loginUrl
     });
   });
 
@@ -262,19 +262,19 @@ describe('Email Provider Links', () => {
     it('should handle emails with plus addressing', () => {
       const result = getEmailProviderSync('user+tag@gmail.com');
       expect(result.provider?.companyProvider).toBe('Gmail');
-      expect(result.loginUrl).toBe('https://mail.google.com/mail/');
+      expect(result.provider?.loginUrl).toBe('https://mail.google.com/mail/');
     });
 
     it('should handle emails with dots in username', () => {
       const result = getEmailProviderSync('first.last@outlook.com');
       expect(result.provider?.companyProvider).toBe('Microsoft Outlook');
-      expect(result.loginUrl).toBe('https://outlook.office365.com');
+      expect(result.provider?.loginUrl).toBe('https://outlook.office365.com');
     });
 
     it('should handle mixed case domains', () => {
       const result = getEmailProviderSync('user@Gmail.COM');
       expect(result.provider?.companyProvider).toBe('Gmail');
-      expect(result.loginUrl).toBe('https://mail.google.com/mail/');
+      expect(result.provider?.loginUrl).toBe('https://mail.google.com/mail/');
     });
   });
 
@@ -282,13 +282,13 @@ describe('Email Provider Links', () => {
     it('should detect Mailfence email provider', () => {
       const result = getEmailProviderSync('user@mailfence.com');
       expect(result.provider?.companyProvider).toBe('Mailfence');
-      expect(result.loginUrl).toBe('https://mailfence.com');
+      expect(result.provider?.loginUrl).toBe('https://mailfence.com');
     });
 
     it('should detect Neo.space email provider', () => {
       const result = getEmailProviderSync('user@neo.space');
       expect(result.provider?.companyProvider).toBe('Neo.space Email');
-      expect(result.loginUrl).toBe('https://neo.space/mail');
+      expect(result.provider?.loginUrl).toBe('https://neo.space/mail');
     });
 
     it('should support email providers supported via DNS detection only', () => {
@@ -314,31 +314,31 @@ describe('Email Provider Links', () => {
       
       expect(result126.provider?.companyProvider).toBe('NetEase Mail');
       expect(result163.provider?.companyProvider).toBe('NetEase Mail');
-      expect(result126.loginUrl).toBe('https://mail.126.com');
+      expect(result126.provider?.loginUrl).toBe('https://mail.126.com');
     });
 
     it('should detect QQ Mail provider', () => {
       const result = getEmailProviderSync('user@qq.com');
       expect(result.provider?.companyProvider).toBe('QQ Mail');
-      expect(result.loginUrl).toBe('https://mail.qq.com');
+      expect(result.provider?.loginUrl).toBe('https://mail.qq.com');
     });
 
     it('should detect Sina Mail provider', () => {
       const result = getEmailProviderSync('user@sina.com');
       expect(result.provider?.companyProvider).toBe('Sina Mail');
-      expect(result.loginUrl).toBe('https://mail.sina.com.cn');
+      expect(result.provider?.loginUrl).toBe('https://mail.sina.com.cn');
     });
 
     it('should detect Xtra Mail provider', () => {
       const result = getEmailProviderSync('user@xtra.co.nz');
       expect(result.provider?.companyProvider).toBe('Xtra Mail');
-      expect(result.loginUrl).toBe('https://www.xtra.co.nz/email');
+      expect(result.provider?.loginUrl).toBe('https://www.xtra.co.nz/email');
     });
 
     it('should detect Rediffmail provider', () => {
       const result = getEmailProviderSync('user@rediffmail.com');
       expect(result.provider?.companyProvider).toBe('Rediffmail');
-      expect(result.loginUrl).toBe('https://mail.rediff.com');
+      expect(result.provider?.loginUrl).toBe('https://mail.rediff.com');
     });
 
     it('should have FastMail and Tutanota in public providers list', () => {

@@ -100,41 +100,85 @@ Fully compatible with the latest Node.js 24.x and 25.x! The library is tested on
 
 ### Core Functions
 
-#### `getEmailProvider(email, timeout?)`
+#### `getEmailProvider(email, options?)`
 **Recommended** - Complete provider detection with business domain support.
 
 **✨ Automatic Email Normalization**: The returned `email` field is automatically normalized using provider-specific alias rules. For example, `user+tag@gmail.com` returns `user@gmail.com` in the result.
+
+**📦 Simplified Response (Default)**: By default, returns only essential fields for frontend use. Use `{ extended: true }` to get full provider details including domains array and alias configuration.
 
 Error notes:
 - `INVALID_EMAIL` is returned for common malformed inputs (e.g. missing `@`, missing TLD).
 - `IDN_VALIDATION_ERROR` is reserved for true encoding issues.
 
 ```typescript
-// Known providers (instant response)
+// Default: Simplified response (recommended for frontend)
 const result1 = await getEmailProvider('user@gmail.com');
-// Returns: { provider: "Gmail", email: "user@gmail.com", loginUrl: "https://mail.google.com/mail/" }
+// Returns: {
+//   provider: { companyProvider: "Gmail", loginUrl: "https://mail.google.com/mail/", type: "public_provider" },
+//   email: "user@gmail.com",
+//   detectionMethod: "domain_match"
+// }
 
 // Email normalization is automatic
 const result2 = await getEmailProvider('user+tag@gmail.com');
-// Returns: { provider: "Gmail", email: "user@gmail.com", loginUrl: "https://mail.google.com/mail/" }
+// Returns: {
+//   provider: { companyProvider: "Gmail", loginUrl: "https://mail.google.com/mail/", type: "public_provider" },
+//   email: "user@gmail.com",  // Normalized
+//   detectionMethod: "domain_match"
+// }
+
+// Extended response (includes domains, alias config, etc.)
+const extended = await getEmailProvider('user@gmail.com', { extended: true });
+// Returns: {
+//   provider: {
+//     companyProvider: "Gmail",
+//     loginUrl: "https://mail.google.com/mail/",
+//     domains: ["gmail.com", "googlemail.com"],  // Only in extended
+//     alias: { dots: { ignore: true, strip: false }, ... },  // Only in extended
+//     type: "public_provider"
+//   },
+//   email: "user@gmail.com",
+//   loginUrl: "https://mail.google.com/mail/",  // Top-level loginUrl only in extended
+//   detectionMethod: "domain_match"
+// }
 
 // Business domains (DNS lookup with timeout)
-const result3 = await getEmailProvider('user@company.com', 2000);
-// Returns: { provider: "Google Workspace", email: "user@company.com", detectionMethod: "mx_record" }
+const result3 = await getEmailProvider('user@company.com', { timeout: 2000 });
+// Returns: {
+//   provider: { companyProvider: "Google Workspace", loginUrl: "...", type: "custom_provider" },
+//   email: "user@company.com",
+//   detectionMethod: "mx_record"
+// }
 ```
 
-#### `getEmailProviderSync(email)`
+#### `getEmailProviderSync(email, options?)`
 **Fast** - Instant checks for known providers (no DNS lookup).
 
 **✨ Automatic Email Normalization**: The returned `email` field is automatically normalized using provider-specific alias rules.
 
+**📦 Simplified Response (Default)**: By default, returns only essential fields. Use `{ extended: true }` to get full provider details.
+
 ```typescript
+// Default: Simplified response
 const result = getEmailProviderSync('user@outlook.com');
-// Returns: { provider: "Outlook", email: "user@outlook.com", loginUrl: "https://outlook.live.com/" }
+// Returns: {
+//   provider: { companyProvider: "Outlook", loginUrl: "https://outlook.live.com/", type: "public_provider" },
+//   email: "user@outlook.com",
+//   detectionMethod: "domain_match"
+// }
 
 // Email normalization is automatic
 const result2 = getEmailProviderSync('u.s.e.r+tag@gmail.com');
-// Returns: { provider: "Gmail", email: "user@gmail.com", loginUrl: "https://mail.google.com/mail/" }
+// Returns: {
+//   provider: { companyProvider: "Gmail", loginUrl: "https://mail.google.com/mail/", type: "public_provider" },
+//   email: "user@gmail.com",  // Normalized
+//   detectionMethod: "domain_match"
+// }
+
+// Extended response (includes domains, alias config, etc.)
+const extended = getEmailProviderSync('user@gmail.com', { extended: true });
+// Returns full provider object with domains array and alias configuration
 ```
 
 ### Email Alias Support
@@ -171,24 +215,83 @@ async function handlePasswordReset(email: string) {
     throw new Error(`Invalid email: ${validation.error?.message}`);
   }
 
-  // Get provider information (email is automatically normalized in result)
+  // Get provider information (default: simplified response)
+  // Email is automatically normalized in result
   const result = await getEmailProvider(email);
   
   return {
-    providerUrl: result.loginUrl,
+    providerUrl: result.provider?.loginUrl || null,  // Access loginUrl from provider object
     providerName: result.provider?.companyProvider || null,
     normalizedEmail: result.email, // Already normalized (e.g., 'user@gmail.com' from 'user+tag@gmail.com')
     isSupported: result.provider !== null,
     detectionMethod: result.detectionMethod
   };
 }
+
+// If you need full provider details (domains, alias config, etc.)
+async function analyzeEmailProvider(email: string) {
+  const result = await getEmailProvider(email, { extended: true });
+  
+  // Access full provider details
+  if (result.provider) {
+    console.log('All domains:', result.provider.domains);
+    console.log('Alias rules:', result.provider.alias);
+  }
+  
+  return result;
+}
 ```
+
+## Response Formats
+
+### Simplified Response (Default)
+The default response includes only essential fields needed by most applications:
+
+```typescript
+{
+  provider: {
+    companyProvider: "Gmail",           // Provider name
+    loginUrl: "https://mail.google.com/mail/",  // Login URL (access via provider.loginUrl)
+    type: "public_provider"              // Provider type
+  },
+  email: "user@gmail.com",             // Normalized email
+  detectionMethod: "domain_match"       // How provider was detected
+}
+```
+
+### Extended Response
+Use `{ extended: true }` to get full provider details including internal metadata:
+
+```typescript
+{
+  provider: {
+    companyProvider: "Gmail",
+    loginUrl: "https://mail.google.com/mail/",
+    domains: ["gmail.com", "googlemail.com"],  // All domains for this provider
+    alias: {                                   // Alias handling configuration
+      dots: { ignore: true, strip: false },
+      plus: { ignore: true, strip: true },
+      case: { ignore: true, strip: true }
+    },
+    type: "public_provider",
+    customDomainDetection: { ... }             // DNS detection patterns
+  },
+  email: "user@gmail.com",
+  loginUrl: "https://mail.google.com/mail/",
+  detectionMethod: "domain_match"
+}
+```
+
+**When to use Extended**: Only use `{ extended: true }` if you need access to the `domains` array or `alias` configuration for custom email processing logic. For most frontend use cases, the default simplified response is sufficient and more efficient.
 
 ## Configuration
 
 ```typescript
 // Custom DNS timeout (default: 5000ms)
-const result = await getEmailProvider(email, 2000);
+const result = await getEmailProvider(email, { timeout: 2000 });
+
+// Extended response with custom timeout
+const extended = await getEmailProvider(email, { timeout: 2000, extended: true });
 
 // Rate limiting configuration
 import { Config } from '@mikkelscheike/email-provider-links';
@@ -215,7 +318,7 @@ console.log(`Total providers: ${providers.length}`);
 
 ### Email Alias Detection & Normalization
 
-**✨ Note**: `getEmailProvider()`, `getEmailProviderSync()`, and `getEmailProviderFast()` automatically normalize emails in their results. You can use `normalizeEmail()` directly when you only need normalization without provider detection.
+**✨ Note**: `getEmailProvider()`, `getEmailProviderSync()`, and `getEmailProviderFast()` automatically normalize emails in their results and return simplified responses by default (only essential fields). Use `{ extended: true }` to get full provider details. You can use `normalizeEmail()` directly when you only need normalization without provider detection.
 
 ```typescript
 import { 
