@@ -44,6 +44,8 @@
 
 import { loadProviders } from './provider-loader';
 import { domainToPunycode, validateInternationalEmail } from './idn';
+import type { EmailProvider } from './api';
+import { EmailLimits } from './constants';
 
 export interface AliasDetectionResult {
   /** The normalized/canonical email address */
@@ -72,7 +74,7 @@ export interface AliasDetectionResult {
 function isValidEmail(email: string): boolean {
   // Prevent ReDoS: limit email length (RFC 5321 max is 254 chars for local+domain)
   // Reject extremely long inputs before regex processing to prevent ReDoS attacks
-  if (!email || email.length > 254) {
+  if (!email || email.length > EmailLimits.MAX_EMAIL_LENGTH) {
     return false;
   }
 
@@ -86,7 +88,10 @@ function isValidEmail(email: string): boolean {
   const domain = email.slice(atIndex + 1);
   
   // Validate lengths (RFC 5321 limits)
-  if (localPart.length === 0 || localPart.length > 64 || domain.length === 0 || domain.length > 253) {
+  if (localPart.length === 0 || 
+      localPart.length > EmailLimits.MAX_LOCAL_PART_LENGTH || 
+      domain.length === 0 || 
+      domain.length > EmailLimits.MAX_DOMAIN_LENGTH) {
     return false;
   }
 
@@ -162,7 +167,7 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
   
   // Get providers and create domain map
   const { providers } = loadProviders();
-  const domainMap = new Map<string, any>();
+  const domainMap = new Map<string, EmailProvider>();
   providers.forEach(provider => {
     provider.domains.forEach((domain: string) => {
       domainMap.set(domain.toLowerCase(), provider);
@@ -255,7 +260,11 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
  */
 export function normalizeEmail(email: string): string {
   if (email == null || typeof email !== 'string') {
-    return email as any; // Preserve null/undefined for edge case tests
+    // Preserve null/undefined for edge case tests - return as-is
+    // Using type assertion to maintain backward compatibility with edge case tests
+    // that expect null/undefined to be returned unchanged
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return email as any;
   }
 
   // Trim whitespace first

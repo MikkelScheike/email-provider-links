@@ -9,6 +9,8 @@ import { join } from 'path';
 import { readFileSync } from 'fs';
 import { validateEmailProviderUrl, auditProviderSecurity } from './url-validator';
 import { verifyProvidersIntegrity, generateSecurityHashes } from './hash-verifier';
+import { getErrorMessage, isFileNotFoundError, isJsonError } from './error-utils';
+import { MemoryConstants } from './constants';
 import { convertProviderToEmailProviderShared, readProvidersDataFile, buildDomainMapShared } from './provider-store';
 import type { EmailProvider } from './api';
 
@@ -107,22 +109,21 @@ export function loadProviders(
     // Log memory usage in development mode
     if (process.env.NODE_ENV === 'development' && !process.env.JEST_WORKER_ID) {
       const memUsage = process.memoryUsage();
-      const memUsageMB = (memUsage.heapUsed / 1024 / 1024).toFixed(2);
+      const memUsageMB = (memUsage.heapUsed / MemoryConstants.BYTES_PER_KB / MemoryConstants.KB_PER_MB).toFixed(2);
       console.log(`🚀 Current memory usage: ${memUsageMB} MB`);
     }
-  } catch (error: any) {
-    // For non-Error objects (like strings), treat as "Unknown error" to match test expectations
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorCode = error?.code;
-    const isFileNotFound = errorCode === 'ENOENT' || errorMessage.includes('ENOENT') || errorMessage.includes('no such file');
-    const isJsonError = errorMessage.includes('JSON') || errorMessage.includes('Unexpected token') || error instanceof SyntaxError;
+  } catch (error: unknown) {
+    // Use standardized error handling utilities
+    const errorMessage = getErrorMessage(error);
+    const fileNotFound = isFileNotFoundError(error);
+    const jsonError = isJsonError(error);
     
     // Return error result for JSON parse errors and file not found (ENOENT)
     // This allows security tests to check error handling
     // Note: ENOENT errors are already handled by hash verification, but we still need to handle
     // them here in case hash verification passed but file was deleted between verification and read
-    if (isJsonError || isFileNotFound) {
-      if (!isJsonError) {
+    if (jsonError || fileNotFound) {
+      if (!jsonError) {
         // For file not found, don't add duplicate issue if hash verification already failed
         if (hashResult.isValid) {
           issues.push(`Failed to load providers file: ${errorMessage}`);
