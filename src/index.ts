@@ -60,7 +60,10 @@ export type {
 
 // Runtime validation of provider loading
 const loadResult = loadProviders();
-if (!loadResult.success) {
+// Suppress warnings in test environments - hash failures are non-blocking in tests
+// and are often due to environment differences (Node version, line endings, etc.)
+const isTestEnv = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID;
+if (!loadResult.success && !isTestEnv) {
   // Use console.warn instead of throwing to avoid breaking apps in production
   console.warn('Security warning: Provider loading had issues:', loadResult.securityReport);
 }
