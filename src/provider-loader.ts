@@ -6,13 +6,13 @@
  */
 
 import { join } from 'path';
-import { readFileSync } from 'fs';
-import { validateEmailProviderUrl, auditProviderSecurity } from './url-validator';
+import { validateEmailProviderUrl, auditProviderSecurityWithAllowlist } from './url-validator';
 import { verifyProvidersIntegrity, generateSecurityHashes } from './hash-verifier';
 import { getErrorMessage, isFileNotFoundError, isJsonError } from './error-utils';
 import { MemoryConstants } from './constants';
 import { convertProviderToEmailProviderShared, readProvidersDataFile, buildDomainMapShared } from './provider-store';
 import type { EmailProvider } from './api';
+import { domainToPunycode } from './idn';
 
 type MiddlewareRequestLike = Record<string, unknown> & {
   secureProviders?: EmailProvider[];
@@ -81,7 +81,8 @@ export function loadProviders(
     return cachedLoadResult;
   }
   
-  const filePath = providersPath || join(__dirname, '..', 'providers', 'emailproviders.json');
+  const defaultProvidersPath = join(__dirname, '..', 'providers', 'emailproviders.json');
+  const filePath = providersPath || defaultProvidersPath;
   const issues: string[] = [];
   let providers: EmailProvider[] = [];
   
@@ -101,9 +102,11 @@ export function loadProviders(
     }
   }
   
-  // Step 2: Load and parse JSON
+  // Step 2: Load and parse JSON (single read; reuse its fileSize)
+  let fileSize = 0;
   try {
-    const { data } = readProvidersDataFile(filePath);
+    const { data, fileSize: loadedSize } = readProvidersDataFile(filePath);
+    fileSize = loadedSize;
     providers = data.providers.map(convertProviderToEmailProviderShared);
     
     // Log memory usage in development mode
@@ -151,8 +154,28 @@ export function loadProviders(
     throw new Error(`Failed to load provider data: ${errorMessage}`);
   }
   
-  // Step 3: URL validation audit
-  const urlAudit = auditProviderSecurity(providers);
+  // Step 3: For the default built-in providers file, build allowlist from the already-loaded data
+  // to avoid extra disk reads in url-validator (performance).
+  //
+  // For custom provider files, we intentionally do NOT derive the allowlist from that file, because
+  // tests and security expectations rely on validating URLs against the built-in, trusted allowlist.
+  const isDefaultProvidersFile = filePath === defaultProvidersPath;
+  const allowedDomains = isDefaultProvidersFile ? new Set<string>() : undefined;
+  if (allowedDomains) {
+    for (const provider of providers) {
+      if (provider.loginUrl) {
+        try {
+          const urlObj = new URL(provider.loginUrl);
+          allowedDomains.add(domainToPunycode(urlObj.hostname.toLowerCase()));
+        } catch {
+          // Skip invalid URLs; URL audit will capture these
+        }
+      }
+    }
+  }
+
+  // Step 4: URL validation audit
+  const urlAudit = auditProviderSecurityWithAllowlist(providers, allowedDomains);
   
   // Count only providers with invalid URLs (not providers without URLs)
   const providersWithInvalidUrls = urlAudit.invalidProviders.filter(invalid => 
@@ -170,10 +193,10 @@ export function loadProviders(
     }
   }
   
-  // Step 4: Filter out invalid providers in production
+  // Step 5: Filter out invalid providers in production (reuse allowlist)
   const secureProviders = providers.filter(provider => {
     if (!provider.loginUrl) return true; // Allow providers without login URLs
-    const validation = validateEmailProviderUrl(provider.loginUrl);
+    const validation = validateEmailProviderUrl(provider.loginUrl, allowedDomains);
     return validation.isValid;
   });
   
@@ -182,7 +205,7 @@ export function loadProviders(
     issues.push(`Filtered out ${filtered} providers with invalid URLs`);
   }
   
-  // Step 5: Determine security level
+  // Step 6: Determine security level
   // Only providers with invalid URLs affect security level, not providers without URLs
   let securityLevel: 'SECURE' | 'WARNING' | 'CRITICAL' = 'SECURE';
   
@@ -201,7 +224,7 @@ export function loadProviders(
       domainMapTime: 0,
       providerCount: secureProviders.length,
       domainCount: secureProviders.reduce((count, p) => count + (p.domains?.length || 0), 0),
-      fileSize: readFileSync(filePath, 'utf8').length // Calculate actual file size in bytes
+      fileSize
     },
     securityReport: {
       hashVerification: hashResult.isValid,

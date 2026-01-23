@@ -64,7 +64,8 @@
   },
   "overrides": {
     "glob": "^10.4.5",
-    "test-exclude": "^7.0.1"
+    "test-exclude": "^7.0.1",
+    "undici": "^6.23.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",

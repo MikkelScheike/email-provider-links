@@ -95,9 +95,13 @@ export interface URLValidationResult {
  * Validates if a URL is safe for email provider redirects
  * 
  * @param url - The URL to validate
+ * @param allowedDomainsOverride - Optional allowlist to avoid recomputing from disk
  * @returns Validation result with details
  */
-export function validateEmailProviderUrl(url: string): URLValidationResult {
+export function validateEmailProviderUrl(
+  url: string,
+  allowedDomainsOverride?: Set<string>
+): URLValidationResult {
   try {
     // Check for malicious patterns in raw URL before parsing
     const rawUrl = url.toLowerCase();
@@ -173,7 +177,7 @@ export function validateEmailProviderUrl(url: string): URLValidationResult {
     }
 
     // Check if the domain is allowed
-    const allowedDomains = getAllowedDomains();
+    const allowedDomains = allowedDomainsOverride ?? getAllowedDomains();
     if (!allowedDomains.has(domain)) {
       return {
         isValid: false,
@@ -230,6 +234,21 @@ export function validateAllProviderUrls(providers: ProviderUrlLike[]): Array<{
   url: string;
   validation: URLValidationResult;
 }> {
+  return validateAllProviderUrlsWithAllowlist(providers);
+}
+
+/**
+ * Validates all URLs in an email providers array, with optional precomputed allowlist.
+ * This avoids recomputing the allowlist from disk for performance-sensitive codepaths.
+ */
+export function validateAllProviderUrlsWithAllowlist(
+  providers: ProviderUrlLike[],
+  allowedDomainsOverride?: Set<string>
+): Array<{
+  provider: string;
+  url: string;
+  validation: URLValidationResult;
+}> {
   const results: Array<{
     provider: string;
     url: string;
@@ -241,7 +260,7 @@ export function validateAllProviderUrls(providers: ProviderUrlLike[]): Array<{
       results.push({
         provider: provider.companyProvider || 'Unknown',
         url: provider.loginUrl,
-        validation: validateEmailProviderUrl(provider.loginUrl)
+        validation: validateEmailProviderUrl(provider.loginUrl, allowedDomainsOverride)
       });
     } else {
       // Providers without URLs are counted but marked as invalid for audit purposes
@@ -267,7 +286,17 @@ export function validateAllProviderUrls(providers: ProviderUrlLike[]): Array<{
  * @returns Security audit report
  */
 export function auditProviderSecurity(providers: ProviderUrlLike[]) {
-  const validations = validateAllProviderUrls(providers);
+  return auditProviderSecurityWithAllowlist(providers);
+}
+
+/**
+ * Security audit function to check all provider URLs, with optional precomputed allowlist.
+ */
+export function auditProviderSecurityWithAllowlist(
+  providers: ProviderUrlLike[],
+  allowedDomainsOverride?: Set<string>
+) {
+  const validations = validateAllProviderUrlsWithAllowlist(providers, allowedDomainsOverride);
   const invalid = validations.filter(v => !v.validation.isValid);
   const valid = validations.filter(v => v.validation.isValid);
 
