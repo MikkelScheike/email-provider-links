@@ -7,7 +7,6 @@
 
 import { validateEmailProviderUrl, auditProviderSecurityWithAllowlist } from './url-validator';
 import { join, normalize } from 'path';
-import { validateEmailProviderUrl, auditProviderSecurityWithAllowlist } from './url-validator';
 import { verifyProvidersIntegrity, generateSecurityHashes } from './hash-verifier';
 import { getErrorMessage, isFileNotFoundError, isJsonError } from './error-utils';
 import { MemoryConstants } from './constants';
@@ -84,6 +83,7 @@ export function loadProviders(
   
   const defaultProvidersPath = normalize(join(__dirname, '..', 'providers', 'emailproviders.json'));
   const filePath = providersPath ? normalize(providersPath) : defaultProvidersPath;
+  const isDefaultProvidersFile = normalize(filePath) === normalize(defaultProvidersPath);
   const issues: string[] = [];
   let providers: EmailProvider[] = [];
   
@@ -160,8 +160,6 @@ export function loadProviders(
   //
   // For custom provider files, we intentionally do NOT derive the allowlist from that file, because
   // tests and security expectations rely on validating URLs against the built-in, trusted allowlist.
-  // Normalize both paths for comparison to handle Windows/Unix path differences
-  const isDefaultProvidersFile = normalize(filePath) === normalize(defaultProvidersPath);
   const allowedDomains = isDefaultProvidersFile ? new Set<string>() : undefined;
   if (allowedDomains) {
     for (const provider of providers) {

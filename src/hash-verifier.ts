@@ -21,10 +21,10 @@ type ProviderLike = { companyProvider?: string; loginUrl?: string | null };
  */
 const KNOWN_GOOD_HASHES = {
   // SHA-256 hash of the legitimate emailproviders.json
-'emailproviders.json': '4bb63c1d668018b32f629878cefe107f7285afe7e4d874919f154a0dd3f78c42',
-  
+  'emailproviders.json': 'a4fe056edad44ae5479cc100d5cc67cb5f6df86e19c4209db6c5f715f5bf070e',
+
   // You can add hashes for other critical files
-'package.json': 'c1e75125f815d5ccd1fb8595b3478764d11b846a333ab96dcb73a585d2369eb3',
+  'package.json': 'c1e75125f815d5ccd1fb8595b3478764d11b846a333ab96dcb73a585d2369eb3',
 };
 
 export interface HashVerificationResult {
@@ -64,13 +64,16 @@ export function calculateFileHash(filePath: string): string {
  * @returns Verification result
  */
 export function verifyProvidersIntegrity(
-  filePath: string, 
+  filePath: string,
   expectedHash?: string
 ): HashVerificationResult {
   try {
-    const actualHash = calculateFileHash(filePath);
+    // Read as UTF-8 and normalize line endings to ensure consistency across OS
+    const content = readFileSync(filePath, 'utf8');
+    const normalized = content.replace(/\r\n/g, '\n');
+    const actualHash = calculateHash(normalized);
     const expectedHashToUse = expectedHash || KNOWN_GOOD_HASHES['emailproviders.json'];
-    
+
     if (expectedHashToUse === 'TO_BE_CALCULATED') {
       return {
         isValid: false,
@@ -79,9 +82,9 @@ export function verifyProvidersIntegrity(
         file: filePath
       };
     }
-    
+
     const isValid = actualHash === expectedHashToUse;
-    
+
     return {
       isValid,
       expectedHash: expectedHashToUse,
@@ -89,7 +92,7 @@ export function verifyProvidersIntegrity(
       reason: isValid ? undefined : 'File hash does not match expected value - potential tampering detected',
       file: filePath
     };
-    
+
   } catch (error) {
     return {
       isValid: false,
@@ -125,9 +128,9 @@ export function verifyProvidersDataIntegrity(
     const providersObject = providersData as ProvidersDataLike;
     const jsonString = JSON.stringify(providersObject, Object.keys(providersObject).sort(), 2);
     const actualHash = calculateHash(jsonString);
-    
+
     const expectedHashToUse = expectedHash || KNOWN_GOOD_HASHES['emailproviders.json'];
-    
+
     if (expectedHashToUse === 'TO_BE_CALCULATED') {
       return {
         isValid: false,
@@ -136,9 +139,9 @@ export function verifyProvidersDataIntegrity(
         file: 'providersData'
       };
     }
-    
+
     const isValid = actualHash === expectedHashToUse;
-    
+
     return {
       isValid,
       expectedHash: expectedHashToUse,
@@ -146,7 +149,7 @@ export function verifyProvidersDataIntegrity(
       reason: isValid ? undefined : 'Data hash does not match expected value',
       file: 'providersData'
     };
-    
+
   } catch (error) {
     return {
       isValid: false,
@@ -168,9 +171,9 @@ export function generateSecurityHashes(basePath: string = __dirname) {
     'providers/emailproviders.json',
     'package.json'
   ];
-  
+
   const hashes: Record<string, string> = {};
-  
+
   for (const file of files) {
     try {
       const fullPath = join(basePath, '..', file);
@@ -181,7 +184,7 @@ export function generateSecurityHashes(basePath: string = __dirname) {
       console.error(`❌ Failed to hash ${file}:`, error);
     }
   }
-  
+
   return hashes;
 }
 
@@ -194,10 +197,10 @@ export function generateSecurityHashes(basePath: string = __dirname) {
  */
 export function recalculateHashes(basePath?: string): string {
   console.log('🔄 RECALCULATING SECURITY HASHES');
-  console.log('=' .repeat(50));
-  
+  console.log('='.repeat(50));
+
   const hashes = generateSecurityHashes(basePath);
-  
+
   const configCode = `
 // Updated KNOWN_GOOD_HASHES configuration:
 const KNOWN_GOOD_HASHES = {
@@ -205,15 +208,15 @@ const KNOWN_GOOD_HASHES = {
   'package.json': '${hashes['package.json']}'
 };
 `;
-  
+
   console.log('\n📋 Copy this configuration to hash-verifier.ts:');
   console.log(configCode);
-  
+
   console.log('\n⚠️  SECURITY REMINDER:');
   console.log('- Only update hashes after verifying changes are legitimate');
   console.log('- Review git diff before updating hash values');
   console.log('- Consider requiring code review for hash updates');
-  
+
   return configCode;
 }
 
@@ -232,9 +235,9 @@ export function handleHashMismatch(
   } = {}
 ): void {
   if (result.isValid) return;
-  
+
   const { throwOnMismatch = false, logLevel = 'error', onMismatch } = options;
-  
+
   const securityAlert = [
     '🚨🚨🚨 CRITICAL SECURITY ALERT 🚨🚨🚨',
     `File: ${result.file}`,
@@ -256,18 +259,18 @@ export function handleHashMismatch(
     '',
     '📧 Report security issues: https://github.com/mikkelscheike/email-provider-links/security'
   ].join('\n');
-  
+
   if (logLevel === 'error') {
     console.error(securityAlert);
   } else if (logLevel === 'warn') {
     console.warn(securityAlert);
   }
-  
+
   // Call custom handler if provided
   if (onMismatch) {
     onMismatch(result);
   }
-  
+
   // Throw error if requested (for production environments)
   if (throwOnMismatch) {
     throw new Error(
@@ -288,29 +291,29 @@ export function performSecurityAudit(providersFilePath?: string): {
   recommendations: string[];
   securityLevel: 'HIGH' | 'MEDIUM' | 'LOW' | 'CRITICAL';
 } {
-    const filePath = providersFilePath || join(__dirname, '..', 'providers', 'emailproviders.json');
+  const filePath = providersFilePath || join(__dirname, '..', 'providers', 'emailproviders.json');
   const hashResult = verifyProvidersIntegrity(filePath);
-  
+
   const recommendations: string[] = [];
   let securityLevel: 'HIGH' | 'MEDIUM' | 'LOW' | 'CRITICAL' = 'HIGH';
-  
+
   if (!hashResult.isValid) {
     securityLevel = 'CRITICAL';
     recommendations.push('🚨 CRITICAL: File integrity check failed - investigate immediately');
     recommendations.push('🔒 Verify the source of the providers file');
     recommendations.push('📋 Check git history for unauthorized changes');
   }
-  
+
   if (KNOWN_GOOD_HASHES['emailproviders.json'] === 'TO_BE_CALCULATED') {
     securityLevel = securityLevel === 'HIGH' ? 'MEDIUM' : securityLevel;
     recommendations.push('⚙️  Configure expected hash values in production');
     recommendations.push('🔐 Store hashes in secure environment variables');
   }
-  
+
   recommendations.push('🔄 Regularly update hash values when making legitimate changes');
   recommendations.push('📊 Monitor for unexpected hash changes in CI/CD');
   recommendations.push('🛡️  Consider implementing digital signatures for additional security');
-  
+
   return {
     hashVerification: hashResult,
     recommendations,
@@ -332,22 +335,22 @@ export function createProviderManifest(providers: ProviderLike[]): {
   manifestHash: string;
 } {
   const urlHashes: Record<string, string> = {};
-  
+
   for (const provider of providers) {
     if (provider.loginUrl) {
       const key = `${provider.companyProvider ?? 'Unknown'}::${provider.loginUrl}`;
       urlHashes[key] = calculateHash(provider.loginUrl);
     }
   }
-  
+
   const manifestData = {
     timestamp: new Date().toISOString(),
     providerCount: providers.length,
     urlHashes
   };
-  
+
   const manifestHash = calculateHash(JSON.stringify(manifestData, null, 2));
-  
+
   return {
     ...manifestData,
     manifestHash

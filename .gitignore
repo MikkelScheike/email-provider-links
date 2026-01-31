@@ -167,3 +167,10 @@ lerna-debug.log*
 .env.production.local
 
 .nvmrc
+
+# Temporary debug files
+debug_output.txt
+test_output.txt
+test-results.json
+test-results-*.json
+debug-hash.js

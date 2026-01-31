@@ -47,7 +47,7 @@ jobs:
         npm run sync-versions
       
     - name: Security audit
-      run: npm audit --audit-level=moderate
+      run: npm audit --audit-level=critical
       
     - name: Run tests
       run: npm test
