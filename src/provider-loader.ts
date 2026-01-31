@@ -80,18 +80,18 @@ export function loadProviders(
   if (cachedLoadResult) {
     return cachedLoadResult;
   }
-  
+
   const defaultProvidersPath = normalize(join(__dirname, '..', 'providers', 'emailproviders.json'));
   const filePath = providersPath ? normalize(providersPath) : defaultProvidersPath;
   const isDefaultProvidersFile = normalize(filePath) === normalize(defaultProvidersPath);
   const issues: string[] = [];
   let providers: EmailProvider[] = [];
-  
+
   // Step 1: Hash verification
   const hashResult = verifyProvidersIntegrity(filePath, expectedHash);
   if (!hashResult.isValid) {
     issues.push(`Hash verification failed: ${hashResult.reason}`);
-    
+
     // In production, you might want to abort here
     // Suppress logging during tests to avoid console noise
     if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
@@ -102,14 +102,14 @@ export function loadProviders(
       console.error('Actual:', hashResult.actualHash);
     }
   }
-  
+
   // Step 2: Load and parse JSON (single read; reuse its fileSize)
   let fileSize = 0;
   try {
     const { data, fileSize: loadedSize } = readProvidersDataFile(filePath);
     fileSize = loadedSize;
     providers = data.providers.map(convertProviderToEmailProviderShared);
-    
+
     // Log memory usage in development mode
     if (process.env.NODE_ENV === 'development' && !process.env.JEST_WORKER_ID) {
       const memUsage = process.memoryUsage();
@@ -121,7 +121,7 @@ export function loadProviders(
     const errorMessage = getErrorMessage(error);
     const fileNotFound = isFileNotFoundError(error);
     const jsonError = isJsonError(error);
-    
+
     // Return error result for JSON parse errors and file not found (ENOENT)
     // This allows security tests to check error handling
     // Note: ENOENT errors are already handled by hash verification, but we still need to handle
@@ -149,12 +149,12 @@ export function loadProviders(
         }
       };
     }
-    
+
     // For other errors, add to issues and throw (to match loader.test.ts expectations)
     issues.push(`Failed to load providers file: ${errorMessage}`);
     throw new Error(`Failed to load provider data: ${errorMessage}`);
   }
-  
+
   // Step 3: For the default built-in providers file, build allowlist from the already-loaded data
   // to avoid extra disk reads in url-validator (performance).
   //
@@ -176,12 +176,12 @@ export function loadProviders(
 
   // Step 4: URL validation audit
   const urlAudit = auditProviderSecurityWithAllowlist(providers, allowedDomains);
-  
+
   // Count only providers with invalid URLs (not providers without URLs)
-  const providersWithInvalidUrls = urlAudit.invalidProviders.filter(invalid => 
+  const providersWithInvalidUrls = urlAudit.invalidProviders.filter(invalid =>
     invalid.url !== '' && invalid.url !== undefined && invalid.url !== null
   );
-  
+
   if (providersWithInvalidUrls.length > 0) {
     issues.push(`${providersWithInvalidUrls.length} providers have invalid URLs`);
     // Suppress logging during tests to avoid console noise
@@ -192,36 +192,36 @@ export function loadProviders(
       }
     }
   }
-  
+
   // Step 5: Filter out invalid providers in production (reuse allowlist)
   const secureProviders = providers.filter(provider => {
     if (!provider.loginUrl) return true; // Allow providers without login URLs
     const validation = validateEmailProviderUrl(provider.loginUrl, allowedDomains);
     return validation.isValid;
   });
-  
+
   if (secureProviders.length < providers.length) {
     const filtered = providers.length - secureProviders.length;
     issues.push(`Filtered out ${filtered} providers with invalid URLs`);
   }
-  
+
   // Step 6: Determine security level
   // Only providers with invalid URLs affect security level, not providers without URLs
   let securityLevel: 'SECURE' | 'WARNING' | 'CRITICAL' = 'SECURE';
-  
+
   if (!hashResult.isValid) {
     securityLevel = 'CRITICAL';
   } else if (providersWithInvalidUrls.length > 0 || issues.length > 0) {
     securityLevel = 'WARNING';
   }
-  
+
   // In test environments, allow providers to load even if hash verification fails for the DEFAULT providers file
   // Hash mismatches in tests are often due to environment differences (Node version, line endings, etc.)
   // rather than actual security issues. The security level will still be marked as CRITICAL to report the issue.
   // However, for custom test files with intentionally wrong hashes, we should still fail to respect test expectations.
-  const isTestEnv = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID;
+  const isTestEnv = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
   const allowLoadingOnHashFailure = isTestEnv && isDefaultProvidersFile && secureProviders.length > 0;
-  
+
   const loadResult = {
     success: securityLevel !== 'CRITICAL' || allowLoadingOnHashFailure,
     providers: secureProviders,
@@ -246,7 +246,7 @@ export function loadProviders(
 
   // Cache the result for future calls
   cachedLoadResult = loadResult;
-  
+
   // Update loading stats for getLoadingStats()
   loadingStats = loadResult.stats;
 
@@ -259,13 +259,13 @@ export function loadProviders(
 export function initializeSecurity() {
   console.log('🔐 Generating security hashes for email providers...');
   const hashes = generateSecurityHashes();
-  
+
   console.log('\n📋 Security Setup Instructions:');
   console.log('1. Store these hashes securely (environment variables, CI/CD secrets)');
   console.log('2. Update KNOWN_GOOD_HASHES in hash-verifier.ts');
   console.log('3. Enable hash verification in production');
   console.log('\n⚠️  Remember to update hashes when making legitimate changes to provider data!');
-  
+
   return hashes;
 }
 
@@ -283,7 +283,7 @@ export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}
   return (req: MiddlewareRequestLike, res: MiddlewareResponseLike, next: MiddlewareNextLike) => {
     // If a custom providers getter is provided, use that instead of loading from file
     const result = options.getProviders ? options.getProviders() : loadProviders(undefined, options.expectedHash);
-    
+
     // Handle security level
     if (result.securityReport.securityLevel === 'CRITICAL' && !options.allowInvalidUrls) {
       if (options.onSecurityIssue) {
@@ -295,11 +295,11 @@ export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}
       });
       return;
     }
-    
+
     // Attach secure providers to request
     req.secureProviders = result.providers;
     req.securityReport = result.securityReport;
-    
+
     next();
     return;
   };
@@ -313,7 +313,7 @@ export function buildDomainMap(providers: EmailProvider[]): Map<string, EmailPro
   if (cachedDomainMap) {
     return cachedDomainMap;
   }
-  
+
   // Build and cache the domain map
   cachedDomainMap = buildDomainMapShared(providers);
   return cachedDomainMap;
@@ -331,19 +331,19 @@ export function getLoadingStats() {
  */
 export function loadProvidersDebug() {
   const startTime = process.hrtime.bigint();
-  
+
   // Clear cache for debug mode - ensure we always reload
   cachedLoadResult = null;
   loadingStats = null;
-  
+
   const result = loadProviders();
   const endTime = process.hrtime.bigint();
-  
+
   // Build domain map and calculate stats
   const domainMapStart = process.hrtime.bigint();
   const domainMap = buildDomainMap(result.providers);
   const domainMapEnd = process.hrtime.bigint();
-  
+
   // Store loading stats
   loadingStats = {
     loadTime: Number(endTime - startTime) / 1000000, // Convert to milliseconds
@@ -352,7 +352,7 @@ export function loadProvidersDebug() {
     domainCount: domainMap.size,
     fileSize: 0 // Would need to track this during load
   };
-  
+
   // Debug output
   console.log('=== Provider Loading Debug ===');
   console.log(`Providers loaded: ${result.providers.length}`);
@@ -361,7 +361,7 @@ export function loadProvidersDebug() {
   console.log(`Domain map time: ${loadingStats.domainMapTime.toFixed(2)}ms`);
   console.log(`Total domains: ${loadingStats.domainCount}`);
   console.log('=============================');
-  
+
   // Return enhanced result with debug info - ensure new objects each time
   return {
     ...result,
