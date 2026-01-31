@@ -178,29 +178,6 @@ export function loadProviders(
 
   // Step 4: URL validation audit
   const urlAudit = auditProviderSecurityWithAllowlist(providers, allowedDomains);
-  // Step 3: For the default built-in providers file, build allowlist from the already-loaded data
-  // to avoid extra disk reads in url-validator (performance).
-  //
-  // For custom provider files, we intentionally do NOT derive the allowlist from that file, because
-  // tests and security expectations rely on validating URLs against the built-in, trusted allowlist.
-  // Normalize both paths for comparison to handle Windows/Unix path differences
-  const isDefaultProvidersFile = normalize(filePath) === normalize(defaultProvidersPath);
-  const allowedDomains = isDefaultProvidersFile ? new Set<string>() : undefined;
-  if (allowedDomains) {
-    for (const provider of providers) {
-      if (provider.loginUrl) {
-        try {
-          const urlObj = new URL(provider.loginUrl);
-          allowedDomains.add(domainToPunycode(urlObj.hostname.toLowerCase()));
-        } catch {
-          // Skip invalid URLs; URL audit will capture these
-        }
-      }
-    }
-  }
-
-  // Step 4: URL validation audit
-  const urlAudit = auditProviderSecurityWithAllowlist(providers, allowedDomains);
   
   // Count only providers with invalid URLs (not providers without URLs)
   const providersWithInvalidUrls = urlAudit.invalidProviders.filter(invalid => 
