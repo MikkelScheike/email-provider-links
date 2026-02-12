@@ -139,6 +139,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [codeql]  # Only depends on CodeQL (which depends on test + coverage)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: npm
     permissions:
       contents: write
       issues: write
@@ -173,7 +174,6 @@ jobs:
     - name: Semantic Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         NPM_CONFIG_PROVENANCE: true
       run: npx semantic-release
 
