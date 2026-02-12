@@ -1,6 +1,6 @@
 {
   "name": "@mikkelscheike/email-provider-links",
-  "version": "5.1.2",
+  "version": "5.1.3",
   "description": "TypeScript library for email provider detection with 130 providers (218 domains), concurrent DNS resolution, optimized performance, 94.65% test coverage, and enterprise security for login and password reset flows",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
