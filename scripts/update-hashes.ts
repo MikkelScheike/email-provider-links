@@ -47,8 +47,10 @@ class HashUpdater {
         
         for (const file of files) {
             const fullPath = join(this.projectRoot, file);
-            const content = readFileSync(fullPath);
-            const hash = createHash("sha256").update(content).digest("hex");
+            // Match hash-verifier: read UTF-8 and normalize line endings so hashes match at verification time
+            const content = readFileSync(fullPath, "utf-8");
+            const normalized = content.replace(/\r\n/g, "\n");
+            const hash = createHash("sha256").update(normalized, "utf8").digest("hex");
             const fileName = file.split("/").pop() || file;
             hashes[fileName] = hash;
         }
