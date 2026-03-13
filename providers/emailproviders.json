@@ -625,6 +625,15 @@
       "loginUrl": "https://www.hushmail.com/signin/"
     },
     {
+      "id": "hey",
+      "domains": [
+        "hey.com"
+      ],
+      "type": "public_provider",
+      "companyProvider": "HEY (37signals)",
+      "loginUrl": "https://app.hey.com"
+    },
+    {
       "id": "icloud",
       "domains": [
         "icloud.com",
@@ -767,6 +776,15 @@
       "type": "public_provider",
       "companyProvider": "Link3 Mail",
       "loginUrl": "https://mail.link3.net"
+    },
+    {
+      "id": "lycos",
+      "domains": [
+        "lycos.com"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Lycos Mail",
+      "loginUrl": "https://mail.lycos.com"
     },
     {
       "id": "livejp",
@@ -1244,7 +1262,10 @@
     {
       "id": "ru",
       "domains": [
-        "mail.ru"
+        "mail.ru",
+        "bk.ru",
+        "list.ru",
+        "inbox.ru"
       ],
       "type": "public_provider",
       "companyProvider": "Mail.ru",
@@ -1789,8 +1810,8 @@
     }
   ],
   "meta": {
-    "count": 130,
-    "domains": 218,
+    "count": 132,
+    "domains": 223,
     "generated": "2025-12-09T10:38:50.000Z"
   }
 }
