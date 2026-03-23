@@ -1030,6 +1030,15 @@
       "loginUrl": "https://www.one.com/mail/"
     },
     {
+      "id": "onlinemail",
+      "mx": [
+        "onlinemail.io"
+      ],
+      "type": "custom_provider",
+      "companyProvider": "Onlinemail",
+      "loginUrl": "https://www.onlinemail.io/"
+    },
+    {
       "id": "onet",
       "domains": [
         "onet.pl",

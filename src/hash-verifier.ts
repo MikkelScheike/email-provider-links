@@ -21,7 +21,7 @@ type ProviderLike = { companyProvider?: string; loginUrl?: string | null };
  */
 const KNOWN_GOOD_HASHES = {
   // SHA-256 hash of the legitimate emailproviders.json
-  'emailproviders.json': 'b409c3b65b250021d4223cc2ec84702eef9cad44abc95f65f62d28edccd3c4f4',
+  'emailproviders.json': '658a200bc357f4fc960d6b89b3ebd8cc933d5531ebd6facf9b9199f1c634d871',
 
   // You can add hashes for other critical files
   'package.json': '3a187d1562dbdc6fdf650b0736009c1cd7916f2dfa7b9d425b6ee1599a562f08',
