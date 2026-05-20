@@ -151,8 +151,10 @@ class SemanticReleaseManager {
     for (const file of files) {
       try {
         const fullPath = join(this.projectRoot, file);
-        const content = readFileSync(fullPath);
-        const hash = createHash('sha256').update(content).digest('hex');
+        // Match hash-verifier and update-hashes: UTF-8 + normalized line endings
+        const raw = readFileSync(fullPath, 'utf-8');
+        const normalized = raw.replace(/\r\n/g, '\n');
+        const hash = createHash('sha256').update(normalized, 'utf8').digest('hex');
         const fileName = file.split('/').pop() || file;
         hashes[fileName] = hash;
         console.log(`✅ ${file}: ${hash}`);
