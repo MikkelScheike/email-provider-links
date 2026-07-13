@@ -1,6 +1,26 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
+import { join, normalize } from 'path';
 import type { EmailProvider } from './api';
 import { Provider, ProvidersData, decompressTxtPattern } from './schema';
+
+/**
+ * Resolve the providers JSON path for both src (dev/test) and dist (published).
+ */
+export function resolveDefaultProvidersPath(): string {
+  const fromDistOrAdjacent = normalize(join(__dirname, 'providers', 'emailproviders.json'));
+  const fromRepoRoot = normalize(join(__dirname, '..', 'providers', 'emailproviders.json'));
+  if (existsSync(fromDistOrAdjacent)) {
+    return fromDistOrAdjacent;
+  }
+  return fromRepoRoot;
+}
+
+export function isBuiltinProvidersPath(filePath: string): boolean {
+  const adjacent = normalize(join(__dirname, 'providers', 'emailproviders.json'));
+  const repoRoot = normalize(join(__dirname, '..', 'providers', 'emailproviders.json'));
+  const normalized = normalize(filePath);
+  return normalized === adjacent || normalized === repoRoot;
+}
 
 export function convertProviderToEmailProviderShared(compressedProvider: Provider): EmailProvider {
   if (!compressedProvider.type) {
@@ -14,11 +34,8 @@ export function convertProviderToEmailProviderShared(compressedProvider: Provide
     alias: compressedProvider.alias
   };
 
-  const needsCustomDomainDetection =
-    compressedProvider.type === 'custom_provider' ||
-    compressedProvider.type === 'proxy_service';
-
-  if (needsCustomDomainDetection && (compressedProvider.mx?.length || compressedProvider.txt?.length)) {
+  // Attach MX/TXT for DNS detection whenever present, regardless of provider type.
+  if (compressedProvider.mx?.length || compressedProvider.txt?.length) {
     provider.customDomainDetection = {};
 
     if (compressedProvider.mx?.length) {

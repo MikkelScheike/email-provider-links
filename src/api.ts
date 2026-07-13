@@ -5,12 +5,11 @@
  * Clean function names and enhanced error context.
  */
 
-import { 
-  detectProviderConcurrent
-} from './concurrent-dns';
 import { loadProviders } from './provider-loader';
 import { validateInternationalEmail, domainToPunycode, IDNValidationError } from './idn';
 import { normalizeEmail } from './alias-detection';
+import { DnsConstants } from './constants';
+import type { ConcurrentDNSResult } from './concurrent-dns';
 
 let cachedProvidersRef: EmailProvider[] | null = null;
 let cachedDomainMap: Map<string, EmailProvider> | null = null;
@@ -31,6 +30,67 @@ function getDomainMapFromProviders(providers: EmailProvider[]): Map<string, Emai
   cachedProvidersRef = providers;
   cachedDomainMap = domainMap;
   return domainMap;
+}
+
+/** Lazy-load DNS engine so sync-only consumers avoid parsing concurrent-dns. */
+function detectProviderConcurrentLazy(
+  domain: string,
+  providers: EmailProvider[],
+  config: {
+    timeout?: number;
+    enableParallel?: boolean;
+    collectDebugInfo?: boolean;
+  }
+): Promise<ConcurrentDNSResult> {
+  // CJS lazy require keeps cold import light and stays compatible with Jest mocks.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { detectProviderConcurrent } = require('./concurrent-dns') as typeof import('./concurrent-dns');
+  return detectProviderConcurrent(domain, providers, config);
+}
+
+function normalizeValidatedEmail(trimmedEmail: string, domain: string): string {
+  return normalizeEmail(trimmedEmail, {
+    alreadyValidated: true,
+    punycodeDomain: domain
+  });
+}
+
+function lookupKnownProvider(domain: string): {
+  ok: true;
+  provider: EmailProvider | null;
+} | {
+  ok: false;
+  error: NonNullable<EmailProviderResult['error']>;
+} {
+  try {
+    const result = loadProviders();
+    if (!result.success) {
+      if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+        console.error('Provider lookup blocked due to validation failure');
+      }
+      return {
+        ok: false,
+        error: {
+          type: 'NETWORK_ERROR',
+          message: 'Service temporarily unavailable'
+        }
+      };
+    }
+
+    const domainMap = result.domainMap ?? getDomainMapFromProviders(result.providers);
+    return { ok: true, provider: domainMap.get(domain) || null };
+  } catch (error) {
+    if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+      console.error('Provider lookup failed:', error);
+    }
+    return {
+      ok: false,
+      error: {
+        type: 'NETWORK_ERROR',
+        message: 'Service temporarily unavailable'
+      }
+    };
+  }
 }
 
 function validateAndParseEmailForLookup(email: string): {
@@ -214,28 +274,19 @@ function simplifyProvider(provider: EmailProvider | null): SimplifiedProvider | 
  * @param email - The email address to analyze
  * @param options - Optional configuration: timeout for DNS queries (default: 5000ms) and extended response flag
  * @returns Promise resolving to SimplifiedEmailProviderResult (default) or EmailProviderResult (if extended)
- * 
- * @example
- * ```typescript
- * // Default: Simplified response (recommended for frontend)
- * const result = await getEmailProvider('user@gmail.com');
- * // Returns: { provider: { companyProvider, loginUrl, type }, email, loginUrl, detectionMethod }
- * 
- * // Extended response (includes domains, alias config, etc.)
- * const extended = await getEmailProvider('user@gmail.com', { extended: true });
- * // Returns: { provider: { companyProvider, loginUrl, domains, alias, type, ... }, ... }
- * 
- * // Business domain
- * const business = await getEmailProvider('local@business.tld');
- * console.log(business.provider?.companyProvider); // Detected provider
- * console.log(business.detectionMethod);          // Detection method
- * 
- * // Error handling
- * const invalid = await getEmailProvider('invalid-email');
- * console.log(invalid.error?.type);    // "INVALID_EMAIL"
- * console.log(invalid.error?.message); // "Invalid email format"
- * ```
  */
+export async function getEmailProvider(
+  email: string,
+  options?: number | { timeout?: number; extended?: false }
+): Promise<SimplifiedEmailProviderResult>;
+export async function getEmailProvider(
+  email: string,
+  options: { timeout?: number; extended: true }
+): Promise<EmailProviderResult>;
+export async function getEmailProvider(
+  email: string,
+  options?: number | { timeout?: number; extended?: boolean }
+): Promise<SimplifiedEmailProviderResult | EmailProviderResult>;
 export async function getEmailProvider(
   email: string, 
   options?: number | { timeout?: number; extended?: boolean }
@@ -247,12 +298,11 @@ export async function getEmailProvider(
   try {
     const parsed = validateAndParseEmailForLookup(email);
     if (!parsed.ok) {
-      // Try to normalize even invalid emails (may help with some edge cases)
       let normalizedEmail = parsed.email;
       try {
         normalizedEmail = normalizeEmail(parsed.email);
       } catch {
-        // If normalization fails, use original email
+        // keep original
       }
       const errorResult = {
         provider: null,
@@ -263,24 +313,43 @@ export async function getEmailProvider(
       return extended ? errorResult as EmailProviderResult : errorResult as SimplifiedEmailProviderResult;
     }
 
-    const domain = parsed.domain;
+    const { trimmedEmail, domain } = parsed;
+    const normalizedEmail = normalizeValidatedEmail(trimmedEmail, domain);
 
-    // First try synchronous domain matching
-    const syncResult = getEmailProviderSync(email, { extended });
-    if (syncResult.provider) {
-      // Email is already normalized in getEmailProviderSync
+    // Fast path: known domain map (no DNS module load)
+    const known = lookupKnownProvider(domain);
+    if (!known.ok) {
+      const errorResult = {
+        provider: null,
+        email: normalizedEmail,
+        ...(extended ? { loginUrl: null } : {}),
+        error: known.error
+      };
+      return extended ? errorResult as EmailProviderResult : errorResult as SimplifiedEmailProviderResult;
+    }
+
+    if (known.provider) {
+      if (extended) {
+        return {
+          provider: known.provider,
+          email: normalizedEmail,
+          loginUrl: known.provider.loginUrl,
+          detectionMethod: 'domain_match'
+        };
+      }
       return {
-        ...syncResult,
+        provider: simplifyProvider(known.provider),
+        email: normalizedEmail,
         detectionMethod: 'domain_match'
       };
     }
 
-    // Fall back to DNS detection for business domains
+    // Fall back to DNS detection for business domains (lazy-loaded)
     const loadResult = loadProviders();
     if (!loadResult.success) {
       const errorResult = {
         provider: null,
-        email,
+        email: normalizedEmail,
         ...(extended ? { loginUrl: null } : {}),
         error: {
           type: 'NETWORK_ERROR' as const,
@@ -289,21 +358,12 @@ export async function getEmailProvider(
       };
       return extended ? errorResult as EmailProviderResult : errorResult as SimplifiedEmailProviderResult;
     }
-    const providers = loadResult.providers;
-    const concurrentResult = await detectProviderConcurrent(domain, providers, {
-      timeout: timeout || 5000,
+
+    const concurrentResult = await detectProviderConcurrentLazy(domain, loadResult.providers, {
+      timeout: timeout || DnsConstants.DEFAULT_TIMEOUT_MS,
       enableParallel: true,
       collectDebugInfo: false
     });
-
-    // Normalize email using alias detection (even if no provider found)
-    // This ensures consistent email format regardless of provider detection result
-    let normalizedEmail = email;
-    try {
-      normalizedEmail = normalizeEmail(email);
-    } catch {
-      // If normalization fails, use original email
-    }
 
     if (extended) {
       const result: EmailProviderResult = {
@@ -317,7 +377,6 @@ export async function getEmailProvider(
         result.proxyService = concurrentResult.proxyService;
       }
 
-      // Add error context for null results
       if (!result.provider && !result.proxyService) {
         result.error = {
           type: 'UNKNOWN_DOMAIN',
@@ -328,14 +387,12 @@ export async function getEmailProvider(
       return result;
     }
 
-    // Default: simplified response
     const result: SimplifiedEmailProviderResult = {
       provider: simplifyProvider(concurrentResult.provider),
       email: normalizedEmail,
       detectionMethod: concurrentResult.detectionMethod || 'mx_record'
     };
 
-    // Add error context for null results
     if (!result.provider) {
       result.error = {
         type: 'UNKNOWN_DOMAIN',
@@ -386,33 +443,21 @@ export async function getEmailProvider(
 
 /**
  * Get email provider information synchronously (no DNS lookup).
- * 
- * This function only checks predefined domains and returns immediately.
- * Use this when you can't use async functions or don't want DNS lookups.
- * 
- * By default, returns a simplified response with only essential fields.
- * Use the `extended` option to get full provider details including domains and alias configuration.
- * 
- * @param email - The email address to analyze
- * @param options - Optional configuration: extended response flag
- * @returns SimplifiedEmailProviderResult (default) or EmailProviderResult (if extended) with provider info (limited to known domains)
- * 
- * @example
- * ```typescript
- * // Default: Simplified response (recommended for frontend)
- * const gmail = getEmailProviderSync('user@gmail.com');
- * // Returns: { provider: { companyProvider, loginUrl, type }, email, loginUrl }
- * 
- * // Extended response (includes domains, alias config, etc.)
- * const extended = getEmailProviderSync('user@gmail.com', { extended: true });
- * // Returns: { provider: { companyProvider, loginUrl, domains, alias, type, ... }, ... }
- * 
- * // Unknown domains return null
- * const unknown = getEmailProviderSync('user@mycompany.com');
- * console.log(unknown.provider); // null
- * console.log(unknown.error?.type); // "UNKNOWN_DOMAIN"
- * ```
+ *
+ * Only checks predefined domains (no DNS). Use `extended: true` for full provider metadata.
  */
+export function getEmailProviderSync(
+  email: string,
+  options?: { extended?: false }
+): SimplifiedEmailProviderResult;
+export function getEmailProviderSync(
+  email: string,
+  options: { extended: true }
+): EmailProviderResult;
+export function getEmailProviderSync(
+  email: string,
+  options?: { extended?: boolean }
+): SimplifiedEmailProviderResult | EmailProviderResult;
 export function getEmailProviderSync(
   email: string,
   options?: { extended?: boolean }
@@ -421,78 +466,36 @@ export function getEmailProviderSync(
   try {
     const parsed = validateAndParseEmailForLookup(email);
     if (!parsed.ok) {
-      // Try to normalize even invalid emails (may help with some edge cases)
       let normalizedEmail = parsed.email;
       try {
         normalizedEmail = normalizeEmail(parsed.email);
       } catch {
-        // If normalization fails, use original email
+        // keep original
       }
-      const errorResult: any = {
+      const errorResult: SimplifiedEmailProviderResult | EmailProviderResult = {
         provider: null,
         email: normalizedEmail,
-        error: parsed.error
+        error: parsed.error,
+        ...(extended ? { loginUrl: null } : {})
       };
-      if (extended) {
-        errorResult.loginUrl = null;
-      }
-      return extended ? errorResult as EmailProviderResult : errorResult as SimplifiedEmailProviderResult;
+      return errorResult;
     }
 
-    const domain = parsed.domain;
+    const { trimmedEmail, domain } = parsed;
+    const normalizedEmail = normalizeValidatedEmail(trimmedEmail, domain);
+    const known = lookupKnownProvider(domain);
 
-    // Load providers with verification
-    let provider: EmailProvider | null = null;
-    try {
-      const result = loadProviders();
-      
-      // Ensure providers loaded successfully
-      if (!result.success) {
-        if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
-          console.error('🚨 Provider lookup blocked due to validation failure');
-        }
-        const errorResult: any = {
-          provider: null,
-          email,
-          error: {
-            type: 'NETWORK_ERROR' as const,
-            message: 'Service temporarily unavailable'
-          }
-        };
-        if (extended) {
-          errorResult.loginUrl = null;
-        }
-        return extended ? errorResult as EmailProviderResult : errorResult as SimplifiedEmailProviderResult;
-      }
-
-      const domainMap = getDomainMapFromProviders(result.providers);
-      provider = domainMap.get(domain) || null;
-    } catch (error) {
-      if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
-        console.error('🚨 Provider lookup failed:', error);
-      }
-      const errorResult: any = {
+    if (!known.ok) {
+      const errorResult: SimplifiedEmailProviderResult | EmailProviderResult = {
         provider: null,
-        email,
-        error: {
-          type: 'NETWORK_ERROR' as const,
-          message: 'Service temporarily unavailable'
-        }
+        email: normalizedEmail,
+        error: known.error,
+        ...(extended ? { loginUrl: null } : {})
       };
-      if (extended) {
-        errorResult.loginUrl = null;
-      }
-      return extended ? errorResult as EmailProviderResult : errorResult as SimplifiedEmailProviderResult;
+      return errorResult;
     }
 
-    // Normalize email using alias detection (even if no provider found)
-    // This ensures consistent email format regardless of provider detection result
-    let normalizedEmail = email;
-    try {
-      normalizedEmail = normalizeEmail(email);
-    } catch {
-      // If normalization fails, use original email
-    }
+    const provider = known.provider;
 
     if (extended) {
       const result: EmailProviderResult = {
@@ -502,7 +505,6 @@ export function getEmailProviderSync(
         detectionMethod: 'domain_match'
       };
 
-      // Add error context for null results
       if (!result.provider) {
         result.error = {
           type: 'UNKNOWN_DOMAIN',
@@ -513,14 +515,12 @@ export function getEmailProviderSync(
       return result;
     }
 
-    // Default: simplified response
     const result: SimplifiedEmailProviderResult = {
       provider: simplifyProvider(provider),
       email: normalizedEmail,
       detectionMethod: 'domain_match'
     };
 
-    // Add error context for null results
     if (!result.provider) {
       result.error = {
         type: 'UNKNOWN_DOMAIN',
@@ -531,18 +531,16 @@ export function getEmailProviderSync(
     return result;
 
   } catch (error: unknown) {
-    const errorResult: any = {
+    const errorResult: SimplifiedEmailProviderResult | EmailProviderResult = {
       provider: null,
       email,
       error: {
-        type: 'INVALID_EMAIL' as const,
+        type: 'INVALID_EMAIL',
         message: error instanceof Error ? error.message : 'Invalid email address'
-      }
+      },
+      ...(extended ? { loginUrl: null } : {})
     };
-    if (extended) {
-      errorResult.loginUrl = null;
-    }
-    return extended ? errorResult as EmailProviderResult : errorResult as SimplifiedEmailProviderResult;
+    return errorResult;
   }
 }
 
@@ -551,34 +549,37 @@ export { normalizeEmail, emailsMatch } from './alias-detection';
 
 /**
  * Enhanced email provider detection with concurrent DNS for maximum performance.
- * This function uses parallel MX/TXT lookups for 2x faster business domain detection.
+ * Uses parallel MX/TXT lookups for faster business domain detection, and includes
+ * timing / confidence metadata for monitoring.
  * 
- * By default, returns a simplified response with only essential fields.
- * Use the `extended` option to get full provider details including domains and alias configuration.
- * 
- * @param email - The email address to analyze
- * @param options - Configuration options for DNS detection
- * @returns Promise resolving to SimplifiedEmailProviderResult (default) or EmailProviderResult (if extended) with enhanced performance data
- * 
- * @example
- * ```typescript
- * // Default: Simplified response with performance data
- * const result = await getEmailProviderFast('user@mycompany.com', {
- *   enableParallel: true,
- *   collectDebugInfo: true
- * });
- * // Returns: { provider: { companyProvider, loginUrl, type }, email, loginUrl, detectionMethod, timing, confidence }
- * 
- * // Extended response (includes domains, alias config, etc.)
- * const extended = await getEmailProviderFast('user@mycompany.com', {
- *   enableParallel: true,
- *   extended: true
- * });
- * console.log(extended.provider?.companyProvider); // "Google Workspace"
- * console.log(extended.detectionMethod);           // "mx_record" 
- * console.log(extended.timing);                    // { mx: 120, txt: 95, total: 125 }
- * ```
+ * Prefer `getEmailProvider()` unless you need timing or debug data.
  */
+export async function getEmailProviderFast(
+  email: string,
+  options?: {
+    timeout?: number;
+    enableParallel?: boolean;
+    collectDebugInfo?: boolean;
+    extended?: false;
+  }
+): Promise<SimplifiedEmailProviderResult & {
+  timing?: { mx: number; txt: number; total: number };
+  confidence?: number;
+  debug?: unknown;
+}>;
+export async function getEmailProviderFast(
+  email: string,
+  options: {
+    timeout?: number;
+    enableParallel?: boolean;
+    collectDebugInfo?: boolean;
+    extended: true;
+  }
+): Promise<EmailProviderResult & {
+  timing?: { mx: number; txt: number; total: number };
+  confidence?: number;
+  debug?: unknown;
+}>;
 export async function getEmailProviderFast(
   email: string, 
   options: {
@@ -609,62 +610,66 @@ export async function getEmailProviderFast(
       return {
         provider: null,
         email: parsed.email,
-        loginUrl: null,
+        ...(extended ? { loginUrl: null } : {}),
         error: parsed.error
       };
     }
 
-    const domain = parsed.domain;
-    const trimmedEmail = parsed.trimmedEmail;
+    const { domain, trimmedEmail } = parsed;
+    const normalizedEmail = normalizeValidatedEmail(trimmedEmail, domain);
 
-    // First try standard domain matching (fast path)
-    const syncResult = getEmailProviderSync(trimmedEmail, { extended });
-    if (syncResult.provider) {
-      // Email is already normalized in getEmailProviderSync
+    const known = lookupKnownProvider(domain);
+    if (!known.ok) {
       return {
-        ...syncResult,
+        provider: null,
+        email: normalizedEmail,
+        ...(extended ? { loginUrl: null } : {}),
+        error: known.error
+      };
+    }
+
+    if (known.provider) {
+      if (extended) {
+        return {
+          provider: known.provider,
+          email: normalizedEmail,
+          loginUrl: known.provider.loginUrl,
+          detectionMethod: 'domain_match',
+          timing: { mx: 0, txt: 0, total: 0 },
+          confidence: 1.0
+        };
+      }
+      return {
+        provider: simplifyProvider(known.provider),
+        email: normalizedEmail,
         detectionMethod: 'domain_match',
         timing: { mx: 0, txt: 0, total: 0 },
         confidence: 1.0
       };
     }
 
-    // Fall back to concurrent DNS detection for business domains
     const result = loadProviders();
     if (!result.success) {
       return {
         provider: null,
-        email: trimmedEmail,
-        loginUrl: null,
+        email: normalizedEmail,
+        ...(extended ? { loginUrl: null } : {}),
         error: {
           type: 'NETWORK_ERROR',
           message: 'Service temporarily unavailable'
         }
       };
     }
-    const providers = result.providers;
-    const concurrentResult = await detectProviderConcurrent(domain, providers, {
+
+    const concurrentResult = await detectProviderConcurrentLazy(domain, result.providers, {
       timeout,
       enableParallel,
       collectDebugInfo
     });
 
-    // Normalize email using alias detection (even if no provider found)
-    // This ensures consistent email format regardless of provider detection result
-    let normalizedEmail = trimmedEmail;
-    try {
-      normalizedEmail = normalizeEmail(trimmedEmail);
-    } catch {
-      // If normalization fails, use original email
-    }
-
     if (extended) {
       const fastResult: EmailProviderResult & {
-        timing?: {
-          mx: number;
-          txt: number;
-          total: number;
-        };
+        timing?: { mx: number; txt: number; total: number };
         confidence?: number;
         debug?: unknown;
       } = {
@@ -688,16 +693,7 @@ export async function getEmailProviderFast(
       return fastResult;
     }
 
-    // Default: simplified response
-    const fastResult: SimplifiedEmailProviderResult & {
-      timing?: {
-        mx: number;
-        txt: number;
-        total: number;
-      };
-      confidence?: number;
-      debug?: unknown;
-    } = {
+    return {
       provider: simplifyProvider(concurrentResult.provider),
       email: normalizedEmail,
       detectionMethod: concurrentResult.detectionMethod || 'mx_record',
@@ -710,20 +706,16 @@ export async function getEmailProviderFast(
       } : undefined
     };
 
-    return fastResult;
-
   } catch (error: unknown) {
-    const errorResult: any = {
+    const errorResult: SimplifiedEmailProviderResult | EmailProviderResult = {
       provider: null,
       email,
       error: {
-        type: 'NETWORK_ERROR' as const,
+        type: 'NETWORK_ERROR',
         message: error instanceof Error ? error.message : 'DNS detection failed'
-      }
+      },
+      ...(extended ? { loginUrl: null } : {})
     };
-    if (extended) {
-      errorResult.loginUrl = null;
-    }
     return errorResult;
   }
 }
@@ -732,8 +724,8 @@ export async function getEmailProviderFast(
  * Configuration constants
  */
 export const Config = {
-  DEFAULT_DNS_TIMEOUT: 5000,
-  MAX_DNS_REQUESTS_PER_MINUTE: 10,
-  SUPPORTED_PROVIDERS_COUNT: 130,
-  SUPPORTED_DOMAINS_COUNT: 218
+  DEFAULT_DNS_TIMEOUT: DnsConstants.DEFAULT_TIMEOUT_MS,
+  MAX_DNS_REQUESTS_PER_MINUTE: DnsConstants.MAX_REQUESTS_PER_MINUTE,
+  SUPPORTED_PROVIDERS_COUNT: 140,
+  SUPPORTED_DOMAINS_COUNT: 259
 } as const;

@@ -1,22 +1,15 @@
 /**
  * Email Provider Links
- * 
- * A modern, robust email provider detection library with:
- * - 130+ verified email providers covering 210+ domains
- * - Concurrent DNS detection for business domains
+ *
+ * Maps email addresses to provider login URLs with:
+ * - Known-domain lookup across 140+ providers
+ * - Concurrent DNS detection for business/custom domains
+ * - Provider-specific alias normalization
  * - Zero runtime dependencies
- * - Comprehensive error handling with detailed context
- * - International email validation (IDN support)
- * - Email alias normalization and deduplication
- * - Enterprise-grade security features
- * 
- * @author Email Provider Links Team
+ *
  * @license MIT
- * @version See package.json
  */
 
-import { loadProviders } from './provider-loader';
-import { detectEmailAlias } from './alias-detection';
 import {
   getEmailProvider,
   getEmailProviderSync,
@@ -25,11 +18,11 @@ import {
   emailsMatch,
   Config
 } from './api';
-import { detectProviderConcurrent } from './concurrent-dns';
-import { validateInternationalEmail, emailToPunycode, domainToPunycode } from './idn';
+import { detectEmailAlias } from './alias-detection';
+import { loadProviders } from './provider-loader';
+import { validateInternationalEmail } from './idn';
 
 // ===== PRIMARY API =====
-// Core functions that 95% of users need
 
 export {
   getEmailProvider,
@@ -42,7 +35,6 @@ export {
 };
 
 // ===== TYPES =====
-// TypeScript interfaces for better developer experience
 
 export type {
   EmailProvider,
@@ -55,45 +47,10 @@ export type {
   AliasDetectionResult
 } from './alias-detection';
 
-// ===== ADVANCED FEATURES =====
-// For power users and custom implementations
-
-// Runtime validation of provider loading
-const loadResult = loadProviders();
-// Suppress warnings in test environments - hash failures are non-blocking in tests
-// and are often due to environment differences (Node version, line endings, etc.)
-const isTestEnv = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID;
-if (!loadResult.success && !isTestEnv) {
-  // Use console.warn instead of throwing to avoid breaking apps in production
-  console.warn('Security warning: Provider loading had issues:', loadResult.securityReport);
-}
-
-export { loadProviders, detectProviderConcurrent, validateInternationalEmail, emailToPunycode, domainToPunycode };
-
-// Advanced types
-export type {
-  ConcurrentDNSConfig,
-  ConcurrentDNSResult
-} from './concurrent-dns';
-
 // ===== EMAIL VALIDATION =====
-// Enhanced validation with international support
 
 /**
- * Enhanced email validation with comprehensive error reporting
- * 
- * @param email - Email address to validate
- * @returns Validation result with detailed error information
- * 
- * @example
- * ```typescript
- * const result = validateEmailAddress('user@example.com');
- * if (result.isValid) {
- *   console.log('Email is valid');
- * } else {
- *   console.log('Error:', result.error.message);
- * }
- * ```
+ * Enhanced email validation with comprehensive error reporting.
  */
 export function validateEmailAddress(email: string): {
   isValid: boolean;
@@ -104,7 +61,6 @@ export function validateEmailAddress(email: string): {
     message: string;
   };
 } {
-  // Input validation
   if (!email || typeof email !== 'string') {
     return {
       isValid: false,
@@ -116,9 +72,8 @@ export function validateEmailAddress(email: string): {
     };
   }
 
-  // Trim whitespace
   const trimmedEmail = email.trim();
-  
+
   if (trimmedEmail.length === 0) {
     return {
       isValid: false,
@@ -130,9 +85,8 @@ export function validateEmailAddress(email: string): {
     };
   }
 
-  // Use international validation
   const idnError = validateInternationalEmail(trimmedEmail);
-  
+
   if (idnError) {
     return {
       isValid: false,
@@ -151,51 +105,28 @@ export function validateEmailAddress(email: string): {
 }
 
 // ===== UTILITY FUNCTIONS =====
-// Helper functions for common tasks
 
 /**
- * Get comprehensive list of all supported email providers
- * 
- * @returns Array of all email providers with metadata
- * 
- * @example
- * ```typescript
- * const providers = getSupportedProviders();
- * console.log(`Supports ${providers.length} providers`);
- * 
- * const gmailProvider = providers.find(p => p.domains.includes('gmail.com'));
- * console.log(gmailProvider?.companyProvider); // "Gmail"
- * ```
+ * Get a defensive copy of all supported email providers.
  */
 export function getSupportedProviders() {
   try {
     const { providers } = loadProviders();
-    return [...providers]; // Return defensive copy to prevent external mutations
-  } catch (error) {
-    console.warn('Failed to load providers:', error);
+    return [...providers];
+  } catch {
     return [];
   }
 }
 
 /**
- * Check if an email provider is supported (synchronous)
- * 
- * @param email - Email address to check
- * @returns true if the provider is supported
- * 
- * @example
- * ```typescript
- * if (isEmailProviderSupported('user@gmail.com')) {
- *   console.log('Gmail is supported');
- * }
- * ```
+ * Check if an email's domain maps to a known provider (sync, no DNS).
  */
 export function isEmailProviderSupported(email: string): boolean {
   try {
     if (!email || typeof email !== 'string') {
       return false;
     }
-    
+
     const result = getEmailProviderSync(email);
     return result.provider !== null;
   } catch {
@@ -204,19 +135,7 @@ export function isEmailProviderSupported(email: string): boolean {
 }
 
 /**
- * Extract and normalize domain from email address
- * 
- * @param email - Email address
- * @returns Normalized domain portion or null if invalid
- * 
- * @example
- * ```typescript
- * const domain = extractDomain('USER@GMAIL.COM');
- * console.log(domain); // "gmail.com"
- * 
- * const invalid = extractDomain('invalid-email');
- * console.log(invalid); // null
- * ```
+ * Extract and normalize the domain from an email address.
  */
 export function extractDomain(email: string): string | null {
   try {
@@ -237,45 +156,22 @@ export function extractDomain(email: string): string | null {
 }
 
 /**
- * Validate email format using enhanced rules
- * 
- * @param email - Email address to validate
- * @returns true if valid format
- * 
- * @example
- * ```typescript
- * if (isValidEmail('user@example.com')) {
- *   console.log('Email format is valid');
- * }
- * 
- * if (isValidEmail('user@münchen.de')) {
- *   console.log('International domain is valid');
- * }
- * ```
+ * Validate email format (boolean convenience wrapper).
  */
 export function isValidEmail(email: string): boolean {
-  const validation = validateEmailAddress(email);
-  return validation.isValid;
+  return validateEmailAddress(email).isValid;
 }
 
 /**
- * Get library metadata and statistics
- * 
- * @returns Object with current library statistics
- * 
- * @example
- * ```typescript
- * const stats = getLibraryStats();
- * console.log(`Supports ${stats.providerCount} providers across ${stats.domainCount} domains`);
- * ```
+ * Library metadata and statistics.
  */
 export function getLibraryStats() {
   try {
     const providers = getSupportedProviders();
-    const domainCount = providers.reduce((total, provider) => 
+    const domainCount = providers.reduce((total, provider) =>
       total + (provider.domains?.length || 0), 0
     );
-    
+
     return {
       providerCount: providers.length,
       domainCount,
@@ -299,21 +195,7 @@ export function getLibraryStats() {
 }
 
 /**
- * Batch process multiple email addresses efficiently
- * 
- * @param emails - Array of email addresses to process
- * @param options - Processing options
- * @returns Array of results in the same order as input
- * 
- * @example
- * ```typescript
- * const emails = ['user@gmail.com', 'test@yahoo.com', 'invalid-email'];
- * const results = batchProcessEmails(emails);
- * 
- * results.forEach((result, index) => {
- *   console.log(`${emails[index]}: ${result.isValid ? 'Valid' : 'Invalid'}`);
- * });
- * ```
+ * Batch-process multiple email addresses (sync path only).
  */
 export function batchProcessEmails(
   emails: string[],
@@ -363,7 +245,6 @@ export function batchProcessEmails(
         continue;
       }
 
-      // Add normalized email if requested
       if (normalizeEmails && validation.normalizedEmail) {
         try {
           result.normalized = normalizeEmail(validation.normalizedEmail);
@@ -372,7 +253,6 @@ export function batchProcessEmails(
         }
       }
 
-      // Check for duplicates if requested
       if (deduplicateAliases && result.normalized) {
         if (seenNormalized.has(result.normalized)) {
           result.isDuplicate = true;
@@ -381,7 +261,6 @@ export function batchProcessEmails(
         }
       }
 
-      // Add provider info if requested
       if (includeProviderInfo && validation.normalizedEmail) {
         try {
           const providerResult = getEmailProviderSync(validation.normalizedEmail);
@@ -406,62 +285,34 @@ export function batchProcessEmails(
 }
 
 // ===== LEGACY COMPATIBILITY =====
-// Maintain backward compatibility
 
 /**
- * @deprecated Use validateEmailAddress instead for better error handling
+ * @deprecated Use validateEmailAddress or isValidEmail instead
  */
 export const isValidEmailAddress = isValidEmail;
 
-/**
- * Library metadata (legacy constants)
- */
-export const PROVIDER_COUNT = Config?.SUPPORTED_PROVIDERS_COUNT ?? 130;
-export const DOMAIN_COUNT = Config?.SUPPORTED_DOMAINS_COUNT ?? 218;
+export const PROVIDER_COUNT = Config.SUPPORTED_PROVIDERS_COUNT;
+export const DOMAIN_COUNT = Config.SUPPORTED_DOMAINS_COUNT;
 
-/**
- * Default export for convenience
- * 
- * @example
- * ```typescript
- * import EmailProviderLinks from '@mikkelscheike/email-provider-links';
- * 
- * const result = await EmailProviderLinks.getEmailProvider('user@gmail.com');
- * ```
- */
 export default {
-  // Core functions
   getEmailProvider,
   getEmailProviderSync,
   getEmailProviderFast,
-  
-  // Validation
   validateEmailAddress,
   isValidEmail,
   normalizeEmail,
   emailsMatch,
-  
-  // Utilities
+  detectEmailAlias,
   getSupportedProviders,
   isEmailProviderSupported,
   extractDomain,
   getLibraryStats,
   batchProcessEmails,
-  
-  // Advanced
-  loadProviders,
-  detectProviderConcurrent,
-  validateInternationalEmail,
-  
-  // Constants
   Config,
   PROVIDER_COUNT,
   DOMAIN_COUNT
 };
 
-/**
- * Version information
- */
 function readPackageVersion(): string {
   try {
     const pkg = require('../package.json') as { version?: string };

@@ -286,7 +286,7 @@ describe('Provider Data Loader Tests', () => {
       loadProviders();
 
       expect(logSpy).toHaveBeenCalledWith(
-        expect.stringMatching(/🚀 Current memory usage: .* MB/)
+        expect.stringMatching(/Current memory usage: .* MB/)
       );
 
       logSpy.mockRestore();

@@ -33,24 +33,22 @@ High-level architecture
 - Provider data model and loading
   - Data file: providers/emailproviders.json (compressed schema defined in src/schema.ts)
     - Fields include domains, optional DNS MX/TXT patterns, alias rules, and provider type
-  - Two loaders with distinct roles:
-    - src/provider-loader.ts (security-aware, used by API)
-      - Verifies file integrity (SHA-256) via src/hash-verifier.ts
-      - Validates/allowlists login URLs via src/url-validator.ts and filters insecure entries
-      - Caches a structured LoadResult with a securityReport
-    - src/loader.ts (high-performance loader)
-      - Parses providers, builds an optimized domain map, exposes loading stats, used by some utilities
+  - Loader: src/provider-loader.ts
+    - Verifies file integrity (SHA-256) via src/hash-verifier.ts
+    - Validates/allowlists login URLs via src/url-validator.ts and filters insecure entries
+    - Caches a structured LoadResult with a securityReport
+    - Shared conversion/domain-map helpers live in src/provider-store.ts
 - Detection flow
   1) Quick synchronous domain match
      - getEmailProviderSync builds/uses a domain map of known public providers
   2) Fallback for business/custom domains via concurrent DNS (src/concurrent-dns.ts)
-     - Parallel MX/TXT lookups (Promise-based) with timing, confidence scoring, proxy detection, and optional debug info
-     - Patterns come from provider.customDomainDetection { mxPatterns, txtPatterns }
+     - Parallel MX/TXT lookups with timing, confidence scoring, proxy detection, rate limiting, and optional debug info
+     - Patterns come from provider.customDomainDetection { mxPatterns, txtPatterns } whenever present in JSON
   3) Result includes provider, loginUrl, detectionMethod (domain_match/mx_record/txt_record/both/proxy_detected), and rich error details
 - Email alias and normalization
   - Provider-specific alias rules (dots/plus/case) are used to canonicalize addresses
   - Canonicalization is exposed via normalizeEmail and equality via emailsMatch
-  - Focused implementation also exists in src/alias-detection.ts (used by tests); prefer the top-level API for general usage
+  - Implementation lives in src/alias-detection.ts
 - Internationalized email support (IDN)
   - src/idn.ts provides zero-dependency Punycode encoding and validateInternationalEmail for RFC-compliant validation
   - validateEmailAddress in src/index.ts wraps IDN validation for clearer UX
@@ -68,7 +66,7 @@ Key files to know
 - src/api.ts: Primary API types and functions (getEmailProvider, getEmailProviderSync/Fast, normalizeEmail, emailsMatch, Config)
 - src/index.ts: Public re-exports plus helpers (validateEmailAddress, stats, batch utilities)
 - src/provider-loader.ts: Secure loading with hash and URL validation; returns LoadResult with a securityReport
-- src/concurrent-dns.ts: DNS detection engine (parallel MX/TXT, scoring, proxy detection)
+- src/concurrent-dns.ts: DNS detection engine (parallel MX/TXT, scoring, proxy detection, rate limiting)
 - src/url-validator.ts: HTTPS-only, allowlist, and suspicious pattern checks for provider login URLs
 - src/hash-verifier.ts: SHA-256 integrity checks and developer helpers to recalc hashes
 - providers/emailproviders.json: Compressed provider database consumed by loaders
@@ -78,4 +76,3 @@ Notes and gotchas for Warp in this repo
 - getEmailProviderSync covers only known public domains; business/custom domains require the async path with DNS
 - The secure loader (provider-loader) may filter providers with invalid/malicious URLs; securityReport indicates issues
 - Use npm ci when the lockfile is present (faster and consistent installs)
-

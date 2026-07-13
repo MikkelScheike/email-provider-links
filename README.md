@@ -2,9 +2,9 @@
 
 [![npm version](https://img.shields.io/npm/v/%40mikkelscheike%2Femail-provider-links)](https://www.npmjs.com/package/@mikkelscheike/email-provider-links)
 
-> **Generate direct login links for any email address across 130+ providers (Gmail, Outlook, Yahoo, etc.) to streamline user authentication flows.**
+> **Generate direct login links for any email address across 140+ providers (Gmail, Outlook, Yahoo, etc.) to streamline user authentication flows.**
 
-A robust TypeScript library providing direct links to **130 email providers** (218 domains) with **concurrent DNS resolution**, **optimized performance**, **comprehensive email validation**, and advanced security features for login and password reset flows.
+A TypeScript library providing login URLs for **140 email providers** (259 domains) with concurrent DNS detection for business domains, email alias normalization, and HTTPS login-URL validation.
 
 ## 🚀 Try it out
 
@@ -12,23 +12,21 @@ A robust TypeScript library providing direct links to **130 email providers** (2
 
 ## ✨ Core Features
 
-- 🚀 **Fast & Lightweight**: Zero dependencies, ultra-low memory (0.10MB initial, 0.00004MB per 1000 ops), small footprint (~39.5KB compressed)
-- 📧 **130 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
-- 🌐 **218 Domains Supported**: Comprehensive international coverage
-- 🌍 **Full IDN Support**: International domain names with RFC compliance and Punycode
-- ✅ **Advanced Email Validation**: International email validation with detailed error reporting
+- 🚀 **Fast & Lightweight**: Zero dependencies, small footprint (~42KB packed)
+- 📧 **140 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
+- 🌐 **259 Domains Supported**: Broad international coverage
+- 🌍 **Full IDN Support**: International domain names with Punycode
+- ✅ **Email Validation**: International email validation with detailed error reporting
 - 🏢 **Business Domain Detection**: DNS-based detection for custom domains (Google Workspace, Microsoft 365, etc.)
-- 🔒 **Built-in Security**: Multi-layer protection with cryptographic hash verification, URL validation, and supply chain attack prevention
-- 🛡️ **Zero-Trust Architecture**: All provider data undergoes integrity verification - no insecure fallbacks
-- 🔐 **HTTPS-Only**: Strict HTTPS enforcement with domain allowlisting and malicious pattern detection
-- 📝 **Type Safe**: Full TypeScript support with comprehensive interfaces
-- ⚡ **Performance Optimized**: Smart DNS fallback with configurable timeouts
-- 🚦 **Rate Limiting**: Built-in DNS query rate limiting to prevent abuse
-- 🔄 **Automatic Email Normalization**: Provider detection functions automatically normalize emails using provider-specific alias rules
+- 🔒 **URL Safety**: HTTPS-only login URLs with host allowlisting and malicious pattern checks
+- 🛡️ **Build Integrity**: SHA-256 hash gate on provider data in CI/build (npm provenance for publishes)
+- 📝 **Type Safe**: Full TypeScript support with overloads for simplified vs extended responses
+- ⚡ **Performance Oriented**: Smart DNS fallback with configurable timeouts
+- 🚦 **DNS Rate Limiting**: Process-wide limiter (default 10 detections / minute)
+- 🔄 **Automatic Email Normalization**: Provider-specific alias rules applied in detection results
 - 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
-- 🛡️ **Fraud Prevention**: Detect duplicate accounts through email alias manipulation
 - 📦 **Batch Processing**: Efficiently process multiple emails with deduplication
-- 🧪 **Thoroughly Tested**: 431 tests (430 standard + 1 live DNS) with 94.65% code coverage
+- 🧪 **Thoroughly Tested**: 431 tests (430 standard + 1 live DNS) with ~91.5% statement coverage
 
 ## Installation
 
@@ -54,7 +52,7 @@ Fully compatible with the latest Node.js 24.x and 25.x! The library is tested on
 
 ## Supported Providers
 
-**130 providers supporting 218 domains** including:
+**140 providers supporting 259 domains** including:
 
 - **Major Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, Tutanota
 - **Business Email**: Microsoft 365, Google Workspace, Amazon WorkMail (via DNS detection)
@@ -327,7 +325,7 @@ When `NODE_ENV` is set to 'development', the library provides additional insight
 
 ```typescript
 // Memory usage is automatically logged:
-// 🚀 Current memory usage: 0.08 MB
+// Current memory usage: 0.08 MB
 ```
 
 ### Performance Benchmarks
@@ -390,9 +388,9 @@ RUN_LIVE_DNS_STRICT=1 npm run test:live-dns -- __tests__/provider-live-dns.test.
 
 We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on adding new email providers.
 
-**Quality Assurance**: This project maintains high standards with 431 comprehensive tests (430 standard + 1 live DNS) achieving 94.65% code coverage (95.95% function coverage).
+**Quality Assurance**: This project maintains high standards with 431 comprehensive tests (430 standard + 1 live DNS) and ~91.5% statement coverage.
 
-**Security**: All provider data is protected by cryptographic hash verification, URL validation, and strict security controls. The library uses a zero-trust architecture with no insecure fallbacks - ensuring all data is verified before use.
+**Security**: Login URLs are HTTPS-only and host-allowlisted. Provider JSON integrity is verified in the build pipeline; published packages use npm provenance. See [Security Policy](docs/SECURITY.md).
 
 ## Security
 

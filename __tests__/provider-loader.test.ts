@@ -33,7 +33,7 @@ describe('Provider Loader', () => {
 
       expect(result.securityReport.hashVerification).toBe(false);
       expect(result.securityReport.securityLevel).toBe('CRITICAL');
-      expect(mockConsoleError).toHaveBeenCalledWith('🚨 SECURITY WARNING: Hash verification failed!');
+      expect(mockConsoleError).toHaveBeenCalledWith('SECURITY WARNING: Hash verification failed!');
       expect(mockConsoleError).toHaveBeenCalledTimes(5); // All error messages
     });
 
@@ -164,8 +164,8 @@ describe('Provider Loader', () => {
       const hashes = initializeSecurity();
 
       expect(hashes).toBeDefined();
-      expect(mockConsoleLog).toHaveBeenCalledWith('🔐 Generating security hashes for email providers...');
-      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Security Setup Instructions'));
+      expect(mockConsoleLog).toHaveBeenCalledWith('Generating security hashes for email providers...');
+      expect(mockConsoleLog).toHaveBeenCalledWith(expect.stringContaining('Security setup'));
     });
   });
 });

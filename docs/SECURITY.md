@@ -1,132 +1,46 @@
 # Security Policy
 
-## 🛡️ Security Overview
+## Overview
 
-Email Provider Links implements enterprise-grade security measures to protect against malicious redirects and supply chain attacks. This document outlines our security practices, vulnerability reporting process, and security guarantees.
+This package treats provider login URLs as sensitive redirect targets. Protections focus on keeping those URLs HTTPS-only and consistent with the shipped provider database. Package integrity for consumers primarily comes from npm provenance and normal supply-chain hygiene — not from hashing a file that ships inside the same tarball.
 
-## 🔒 Security Features
+## What the library guarantees
 
-### Multi-Layer Protection
+1. **HTTPS-only login URLs**  
+   Provider `loginUrl` values must use `https:`. HTTP and non-URL values are rejected during load.
 
-1. **HTTPS-Only Enforcement**
-   - All provider URLs must use HTTPS protocol
-   - HTTP URLs are automatically rejected
-   - Prevents protocol downgrade attacks
+2. **Allowlisted redirect hosts**  
+   Login URL hostnames must appear in the allowlist derived from the provider database (normalized to lowercase Punycode). Unknown hosts are filtered out at load time.
 
-2. **Domain Allowlisting**
-   - Only pre-approved domains are allowed
-   - 93+ verified email providers in allowlist
-   - Subdomain validation with precise matching
-   - Allowlist is derived from the hash-verified providers database and fails closed on hash mismatch
-   - Hostnames are normalized (lowercase + Punycode) before allowlist checks
+3. **Malicious URL pattern checks**  
+   Rejects IP/localhost hosts, common URL shorteners, path traversal encodings, and obvious script/data schemes in URL strings.
 
-3. **Malicious Pattern Detection**
-   - Blocks IP addresses and localhost
-   - Rejects suspicious TLDs (.tk, .ml, .ga, .cf)
-   - Detects random subdomain patterns
-   - Blocks known URL shorteners
+4. **Build-time provider integrity**  
+   `npm run build` / `verify-hashes` checks a SHA-256 of `providers/emailproviders.json` against a known-good hash. This catches accidental local edits and CI drift. It is not a substitute for verifying the npm package itself.
 
-4. **Content Validation**
-   - Path traversal prevention (`../`, `%2e%2e`)
-   - JavaScript injection protection (`javascript:`, `data:`)
-   - Script tag detection (`<script>`, event handlers)
-   - URL encoding attack prevention
+5. **Optional runtime hash check**  
+   Runtime skips SHA-256 by default (build/publish already verified the source file). Pass an expected hash to `loadProviders(path, expectedHash)` or set `EMAIL_PROVIDER_LINKS_VERIFY_HASH=1` to enforce checks at load time. Failed checks fail closed (empty provider set).
 
-5. **File Integrity Verification**
-   - SHA-256 hash verification for provider database
-   - Detects unauthorized modifications
-   - Tamper-evident security controls
-   - Zero-trust architecture with no insecure fallbacks
+## What it does not claim
 
-## 🚨 Vulnerability Reporting
+- It does not stop a compromised npm publish (use provenance / lockfiles / mirrors for that).
+- Hashing `emailproviders.json` inside the package cannot detect that the package author changed both the file and the expected hash together.
+- DNS-based detection is best-effort and subject to resolver trust, caching, and rate limits.
 
-### Reporting Process
+## DNS considerations
 
-If you discover a security vulnerability, please report it responsibly:
+- Custom-domain detection performs MX/TXT lookups and may reveal queried domains to the resolver.
+- Lookups are rate-limited (default: 10 detection attempts per process per rolling minute).
+- Timeouts are configurable (default: 5000ms).
 
-1. **GitHub**: Create a private security advisory (preferred)
-2. **Email**: Contact via GitHub profile
-3. **Response Time**: We aim to respond within 48 hours
+## Reporting vulnerabilities
 
-### What to Include
+1. Prefer a [private GitHub security advisory](https://github.com/mikkelscheike/email-provider-links/security).
+2. Include reproduction steps and impact.
+3. Do not disclose publicly until a fix is available.
 
-- Description of the vulnerability
-- Steps to reproduce the issue
-- Potential impact assessment
-- Suggested mitigation (if available)
+We aim to respond within 48 hours.
 
-### What NOT to Include
+## Non-security bugs
 
-- Do not publicly disclose the vulnerability
-- Do not test on production systems
-- Do not access data that doesn't belong to you
-
-### Recognition
-
-We appreciate responsible disclosure and may recognize security researchers who help improve our security:
-
-- Public acknowledgment (with permission)
-- Contribution credit in security advisories
-
-## Security Considerations for Users
-
-### DNS Queries
-
-This package performs DNS queries for custom domain detection. Be aware that:
-
-- DNS queries may leak domain information to DNS resolvers
-- DNS responses can be cached by various network components
-- DNS queries have configurable timeouts (default: 5 seconds)
-
-### Data Privacy
-
-- This package does not store or transmit email addresses to external services
-- Email addresses are only used locally for domain extraction and provider matching
-- DNS queries only use domain portions, not full email addresses
-
-### Dependencies
-
-- This package has **zero runtime dependencies** to minimize security surface area
-- Development dependencies are regularly audited for vulnerabilities
-- We use `npm audit` in our CI/CD pipeline to catch dependency issues
-
-### Usage Recommendations
-
-1. **Input Validation**: Always validate email addresses before passing them to this package
-2. **Rate Limiting**: Consider rate limiting DNS-based detection in high-traffic applications
-3. **Error Handling**: Implement proper error handling for DNS timeouts and failures
-4. **Timeout Configuration**: Adjust DNS timeouts based on your application's requirements
-
-## Security Features
-
-### Built-in Protections
-
-- **Input Sanitization**: Email addresses are validated before processing
-- **DNS Timeout Protection**: Configurable timeouts prevent hanging requests
-- **Error Isolation**: DNS failures don't crash the application
-- **No External APIs**: No dependencies on third-party services for core functionality
-- **Zero-Trust Architecture**: All data verified with cryptographic hashes before use
-- **Fail-Safe Security**: System fails securely when verification fails
-
-### Proxy Detection
-
-The package can detect when domains are behind proxy services like Cloudflare, which:
-- Prevents false provider detection
-- Respects privacy by not attempting to bypass proxy protections
-- Returns appropriate null results when actual providers cannot be determined
-
-## Reporting Other Issues
-
-For non-security related bugs and issues, please use our [GitHub Issues](https://github.com/mikkelscheike/email-provider-links/issues) page.
-
-## Security Updates
-
-Security updates will be released as patch versions and announced through:
-- GitHub Security Advisories
-- NPM security notifications
-- Release notes with security tags
-
----
-
-Thank you for helping keep our project and community safe! 🔒
-
+Use [GitHub Issues](https://github.com/mikkelscheike/email-provider-links/issues).

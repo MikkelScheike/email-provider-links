@@ -116,11 +116,31 @@
     {
       "id": "att",
       "domains": [
-        "att.net"
+        "ameritech.net",
+        "att.net",
+        "flash.net",
+        "pacbell.net",
+        "sbcglobal.net",
+        "snet.net"
       ],
       "type": "public_provider",
       "companyProvider": "AT&T Mail",
       "loginUrl": "https://currently.att.yahoo.com"
+    },
+    {
+      "id": "autistici",
+      "domains": [
+        "autistici.org"
+      ],
+      "mx": [
+        "mx.autistici.org"
+      ],
+      "txt": [
+        "spf1:mx a ~all"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Autistici.org",
+      "loginUrl": "https://accounts.autistici.org/"
     },
     {
       "id": "bbox",
@@ -146,7 +166,8 @@
     {
       "id": "bell",
       "domains": [
-        "bell.net"
+        "bell.net",
+        "sympatico.ca"
       ],
       "type": "public_provider",
       "mx": [
@@ -240,6 +261,7 @@
     {
       "id": "bt",
       "domains": [
+        "bt.com",
         "btinternet.com"
       ],
       "type": "public_provider",
@@ -310,7 +332,13 @@
     {
       "id": "com",
       "domains": [
-        "mail.com"
+        "consultant.com",
+        "email.com",
+        "europe.com",
+        "inbox.com",
+        "mail.com",
+        "myself.com",
+        "usa.com"
       ],
       "type": "public_provider",
       "companyProvider": "Mail.com",
@@ -360,6 +388,33 @@
       "type": "public_provider",
       "companyProvider": "Daum",
       "loginUrl": "https://mail.daum.net/"
+    },
+    {
+      "id": "disroot",
+      "domains": [
+        "disroot.org"
+      ],
+      "mx": [
+        "mx.disroot.org"
+      ],
+      "txt": [
+        "spf1:mx ~all"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Disroot",
+      "loginUrl": "https://mail.disroot.org"
+    },
+    {
+      "id": "duck",
+      "domains": [
+        "duck.com"
+      ],
+      "type": "proxy_service",
+      "companyProvider": "DuckDuckGo Email Protection",
+      "loginUrl": "https://duckduckgo.com/email/",
+      "mx": [
+        "duck.com"
+      ]
     },
     {
       "id": "earthlink",
@@ -576,6 +631,15 @@
       "loginUrl": "https://mail.hanmail.net"
     },
     {
+      "id": "hey",
+      "domains": [
+        "hey.com"
+      ],
+      "type": "public_provider",
+      "companyProvider": "HEY (37signals)",
+      "loginUrl": "https://app.hey.com"
+    },
+    {
       "id": "hostga",
       "domains": [
         "hostgator.com"
@@ -623,15 +687,6 @@
       "type": "public_provider",
       "companyProvider": "Hushmail",
       "loginUrl": "https://www.hushmail.com/signin/"
-    },
-    {
-      "id": "hey",
-      "domains": [
-        "hey.com"
-      ],
-      "type": "public_provider",
-      "companyProvider": "HEY (37signals)",
-      "loginUrl": "https://app.hey.com"
     },
     {
       "id": "icloud",
@@ -685,23 +740,6 @@
       "loginUrl": "https://mail.indiatimes.com"
     },
     {
-      "id": "inmoti",
-      "domains": [
-        "inmotionhosting.com"
-      ],
-      "mx": [
-        "mail.inmotionhosting.com",
-        "mx.inmotionhosting.com"
-      ],
-      "txt": [
-        "spf:inmotionhosting.com",
-        "inmotionhosting-verification="
-      ],
-      "type": "public_provider",
-      "companyProvider": "InMotion Hosting",
-      "loginUrl": "https://ngx257.inmotionhosting.com:2096"
-    },
-    {
       "id": "interi",
       "domains": [
         "interia.pl"
@@ -736,6 +774,15 @@
       "loginUrl": "https://mail.ionos.com"
     },
     {
+      "id": "juno",
+      "domains": [
+        "juno.com"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Juno Mail",
+      "loginUrl": "https://webmail.juno.com"
+    },
+    {
       "id": "kolabn",
       "domains": [
         "kolabnow.com"
@@ -743,6 +790,16 @@
       "type": "public_provider",
       "companyProvider": "Kolab Now",
       "loginUrl": "https://kolabnow.com"
+    },
+    {
+      "id": "kpn",
+      "domains": [
+        "kpnmail.nl",
+        "hetnet.nl"
+      ],
+      "type": "public_provider",
+      "companyProvider": "KPN Mail",
+      "loginUrl": "https://www.kpn.nl/webmail"
     },
     {
       "id": "lapost",
@@ -778,6 +835,15 @@
       "loginUrl": "https://mail.link3.net"
     },
     {
+      "id": "livejp",
+      "domains": [
+        "live.jp"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Live.jp",
+      "loginUrl": "https://login.live.com"
+    },
+    {
       "id": "lycos",
       "domains": [
         "lycos.com"
@@ -787,13 +853,19 @@
       "loginUrl": "https://mail.lycos.com"
     },
     {
-      "id": "livejp",
+      "id": "mailboxorg",
       "domains": [
-        "live.jp"
+        "mailbox.org"
+      ],
+      "mx": [
+        "mx.mailbox.org"
+      ],
+      "txt": [
+        "spf:mailbox.org -all"
       ],
       "type": "public_provider",
-      "companyProvider": "Live.jp",
-      "loginUrl": "https://login.live.com"
+      "companyProvider": "Mailbox.org",
+      "loginUrl": "https://mailbox.org"
     },
     {
       "id": "migadu",
@@ -834,21 +906,30 @@
     {
       "id": "msol",
       "domains": [
-        "outlook.com",
-        "hotmail.com",
-        "live.com",
-        "msn.com",
+        "hotmail.ca",
+        "hotmail.co.jp",
         "hotmail.co.uk",
+        "hotmail.com",
+        "hotmail.com.au",
+        "hotmail.de",
+        "hotmail.es",
         "hotmail.fr",
         "hotmail.it",
-        "hotmail.es",
-        "hotmail.de",
+        "hotmail.nl",
+        "hotmail.se",
+        "live.ca",
         "live.co.uk",
+        "live.com",
+        "live.com.au",
         "live.fr",
         "live.it",
         "live.nl",
-        "live.com.au",
-        "live.ca"
+        "msn.cn",
+        "msn.com",
+        "outlook.cn",
+        "outlook.com",
+        "outlook.jp",
+        "outlook.sa"
       ],
       "type": "public_provider",
       "companyProvider": "Microsoft Outlook",
@@ -974,6 +1055,16 @@
       "loginUrl": "https://mail.126.com"
     },
     {
+      "id": "netzero",
+      "domains": [
+        "netzero.net",
+        "netzero.com"
+      ],
+      "type": "public_provider",
+      "companyProvider": "NetZero Mail",
+      "loginUrl": "https://webmail.netzero.net"
+    },
+    {
       "id": "nifty",
       "domains": [
         "nifty.com"
@@ -1030,15 +1121,6 @@
       "loginUrl": "https://www.one.com/mail/"
     },
     {
-      "id": "onlinemail",
-      "mx": [
-        "onlinemail.io"
-      ],
-      "type": "custom_provider",
-      "companyProvider": "Onlinemail",
-      "loginUrl": "https://www.onlinemail.io/"
-    },
-    {
       "id": "onet",
       "domains": [
         "onet.pl",
@@ -1050,11 +1132,21 @@
       "loginUrl": "https://poczta.onet.pl"
     },
     {
+      "id": "onlinemail",
+      "mx": [
+        "onlinemail.io"
+      ],
+      "type": "custom_provider",
+      "companyProvider": "Onlinemail",
+      "loginUrl": "https://www.onlinemail.io/"
+    },
+    {
       "id": "optimum",
       "type": "public_provider",
       "companyProvider": "Optimum",
       "domains": [
-        "optimum.net"
+        "optimum.net",
+        "optonline.net"
       ],
       "mx": [
         "mx.altice.prod.cloud.openwave.ai"
@@ -1076,6 +1168,7 @@
     {
       "id": "orange",
       "domains": [
+        "orange.fr",
         "wanadoo.fr"
       ],
       "mx": [
@@ -1098,6 +1191,16 @@
       "loginUrl": "https://webmail.planet.nl"
     },
     {
+      "id": "plusnet",
+      "domains": [
+        "plus.com",
+        "plusnet.com"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Plusnet Mail",
+      "loginUrl": "https://webmail.plus.net"
+    },
+    {
       "id": "posteo",
       "domains": [
         "posteo.de",
@@ -1106,21 +1209,6 @@
       "type": "public_provider",
       "companyProvider": "Posteo",
       "loginUrl": "https://posteo.de"
-    },
-    {
-      "id": "mailboxorg",
-      "domains": [
-        "mailbox.org"
-      ],
-      "mx": [
-        "mx.mailbox.org"
-      ],
-      "txt": [
-        "spf:mailbox.org -all"
-      ],
-      "type": "public_provider",
-      "companyProvider": "Mailbox.org",
-      "loginUrl": "https://mailbox.org"
     },
     {
       "id": "privatemail",
@@ -1136,36 +1224,6 @@
       "type": "public_provider",
       "companyProvider": "PrivateMail",
       "loginUrl": "https://mail.privatemail.com/"
-    },
-    {
-      "id": "disroot",
-      "domains": [
-        "disroot.org"
-      ],
-      "mx": [
-        "mx.disroot.org"
-      ],
-      "txt": [
-        "spf1:mx ~all"
-      ],
-      "type": "public_provider",
-      "companyProvider": "Disroot",
-      "loginUrl": "https://mail.disroot.org"
-    },
-    {
-      "id": "autistici",
-      "domains": [
-        "autistici.org"
-      ],
-      "mx": [
-        "mx.autistici.org"
-      ],
-      "txt": [
-        "spf1:mx a ~all"
-      ],
-      "type": "public_provider",
-      "companyProvider": "Autistici.org",
-      "loginUrl": "https://accounts.autistici.org/"
     },
     {
       "id": "proton",
@@ -1201,6 +1259,21 @@
           "strip": true
         }
       }
+    },
+    {
+      "id": "proximus",
+      "mx": [
+        "mx.glb.proximus.be"
+      ],
+      "txt": [
+        "spf:ispmail.spf.secure-mail.be",
+        "spf:bgc.spf.secure-mail.be",
+        "spf:pxspartners.spf.secure-mail.be",
+        "spf:pxspartners2.spf.secure-mail.be"
+      ],
+      "type": "custom_provider",
+      "companyProvider": "Proximus Mail",
+      "loginUrl": "https://www.proximus.be/login/en/webmail.html"
     },
     {
       "id": "qq",
@@ -1420,6 +1493,16 @@
       "loginUrl": "https://skyid.sky.com/signin/email"
     },
     {
+      "id": "skynet",
+      "domains": [
+        "skynet.be",
+        "proximus.be"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Proximus Mail",
+      "loginUrl": "https://www.proximus.be/login/en/webmail.html"
+    },
+    {
       "id": "startmail",
       "domains": [
         "startmail.com"
@@ -1435,16 +1518,6 @@
       "loginUrl": "https://startmail.com"
     },
     {
-      "id": "skynet",
-      "domains": [
-        "skynet.be",
-        "proximus.be"
-      ],
-      "type": "public_provider",
-      "companyProvider": "Proximus Mail",
-      "loginUrl": "https://www.proximus.be/login/en/webmail.html"
-    },
-    {
       "id": "talktalk",
       "domains": [
         "talktalk.net"
@@ -1455,21 +1528,6 @@
       ],
       "companyProvider": "TalkTalk Mail",
       "loginUrl": "https://apps.talktalk.co.uk/appsuite/"
-    },
-    {
-      "id": "proximus",
-      "mx": [
-        "mx.glb.proximus.be"
-      ],
-      "txt": [
-        "spf:ispmail.spf.secure-mail.be",
-        "spf:bgc.spf.secure-mail.be",
-        "spf:pxspartners.spf.secure-mail.be",
-        "spf:pxspartners2.spf.secure-mail.be"
-      ],
-      "type": "custom_provider",
-      "companyProvider": "Proximus Mail",
-      "loginUrl": "https://www.proximus.be/login/en/webmail.html"
     },
     {
       "id": "teleko",
@@ -1620,6 +1678,16 @@
       "loginUrl": "https://login.verizon.com/"
     },
     {
+      "id": "videotron",
+      "domains": [
+        "videotron.ca",
+        "videotron.com"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Videotron Mail",
+      "loginUrl": "https://webmail.videotron.com"
+    },
+    {
       "id": "virgil",
       "domains": [
         "virgilio.it",
@@ -1629,6 +1697,18 @@
       "type": "public_provider",
       "companyProvider": "Virgilio Mail",
       "loginUrl": "https://mail.virgilio.it"
+    },
+    {
+      "id": "virginmedia",
+      "domains": [
+        "virginmedia.com"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Virgin Media Mail",
+      "loginUrl": "https://mail.virginmedia.com",
+      "mx": [
+        "virginmedia.com"
+      ]
     },
     {
       "id": "vodaco",
@@ -1785,6 +1865,16 @@
       "loginUrl": "https://mail.yandex.com"
     },
     {
+      "id": "ziggo",
+      "domains": [
+        "ziggo.nl",
+        "home.nl"
+      ],
+      "type": "public_provider",
+      "companyProvider": "Ziggo Mail",
+      "loginUrl": "https://www.ziggo.nl/mail"
+    },
+    {
       "id": "zoho",
       "domains": [
         "zohomail.com",
@@ -1819,8 +1909,8 @@
     }
   ],
   "meta": {
-    "count": 132,
-    "domains": 223,
-    "generated": "2025-12-09T10:38:50.000Z"
+    "count": 140,
+    "domains": 259,
+    "generated": "2026-07-13T02:59:27.245Z"
   }
 }

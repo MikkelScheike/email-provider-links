@@ -8,10 +8,9 @@ import {
   EmailProviderResult,
   batchProcessEmails,
   getLibraryStats,
-  normalizeEmail,
-  loadProviders
+  normalizeEmail
 } from '../src/index';
-import { clearCache } from '../src/provider-loader';
+import { clearCache, loadProviders } from '../src/provider-loader';
 
 describe('Email Provider Links', () => {
   beforeEach(() => {
@@ -134,24 +133,16 @@ describe('Email Provider Links', () => {
       clearCache();
     });
     it('should handle getSupportedProviders errors gracefully', () => {
-      // Temporarily break loadProviders to test error handling
-      jest.spyOn(console, 'warn').mockImplementation(() => {});
       const { loadProviders } = require('../src/provider-loader');
-      const originalLoadProviders = loadProviders; // Save original implementation
+      const originalLoadProviders = loadProviders;
       jest.spyOn(require('../src/provider-loader'), 'loadProviders').mockImplementation(() => {
         throw new Error('Simulated error');
       });
 
       const providers = getSupportedProviders();
       expect(providers).toEqual([]);
-      expect(console.warn).toHaveBeenCalledWith(
-        'Failed to load providers:',
-        expect.any(Error)
-      );
 
-      // Restore original implementation
       jest.spyOn(require('../src/provider-loader'), 'loadProviders').mockImplementation(originalLoadProviders);
-      jest.spyOn(console, 'warn').mockRestore();
     });
 
     it('should handle getLibraryStats errors gracefully', () => {
@@ -372,7 +363,7 @@ describe('Email Provider Links', () => {
   });
 
   describe('Re-exported functions', () => {
-    it('should re-export all API functions correctly', () => {
+    it('should re-export the public API correctly', () => {
       const index = require('../src/index').default;
       
       // Test default export object
@@ -381,28 +372,31 @@ describe('Email Provider Links', () => {
       expect(typeof index.getEmailProviderFast).toBe('function');
       expect(typeof index.normalizeEmail).toBe('function');
       expect(typeof index.emailsMatch).toBe('function');
+      expect(typeof index.detectEmailAlias).toBe('function');
       expect(index.Config).toBeDefined();
-expect(index.PROVIDER_COUNT).toBe(130);
-      expect(index.DOMAIN_COUNT).toBe(218);
+      expect(index.PROVIDER_COUNT).toBe(140);
+      expect(index.DOMAIN_COUNT).toBe(259);
 
-      // Test named exports
+      // Test named exports (public surface — internals are not re-exported)
       const {
         getEmailProvider,
         getEmailProviderFast,
         normalizeEmail,
         emailsMatch,
+        detectEmailAlias,
+        Config,
         loadProviders,
-        detectProviderConcurrent,
-        Config
+        detectProviderConcurrent
       } = require('../src/index');
 
       expect(typeof getEmailProvider).toBe('function');
       expect(typeof getEmailProviderFast).toBe('function');
       expect(typeof normalizeEmail).toBe('function');
       expect(typeof emailsMatch).toBe('function');
-      expect(typeof loadProviders).toBe('function');
-      expect(typeof detectProviderConcurrent).toBe('function');
+      expect(typeof detectEmailAlias).toBe('function');
       expect(Config).toBeDefined();
+      expect(loadProviders).toBeUndefined();
+      expect(detectProviderConcurrent).toBeUndefined();
     });
   });
 });

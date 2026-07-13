@@ -166,7 +166,7 @@ describe('Security - URL Validation', () => {
       const audit = auditProviderSecurity(validProviders);
       expect(audit.invalid).toBe(0);
       expect(audit.valid).toBe(2);
-      expect(audit.report).toBe('✅ All provider URLs passed security validation');
+      expect(audit.report).toBe('All provider URLs passed security validation');
     });
 
     test('should flag invalid providers', () => {
@@ -449,7 +449,7 @@ describe('Security - Secure Loading', () => {
         const joinedLogs = logCalls.join(' ');
 
         expect(joinedLogs).toContain('Generating security hashes');
-        expect(joinedLogs).toContain('Security Setup Instructions');
+        expect(joinedLogs).toContain('Security setup');
         expect(joinedLogs).toContain('KNOWN_GOOD_HASHES');
         expect(joinedLogs).toContain('environment variables');
       } finally {

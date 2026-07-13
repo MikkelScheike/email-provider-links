@@ -1,51 +1,13 @@
 /**
  * Email Alias Detection Module
- * 
- * Clean, focused implementation with only essential functions.
- * Detects and normalizes email aliases across different providers.
- * 
- * Alias Configuration Behavior:
- * ---------------------------
- * The module handles email aliases based on provider-specific configurations.
- * Each provider can specify how to handle three types of email variations:
- * 
- * 1. Case sensitivity ("case")
- * 2. Plus addressing ("plus")
- * 3. Dots in username ("dots")
- * 
- * Important: For each of these properties, modifications are only applied if
- * explicitly configured in the provider's settings:
- * 
- * - If a property is defined (e.g., "case": {"ignore": true, "strip": true}),
- *   the specified behavior is applied
- * 
- * - If a property is missing from the provider's alias configuration,
- *   the original value is preserved without modification
- * 
- * Example:
- * ```json
- * {
- *   "alias": {
- *     "dots": { "ignore": false, "strip": false },
- *     "plus": { "ignore": true, "strip": true }
- *     // case is not defined, so case will be preserved
- *   }
- * }
- * ```
- * 
- * In this example:
- * - Dots will be preserved (configured to not ignore/strip)
- * - Plus addressing will be stripped (configured to ignore/strip)
- * - Case will be preserved (not configured)
- * 
- * Note: The domain part of email addresses is always converted to lowercase
- * as per RFC 5321 standard, regardless of provider configuration.
+ *
+ * Detects and normalizes email aliases using provider-specific rules for
+ * case, plus-addressing, and dots. Domain part is always lowercased (RFC 5321).
  */
 
 import { loadProviders } from './provider-loader';
-import { domainToPunycode, validateInternationalEmail } from './idn';
+import { validateInternationalEmail, domainToPunycode } from './idn';
 import type { EmailProvider } from './api';
-import { EmailLimits } from './constants';
 
 export interface AliasDetectionResult {
   /** The normalized/canonical email address */
@@ -62,122 +24,88 @@ export interface AliasDetectionResult {
   provider?: string;
 }
 
-/**
- * Validates email format
- * 
- * Security: Uses length validation and safer regex patterns to prevent ReDoS attacks.
- * The regex pattern is designed to avoid catastrophic backtracking by:
- * 1. Limiting input length before regex processing
- * 2. Using bounded quantifiers instead of unbounded ones
- * 3. Validating structure with string operations before regex
- */
-function isValidEmail(email: string): boolean {
-  // Prevent ReDoS: limit email length (RFC 5321 max is 254 chars for local+domain)
-  // Reject extremely long inputs before regex processing to prevent ReDoS attacks
-  if (!email || email.length > EmailLimits.MAX_EMAIL_LENGTH) {
-    return false;
-  }
-
-  // Quick structural validation using string operations (faster and safer than regex)
-  const atIndex = email.lastIndexOf('@');
-  if (atIndex === -1 || atIndex === 0 || atIndex === email.length - 1) {
-    return false;
-  }
-
-  const localPart = email.slice(0, atIndex);
-  const domain = email.slice(atIndex + 1);
-  
-  // Validate lengths (RFC 5321 limits)
-  if (localPart.length === 0 || 
-      localPart.length > EmailLimits.MAX_LOCAL_PART_LENGTH || 
-      domain.length === 0 || 
-      domain.length > EmailLimits.MAX_DOMAIN_LENGTH) {
-    return false;
-  }
-
-  // Check for at least one dot in domain (required for TLD)
-  if (!domain.includes('.')) {
-    return false;
-  }
-
-  // Use safer regex pattern with bounded quantifiers to prevent ReDoS
-  // Pattern: local part (1-64 chars, no whitespace/@), @, domain with dot (1-253 chars, no whitespace/@)
-  // The bounded quantifiers {1,64} and {1,253} prevent catastrophic backtracking
-  const emailRegex = /^[^\s@]{1,64}@[^\s@]{1,253}$/;
-  if (!emailRegex.test(email)) {
-    return false;
-  }
-
-  // Check for invalid characters (surrogates and control chars)
-  if (/[\uD800-\uDFFF]/.test(domain) || /[\u0000-\u001F\u007F]/.test(domain)) {
-    return false;
-  }
-
-  // Validate domain characters (Unicode letters, marks, numbers, dots, hyphens)
-  if (/[^\p{L}\p{M}\p{N}.\-]/u.test(domain)) {
-    return false;
-  }
-
-  const validation = validateInternationalEmail(`a@${domain}`);
-  return validation === undefined;
+export interface NormalizeEmailOptions {
+  /**
+   * Skip structural/IDN re-validation when the caller already validated the email.
+   * Used by the detection hot path to avoid duplicate work.
+   */
+  alreadyValidated?: boolean;
+  /**
+   * Optional pre-computed punycode domain (avoids re-encoding).
+   */
+  punycodeDomain?: string;
 }
 
-
-/**
- * Detects and analyzes email aliases
- * 
- * This function processes email addresses according to provider-specific rules.
- * Case is always lowercased in the canonical form for consistency and safety.
- * It only applies additional modifications (plus, dots) that are explicitly
- * defined in the provider's configuration.
- * 
- * @param email - Email address to analyze
- * @returns Detailed analysis of the email alias
- * 
- * @example
- * Provider with no case handling defined:
- * ```typescript
- * detectEmailAlias('User.Name@example.com')
- * // Preserves case: User.Name@example.com
- * ```
- * 
- * Provider with case handling defined:
- * ```typescript
- * detectEmailAlias('User.Name@gmail.com')
- * // Converts to lowercase: user.name@gmail.com
- * ```
- */
-export function detectEmailAlias(email: string): AliasDetectionResult {
+function assertValidEmail(email: string): void {
   if (!email || typeof email !== 'string') {
     throw new Error('Invalid email format');
   }
-  
-  const originalEmail = email.trim();
-  if (!originalEmail || !isValidEmail(originalEmail)) {
+
+  const trimmed = email.trim();
+  if (!trimmed) {
     throw new Error('Invalid email format');
   }
-  // Split normally, lowering case both for username and domain by default
-  const emailParts = originalEmail.toLowerCase().split('@');
-  const username = emailParts[0];
-  const domain = domainToPunycode(emailParts[1] || ''); // domain is always case-insensitive per RFC 5321
-  
+
+  const atIndex = trimmed.lastIndexOf('@');
+  if (atIndex <= 0 || atIndex === trimmed.length - 1) {
+    throw new Error('Invalid email format');
+  }
+
+  const local = trimmed.slice(0, atIndex);
+  const domain = trimmed.slice(atIndex + 1);
+
+  // Local part: allow consecutive dots (Gmail accepts/strips them). Reject whitespace/@.
+  if (!local || /\s|@/.test(local) || local.length > 64) {
+    throw new Error('Invalid email format');
+  }
+
+  const domainError = validateInternationalEmail(`a@${domain}`);
+  if (domainError) {
+    throw new Error('Invalid email format');
+  }
+}
+
+function getProviderDomainMap(): Map<string, EmailProvider> {
+  const result = loadProviders();
+  if (result.domainMap) {
+    return result.domainMap;
+  }
+
+  const domainMap = new Map<string, EmailProvider>();
+  for (const provider of result.providers) {
+    for (const domain of provider.domains) {
+      domainMap.set(domain.toLowerCase(), provider);
+    }
+  }
+  return domainMap;
+}
+
+/**
+ * Detects and analyzes email aliases according to provider-specific rules.
+ */
+export function detectEmailAlias(
+  email: string,
+  options: NormalizeEmailOptions = {}
+): AliasDetectionResult {
+  if (!options.alreadyValidated) {
+    assertValidEmail(email);
+  }
+
+  const originalEmail = email.trim();
+  const atIndex = originalEmail.lastIndexOf('@');
+  const username = originalEmail.slice(0, atIndex).toLowerCase();
+  const domain =
+    options.punycodeDomain ||
+    domainToPunycode(originalEmail.slice(atIndex + 1).toLowerCase());
+
   if (!username || !domain) {
     throw new Error('Invalid email format - missing username or domain');
   }
-  
-  // Get providers and create domain map
-  const { providers } = loadProviders();
-  const domainMap = new Map<string, EmailProvider>();
-  providers.forEach(provider => {
-    provider.domains.forEach((domain: string) => {
-      domainMap.set(domain.toLowerCase(), provider);
-    });
-  });
-  
+
+  const domainMap = getProviderDomainMap();
   const provider = domainMap.get(domain);
 
   const result: AliasDetectionResult = {
-    // Only lowercase domain part by default
     canonical: `${username}@${domain}`,
     original: originalEmail,
     isAlias: false,
@@ -195,16 +123,12 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
   let aliasType: 'plus' | 'dot' | 'none' = 'none';
   let aliasPart: string | undefined;
 
-  // Canonical form is always lowercased to ensure consistent and
-  // reliable email handling across different providers.
   if (provider.alias?.case?.ignore) {
     if (provider.alias.case?.strip) {
       normalizedUsername = normalizedUsername.toLowerCase();
     }
   }
 
-  // Handle plus addressing if defined in provider settings
-  // If plus handling is not defined, preserve plus addressing
   if (provider.alias?.plus?.ignore) {
     const plusIndex = username.indexOf('+');
     if (plusIndex !== -1) {
@@ -217,8 +141,6 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
     }
   }
 
-  // Handle dots if defined in provider settings
-  // If dots handling is not defined, preserve dots
   if (provider.alias?.dots?.ignore) {
     const hasDots = username.includes('.');
     if (hasDots) {
@@ -233,7 +155,6 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
     }
   }
 
-  // Build the canonical form
   result.canonical = `${normalizedUsername}@${domain}`;
   result.isAlias = isAlias;
   result.aliasType = aliasType;
@@ -246,82 +167,46 @@ export function detectEmailAlias(email: string): AliasDetectionResult {
 
 /**
  * Normalizes an email address to its canonical form.
- * 
- * This is the primary function for preventing duplicate accounts.
- * 
- * @param email - Email address to normalize
- * @returns Canonical email address
- * 
- * @example
- * ```typescript
- * const canonical = normalizeEmail('U.S.E.R+work@GMAIL.COM');
- * console.log(canonical); // 'user@gmail.com'
- * ```
  */
-export function normalizeEmail(email: string): string {
+export function normalizeEmail(email: string, options: NormalizeEmailOptions = {}): string {
   if (email == null || typeof email !== 'string') {
-    // Preserve null/undefined for edge case tests - return as-is
-    // Using type assertion to maintain backward compatibility with edge case tests
-    // that expect null/undefined to be returned unchanged
+    // Preserve null/undefined for edge-case compatibility
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return email as any;
   }
 
-  // Trim whitespace first
   const trimmed = email.trim();
-  
-  // Check for empty string - return empty string for edge case tests
+
   if (trimmed === '') {
     return '';
   }
 
   try {
-    const result = detectEmailAlias(trimmed);
-    return result.canonical;
+    return detectEmailAlias(trimmed, options).canonical;
   } catch (error) {
-    // For invalid emails, return the original (trimmed) value for edge case compatibility
-    // This allows edge-case tests to pass while email-normalization tests can check for throws
-    // by calling detectEmailAlias directly
-    if (error instanceof Error && (error.message === 'Invalid email format' || error.message.includes('Invalid email format'))) {
-      // Return original trimmed value instead of throwing
+    if (error instanceof Error && error.message.includes('Invalid email format')) {
       return trimmed;
     }
-    // Fallback to simple lowercase if alias detection fails for other reasons
     return trimmed.toLowerCase();
   }
 }
 
 /**
  * Checks if two email addresses are the same when normalized.
- * 
- * This is the primary function for matching aliases during login.
- * 
- * @param email1 - First email address
- * @param email2 - Second email address
- * @returns true if the emails represent the same person
- * 
- * @example
- * ```typescript
- * const match = emailsMatch('user@gmail.com', 'u.s.e.r+work@gmail.com');
- * console.log(match); // true
- * ```
  */
 export function emailsMatch(email1: string, email2: string): boolean {
-  // Handle null/undefined inputs first
   if (email1 == null || email2 == null) {
     return false;
   }
-  
-  // Handle non-string inputs
+
   if (typeof email1 !== 'string' || typeof email2 !== 'string') {
     return false;
   }
-  
-  // Handle empty strings specifically
+
   if (email1.trim() === '' || email2.trim() === '') {
     return false;
   }
-  
+
   try {
     return normalizeEmail(email1) === normalizeEmail(email2);
   } catch {

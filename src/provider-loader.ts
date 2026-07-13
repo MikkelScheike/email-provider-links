@@ -6,11 +6,17 @@
  */
 
 import { validateEmailProviderUrl, auditProviderSecurityWithAllowlist } from './url-validator';
-import { join, normalize } from 'path';
-import { verifyProvidersIntegrity, generateSecurityHashes } from './hash-verifier';
+import { normalize } from 'path';
+import { verifyProvidersIntegrity, generateSecurityHashes, type HashVerificationResult } from './hash-verifier';
 import { getErrorMessage, isFileNotFoundError, isJsonError } from './error-utils';
 import { MemoryConstants } from './constants';
-import { convertProviderToEmailProviderShared, readProvidersDataFile, buildDomainMapShared } from './provider-store';
+import {
+  convertProviderToEmailProviderShared,
+  readProvidersDataFile,
+  buildDomainMapShared,
+  resolveDefaultProvidersPath,
+  isBuiltinProvidersPath
+} from './provider-store';
 import type { EmailProvider } from './api';
 import { domainToPunycode } from './idn';
 
@@ -81,21 +87,32 @@ export function loadProviders(
     return cachedLoadResult;
   }
 
-  const defaultProvidersPath = normalize(join(__dirname, '..', 'providers', 'emailproviders.json'));
+  const defaultProvidersPath = resolveDefaultProvidersPath();
   const filePath = providersPath ? normalize(providersPath) : defaultProvidersPath;
-  const isDefaultProvidersFile = normalize(filePath) === normalize(defaultProvidersPath);
+  const isDefaultProvidersFile = isBuiltinProvidersPath(filePath);
   const issues: string[] = [];
   let providers: EmailProvider[] = [];
 
-  // Step 1: Hash verification
-  const hashResult = verifyProvidersIntegrity(filePath, expectedHash);
-  if (!hashResult.isValid) {
+  // Hash verification is build/CI by default. Runtime skips unless an expected hash
+  // is passed or EMAIL_PROVIDER_LINKS_VERIFY_HASH=1 is set.
+  const shouldVerifyHash =
+    expectedHash !== undefined ||
+    process.env.EMAIL_PROVIDER_LINKS_VERIFY_HASH === '1';
+
+  const hashResult: HashVerificationResult = shouldVerifyHash
+    ? verifyProvidersIntegrity(filePath, expectedHash)
+    : {
+        isValid: true,
+        actualHash: '',
+        file: filePath,
+        reason: 'Hash verification skipped at runtime (verified at build/publish)'
+      };
+
+  if (shouldVerifyHash && !hashResult.isValid) {
     issues.push(`Hash verification failed: ${hashResult.reason}`);
 
-    // In production, you might want to abort here
-    // Suppress logging during tests to avoid console noise
     if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
-      console.error('🚨 SECURITY WARNING: Hash verification failed!');
+      console.error('SECURITY WARNING: Hash verification failed!');
       console.error('File:', hashResult.file);
       console.error('Reason:', hashResult.reason);
       console.error('Expected:', hashResult.expectedHash);
@@ -114,7 +131,7 @@ export function loadProviders(
     if (process.env.NODE_ENV === 'development' && !process.env.JEST_WORKER_ID) {
       const memUsage = process.memoryUsage();
       const memUsageMB = (memUsage.heapUsed / MemoryConstants.BYTES_PER_KB / MemoryConstants.KB_PER_MB).toFixed(2);
-      console.log(`🚀 Current memory usage: ${memUsageMB} MB`);
+      console.log(`Current memory usage: ${memUsageMB} MB`);
     }
   } catch (error: unknown) {
     // Use standardized error handling utilities
@@ -139,14 +156,14 @@ export function loadProviders(
         success: false,
         providers: [],
         securityReport: {
-          hashVerification: hashResult.isValid,
-          urlValidation: false,
-          totalProviders: 0,
-          validUrls: 0,
-          invalidUrls: 0,
-          securityLevel: 'CRITICAL',
-          issues
-        }
+      hashVerification: shouldVerifyHash ? hashResult.isValid : true,
+      urlValidation: false,
+      totalProviders: 0,
+      validUrls: 0,
+      invalidUrls: 0,
+      securityLevel: 'CRITICAL',
+      issues
+    }
       };
     }
 
@@ -186,7 +203,7 @@ export function loadProviders(
     issues.push(`${providersWithInvalidUrls.length} providers have invalid URLs`);
     // Suppress logging during tests to avoid console noise
     if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
-      console.warn('⚠️  URL validation issues found:');
+      console.warn('URL validation issues found:');
       for (const invalid of providersWithInvalidUrls) {
         console.warn(`- ${invalid.provider}: ${invalid.validation.reason}`);
       }
@@ -221,24 +238,26 @@ export function loadProviders(
   // However, for custom test files with intentionally wrong hashes, we should still fail to respect test expectations.
   const isTestEnv = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
   const allowLoadingOnHashFailure = isTestEnv && isDefaultProvidersFile && secureProviders.length > 0;
+  const failClosed = securityLevel === 'CRITICAL' && !allowLoadingOnHashFailure;
 
   const loadResult = {
-    success: securityLevel !== 'CRITICAL' || allowLoadingOnHashFailure,
-    providers: secureProviders,
-    domainMap: buildDomainMap(secureProviders),
+    success: !failClosed,
+    // Fail closed: do not hand out provider data when integrity checks fail outside tests
+    providers: failClosed ? [] : secureProviders,
+    domainMap: failClosed ? new Map() : buildDomainMap(secureProviders),
     stats: {
-      loadTime: 0, // Would need to track this during load
+      loadTime: 0,
       domainMapTime: 0,
-      providerCount: secureProviders.length,
-      domainCount: secureProviders.reduce((count, p) => count + (p.domains?.length || 0), 0),
+      providerCount: failClosed ? 0 : secureProviders.length,
+      domainCount: failClosed ? 0 : secureProviders.reduce((count, p) => count + (p.domains?.length || 0), 0),
       fileSize
     },
     securityReport: {
-      hashVerification: hashResult.isValid,
-      urlValidation: providersWithInvalidUrls.length === 0, // Only count providers with invalid URLs, not providers without URLs
+      hashVerification: shouldVerifyHash ? hashResult.isValid : true,
+      urlValidation: providersWithInvalidUrls.length === 0,
       totalProviders: providers.length,
       validUrls: urlAudit.valid,
-      invalidUrls: providersWithInvalidUrls.length, // Only count actual invalid URLs
+      invalidUrls: providersWithInvalidUrls.length,
       securityLevel,
       issues
     }
@@ -257,20 +276,21 @@ export function loadProviders(
  * Development utility to generate and display current hashes
  */
 export function initializeSecurity() {
-  console.log('🔐 Generating security hashes for email providers...');
+  console.log('Generating security hashes for email providers...');
   const hashes = generateSecurityHashes();
 
-  console.log('\n📋 Security Setup Instructions:');
+  console.log('\nSecurity setup:');
   console.log('1. Store these hashes securely (environment variables, CI/CD secrets)');
   console.log('2. Update KNOWN_GOOD_HASHES in hash-verifier.ts');
-  console.log('3. Enable hash verification in production');
-  console.log('\n⚠️  Remember to update hashes when making legitimate changes to provider data!');
+  console.log('3. Keep hash verification enabled in the build pipeline');
+  console.log('\nUpdate hashes only after reviewing legitimate provider data changes.');
 
   return hashes;
 }
 
 /**
- * Express middleware for provider loading with security checks (if using in web apps)
+ * Express-style middleware for provider loading with security checks.
+ * Kept for advanced/server integrations; not part of the primary public API.
  */
 interface SecurityMiddlewareOptions {
   expectedHash?: string;
@@ -281,10 +301,8 @@ interface SecurityMiddlewareOptions {
 
 export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}) {
   return (req: MiddlewareRequestLike, res: MiddlewareResponseLike, next: MiddlewareNextLike) => {
-    // If a custom providers getter is provided, use that instead of loading from file
     const result = options.getProviders ? options.getProviders() : loadProviders(undefined, options.expectedHash);
 
-    // Handle security level
     if (result.securityReport.securityLevel === 'CRITICAL' && !options.allowInvalidUrls) {
       if (options.onSecurityIssue) {
         options.onSecurityIssue(result.securityReport);
@@ -296,7 +314,6 @@ export function createSecurityMiddleware(options: SecurityMiddlewareOptions = {}
       return;
     }
 
-    // Attach secure providers to request
     req.secureProviders = result.providers;
     req.securityReport = result.securityReport;
 

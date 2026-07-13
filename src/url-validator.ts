@@ -6,23 +6,24 @@
  */
 
 import { readFileSync } from 'fs';
-import { join } from 'path';
 import { verifyProvidersIntegrity } from './hash-verifier';
 import type { ProvidersData } from './schema';
+import { domainToPunycode } from './idn';
+import { resolveDefaultProvidersPath } from './provider-store';
 
 /**
  * Get allowlisted domains from provider data
  * Only URLs from these domains will be considered safe.
  */
 export function getAllowedDomains(): Set<string> {
-  const filePath = join(__dirname, '..', 'providers', 'emailproviders.json');
-  const integrity = verifyProvidersIntegrity(filePath);
-  // Even if hash verification fails, we should still build the allowlist
-  // to prevent all providers from being filtered out. Hash failures are
-  // logged but shouldn't break functionality (especially in test environments).
-  // The security level will still be marked as CRITICAL in the security report.
+  const filePath = resolveDefaultProvidersPath();
+  const shouldVerifyHash = process.env.EMAIL_PROVIDER_LINKS_VERIFY_HASH === '1';
+  const integrity = shouldVerifyHash
+    ? verifyProvidersIntegrity(filePath)
+    : { isValid: true, actualHash: 'runtime-skip', file: filePath };
+
+  // Fail closed only when hash verification is explicitly enabled
   if (!integrity.isValid && process.env.NODE_ENV === 'production' && !process.env.JEST_WORKER_ID) {
-    // Only return empty set in production when hash fails
     return new Set<string>();
   }
 
@@ -41,7 +42,6 @@ export function getAllowedDomains(): Set<string> {
         const url = new URL(provider.loginUrl);
         allowedDomains.add(domainToPunycode(url.hostname.toLowerCase()));
       } catch {
-        // Skip invalid URLs
         continue;
       }
     }
@@ -81,8 +81,6 @@ const URL_SHORTENERS = [
   'is.gd',
   'buff.ly'
 ];
-
-import { domainToPunycode } from './idn';
 
 type ProviderUrlLike = {
   companyProvider?: string;
@@ -311,8 +309,8 @@ export function auditProviderSecurityWithAllowlist(
     invalid: invalid.length,
     invalidProviders: invalid,
     report: invalid.length === 0 
-      ? '✅ All provider URLs passed security validation'
-      : `⚠️  ${invalid.length} provider(s) failed security validation`
+      ? 'All provider URLs passed security validation'
+      : `${invalid.length} provider(s) failed security validation`
   };
 }
 

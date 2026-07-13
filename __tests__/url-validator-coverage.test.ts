@@ -287,7 +287,7 @@ describe('URL Validator - Coverage Tests', () => {
       expect(audit.valid).toBe(2);
       expect(audit.invalid).toBe(0);
       expect(audit.invalidProviders).toHaveLength(0);
-      expect(audit.report).toBe('✅ All provider URLs passed security validation');
+      expect(audit.report).toBe('All provider URLs passed security validation');
     });
 
     it('should flag invalid providers in audit', () => {

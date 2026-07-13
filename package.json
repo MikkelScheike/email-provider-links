@@ -1,31 +1,31 @@
 {
   "name": "@mikkelscheike/email-provider-links",
   "version": "5.1.8",
-  "description": "TypeScript library for email provider detection with 130 providers (218 domains), concurrent DNS resolution, optimized performance, 94.65% test coverage, and enterprise security for login and password reset flows",
+  "description": "TypeScript library for email provider detection with 140 providers (259 domains), concurrent DNS resolution, alias normalization, and HTTPS login URL validation for login and password reset flows",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
-    "providers/emailproviders.json",
+    "dist/providers/emailproviders.json",
     "!dist/**/*.map"
   ],
   "scripts": {
     "clean": "node -e \"try{require('fs').rmSync('dist',{recursive:true,force:true});}catch(e){}\"",
-    "verify-hashes": "tsx scripts/verify-hashes.ts",
-    "build": "npm run clean && tsx scripts/verify-hashes.ts && tsc",
+    "verify-hashes": "node --import tsx scripts/verify-hashes.ts",
+    "build": "npm run clean && npm run verify-hashes && tsc && node --import tsx scripts/prepare-providers-dist.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:live-dns": "RUN_LIVE_DNS=1 jest",
     "prepublishOnly": "npm run verify-hashes && npm run build",
-    "dev": "tsx src/index.ts",
+    "dev": "node --import tsx src/index.ts",
     "sync-versions": "node scripts/sync-versions.js",
     "pretest": "node scripts/sync-versions.js",
     "prebuild": "node scripts/sync-versions.js",
-    "update-hashes": "tsx scripts/update-hashes.ts",
-    "benchmark:memory": "tsx --expose-gc scripts/benchmark-memory.ts",
-    "benchmark:dns": "tsx scripts/benchmark-concurrent-dns.ts"
+    "update-hashes": "node --import tsx scripts/update-hashes.ts",
+    "benchmark:memory": "node --expose-gc --import tsx scripts/benchmark-memory.ts",
+    "benchmark:dns": "node --import tsx scripts/benchmark-concurrent-dns.ts"
   },
   "keywords": [
     "email",
@@ -55,8 +55,7 @@
     "url": "https://github.com/mikkelscheike/email-provider-links/issues"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "comment": "Supports Node.js 18.x, 20.x, 22.x, 24.x, and 25.x"
+    "node": ">=18.0.0"
   },
   "publishConfig": {
     "access": "public",

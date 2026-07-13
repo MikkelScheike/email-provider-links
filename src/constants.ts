@@ -25,3 +25,13 @@ export const MemoryConstants = {
   KB_PER_MB: 1024,
 } as const;
 
+/**
+ * DNS detection defaults
+ */
+export const DnsConstants = {
+  /** Default DNS query timeout in milliseconds */
+  DEFAULT_TIMEOUT_MS: 5000,
+  /** Max DNS detection attempts per process per rolling minute */
+  MAX_REQUESTS_PER_MINUTE: 10,
+} as const;
+

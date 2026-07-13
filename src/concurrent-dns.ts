@@ -8,6 +8,7 @@
 import { promisify } from 'util';
 import { resolveMx, resolveTxt } from 'dns';
 import { EmailProvider } from './api';
+import { DnsConstants } from './constants';
 
 // Convert Node.js callback-style DNS functions to Promise-based
 const resolveMxAsync = promisify(resolveMx);
@@ -15,6 +16,74 @@ const resolveTxtAsync = promisify(resolveTxt);
 
 type MXRecordLike = { exchange?: string };
 type TXTRecordLike = string;
+
+/**
+ * True when hostname equals pattern or is a DNS subdomain of pattern.
+ * Avoids substring false positives (e.g. "notgoogle.com" vs "google.com").
+ */
+export function hostnameMatchesPattern(hostname: string, pattern: string): boolean {
+  const host = hostname.toLowerCase().replace(/\.+$/, '');
+  const pat = pattern.toLowerCase().replace(/\.+$/, '');
+  if (!host || !pat) return false;
+  return host === pat || host.endsWith('.' + pat);
+}
+
+/**
+ * Process-wide sliding-window rate limiter for DNS lookups.
+ */
+class DnsRateLimiter {
+  private timestamps: number[] = [];
+  private maxPerMinute: number;
+
+  constructor(maxPerMinute: number = DnsConstants.MAX_REQUESTS_PER_MINUTE) {
+    this.maxPerMinute = maxPerMinute;
+  }
+
+  setLimit(maxPerMinute: number): void {
+    this.maxPerMinute = maxPerMinute;
+  }
+
+  reset(): void {
+    this.timestamps = [];
+  }
+
+  /**
+   * Records a DNS detection attempt. Throws if the limit is exceeded.
+   * Skipped in test environments unless FORCE_DNS_RATE_LIMIT=1.
+   */
+  acquire(): void {
+    const forceInTests = process.env.FORCE_DNS_RATE_LIMIT === '1';
+    if (!forceInTests && (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID)) {
+      return;
+    }
+
+    const now = Date.now();
+    const windowMs = 60_000;
+    this.timestamps = this.timestamps.filter(t => now - t < windowMs);
+
+    if (this.timestamps.length >= this.maxPerMinute) {
+      const oldest = this.timestamps[0] ?? now;
+      const retryAfterMs = windowMs - (now - oldest);
+      const retryAfterSec = Math.max(1, Math.ceil(retryAfterMs / 1000));
+      throw new Error(`Rate limit exceeded. Try again in ${retryAfterSec} seconds`);
+    }
+
+    this.timestamps.push(now);
+  }
+}
+
+const dnsRateLimiter = new DnsRateLimiter();
+
+/** Reset rate limiter state (for tests). */
+export function resetDnsRateLimiter(): void {
+  dnsRateLimiter.reset();
+  clearDnsResultCache();
+}
+
+/** Override the per-minute limit (for tests / advanced config). */
+export function setDnsRateLimit(maxPerMinute: number): void {
+  dnsRateLimiter.setLimit(maxPerMinute);
+}
 
 /**
  * Configuration for concurrent DNS detection
@@ -131,6 +200,9 @@ export class ConcurrentDNSDetector {
    * Detect provider for a domain using concurrent DNS lookups
    */
   async detectProvider(domain: string): Promise<ConcurrentDNSResult> {
+    // Enforce process-wide DNS rate limit before any network I/O
+    dnsRateLimiter.acquire();
+
     const startTime = Date.now();
     const normalizedDomain = domain.toLowerCase().trim().replace(/\.+$/, '');
 
@@ -414,7 +486,7 @@ export class ConcurrentDNSDetector {
         const exchange = (record as MXRecordLike).exchange?.toLowerCase() || '';
         
         for (const pattern of detection.mxPatterns) {
-          if (exchange.includes(pattern.toLowerCase())) {
+          if (hostnameMatchesPattern(exchange, pattern)) {
             matchedPatterns.push(pattern);
             confidence = Math.max(confidence, 0.9); // High confidence for MX matches
           }
@@ -495,7 +567,7 @@ export class ConcurrentDNSDetector {
       for (const provider of this.providers) {
         if (provider.type === 'proxy_service' && provider.customDomainDetection?.mxPatterns) {
           for (const pattern of provider.customDomainDetection.mxPatterns) {
-            if (exchange.includes(pattern.toLowerCase())) {
+            if (hostnameMatchesPattern(exchange, pattern)) {
               return provider.companyProvider;
             }
           }
@@ -574,13 +646,33 @@ export function createConcurrentDNSDetector(
 }
 
 /**
- * Utility function for quick concurrent DNS detection
+ * Utility function for quick concurrent DNS detection.
+ * Results are cached per domain for a short TTL to avoid repeated lookups.
  */
+const DNS_RESULT_CACHE_TTL_MS = 5 * 60 * 1000;
+const dnsResultCache = new Map<string, { expires: number; result: ConcurrentDNSResult }>();
+
+export function clearDnsResultCache(): void {
+  dnsResultCache.clear();
+}
+
 export async function detectProviderConcurrent(
   domain: string,
   providers: EmailProvider[],
   config?: Partial<ConcurrentDNSConfig>
 ): Promise<ConcurrentDNSResult> {
+  const normalizedDomain = domain.toLowerCase().trim().replace(/\.+$/, '');
+  const cacheKey = `${normalizedDomain}|${config?.timeout ?? DEFAULT_CONFIG.timeout}|${config?.enableParallel !== false}|${!!config?.collectDebugInfo}`;
+  const cached = dnsResultCache.get(cacheKey);
+  if (cached && cached.expires > Date.now()) {
+    return cached.result;
+  }
+
   const detector = createConcurrentDNSDetector(providers, config);
-  return detector.detectProvider(domain);
+  const result = await detector.detectProvider(normalizedDomain);
+  dnsResultCache.set(cacheKey, {
+    expires: Date.now() + DNS_RESULT_CACHE_TTL_MS,
+    result
+  });
+  return result;
 }
