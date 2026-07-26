@@ -4,11 +4,13 @@
     /* Override for testing environment */
     "target": "ES2022",
     "module": "CommonJS",
-    "moduleResolution": "node",
+    "moduleResolution": "node10",
+    "rootDir": ".",
     "types": ["node", "jest"],
     "allowJs": true,
     "checkJs": false,
     "noEmit": true,
+    "ignoreDeprecations": "6.0",
     
     /* Relaxed rules for tests */
     "noUnusedLocals": false,

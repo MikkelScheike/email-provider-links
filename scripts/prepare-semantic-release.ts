@@ -252,8 +252,10 @@ class SemanticReleaseManager {
       return;
     }
 
-    // Stage only security hash changes (no version changes)
-    execSync('git add src/hash-verifier.ts');
+    // Stage hash updates plus any other prepared working-tree changes
+    // (e.g. package.json / lockfile bumps). No manual version edits —
+    // semantic-release owns the version number.
+    execSync('git add -u');
 
     // Check if there are changes to commit
     try {
