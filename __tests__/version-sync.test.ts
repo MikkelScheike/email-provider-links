@@ -20,12 +20,15 @@ function getCurrentPackageVersion() {
   }
 }
 
-function getLatestGitTag() {
+function getLatestGitTag(): string | null {
   try {
-    const tag = execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim();
+    const tag = execSync('git describe --tags --abbrev=0', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    }).trim();
     return tag.startsWith('v') ? tag.slice(1) : tag;
-  } catch (error) {
-    console.error('Error getting git tag:', error);
+  } catch {
+    // Shallow CI checkouts and fresh clones often have no tags.
     return null;
   }
 }
@@ -47,10 +50,14 @@ describe('Version Sync Script', () => {
     const gitTag = getLatestGitTag();
     const packageVersion = getCurrentPackageVersion();
 
-    expect(typeof gitTag).toBe('string');
     expect(typeof packageVersion).toBe('string');
+    expect(packageVersion).toMatch(/^\d+\.\d+\.\d+$/);
 
-    console.log(`Git tag: v${gitTag}, Package version: ${packageVersion}`);
+    if (gitTag === null) {
+      return;
+    }
+
+    expect(gitTag).toMatch(/^\d+\.\d+\.\d+$/);
     if (gitTag !== packageVersion) {
       console.warn(`Version mismatch detected: git tag v${gitTag} vs package.json ${packageVersion}`);
       console.warn('Run "pnpm run sync-versions" to fix this');

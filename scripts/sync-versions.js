@@ -13,7 +13,10 @@ const path = require('path');
 
 function getLatestGitTag() {
   try {
-    const tag = execSync('git describe --tags --abbrev=0', { encoding: 'utf8' }).trim();
+    const tag = execSync('git describe --tags --abbrev=0', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    }).trim();
     return tag.replace(/^v/, ''); // Remove 'v' prefix
   } catch (error) {
     console.log('No git tags found, keeping current version');
