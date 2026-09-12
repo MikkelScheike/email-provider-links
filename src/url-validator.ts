@@ -10,6 +10,7 @@ import { verifyProvidersIntegrity } from './hash-verifier';
 import type { ProvidersData } from './schema';
 import { domainToPunycode } from './idn';
 import { resolveDefaultProvidersPath } from './provider-store';
+import { isTestEnvironment } from './constants';
 
 /**
  * Get allowlisted domains from provider data
@@ -23,7 +24,7 @@ export function getAllowedDomains(): Set<string> {
     : { isValid: true, actualHash: 'runtime-skip', file: filePath };
 
   // Fail closed only when hash verification is explicitly enabled
-  if (!integrity.isValid && process.env.NODE_ENV === 'production' && !process.env.JEST_WORKER_ID) {
+  if (!integrity.isValid && process.env.NODE_ENV === 'production' && !isTestEnvironment()) {
     return new Set<string>();
   }
 

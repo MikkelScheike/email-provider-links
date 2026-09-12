@@ -16,16 +16,6 @@ export const EmailLimits = {
 } as const;
 
 /**
- * Memory calculation constants
- */
-export const MemoryConstants = {
-  /** Bytes per kilobyte */
-  BYTES_PER_KB: 1024,
-  /** Kilobytes per megabyte */
-  KB_PER_MB: 1024,
-} as const;
-
-/**
  * DNS detection defaults
  */
 export const DnsConstants = {
@@ -34,4 +24,9 @@ export const DnsConstants = {
   /** Max DNS detection attempts per process per rolling minute */
   MAX_REQUESTS_PER_MINUTE: 10,
 } as const;
+
+/** True in Vitest / NODE_ENV=test so DNS rate limits stay quiet. */
+export function isTestEnvironment(): boolean {
+  return process.env.NODE_ENV === 'test' || !!process.env.VITEST;
+}
 

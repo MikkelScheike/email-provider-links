@@ -12,7 +12,7 @@ A TypeScript library providing login URLs for **140 email providers** (259 domai
 
 ## ✨ Core Features
 
-- 🚀 **Fast & Lightweight**: Zero dependencies, small footprint (~42KB packed)
+- 🚀 **Fast & Lightweight**: Zero runtime dependencies, ~43KB packed
 - 📧 **140 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
 - 🌐 **259 Domains Supported**: Broad international coverage
 - 🌍 **Full IDN Support**: International domain names with Punycode
@@ -26,29 +26,26 @@ A TypeScript library providing login URLs for **140 email providers** (259 domai
 - 🔄 **Automatic Email Normalization**: Provider-specific alias rules applied in detection results
 - 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
 - 📦 **Batch Processing**: Efficiently process multiple emails with deduplication
-- 🧪 **Thoroughly Tested**: 431 tests (430 standard + 1 live DNS) with ~91.5% statement coverage
+- 🤫 **Quiet runtime**: Detection and provider load do not write to stdout/stderr; errors are on the result object
+- 🧪 **Thoroughly Tested**: 439 tests plus 1 skipped live-DNS test (~89% statement coverage with Vitest v8)
 
 ## Installation
 
-Using npm:
+Install with any client (npm, yarn, or pnpm). The published package is CommonJS with zero runtime dependencies:
+
 ```bash
 npm install @mikkelscheike/email-provider-links
 ```
 
 ## Requirements
 
-- **Node.js**: `>=18.0.0` (Tested on 18.x, 20.x, 22.x, **24.x**, **25.x**)
+- **Node.js**: `>=22.12.0` (Vitest 5 and this package). CI runs the full suite on 22.x, 24.x, and 25.x.
 - **TypeScript**: `>=4.0.0` (optional, but recommended)
 - **Zero runtime dependencies** - No external packages required
 
-### Node.js 24/25 Support ✨
+### Node.js 24/25 Support
 
-Fully compatible with the latest Node.js 24.x and 25.x! The library is tested on:
-- Node.js 18.x (LTS)
-- Node.js 20.x (LTS)
-- Node.js 22.x
-- **Node.js 24.x** - Full support
-- **Node.js 25.x (Latest)** - Full support with latest features
+Tested on Node.js 22.x, 24.x, and **25.x**. Node.js 18 and 20 are not supported (both are end-of-life).
 
 ## Supported Providers
 
@@ -317,16 +314,26 @@ console.log(domain); // 'example.com'
 
 </details>
 
-## Performance and Detection System
+## Quiet runtime
 
-### Development Mode Features
+`getEmailProvider`, `getEmailProviderSync`, `getEmailProviderFast`, and provider loading do **not** print to the console. Failures are returned on the result (`error`) or `securityReport`. Maintainer CLI scripts (`pnpm run verify-hashes`, `pnpm run update-hashes`) still log on purpose.
 
-When `NODE_ENV` is set to 'development', the library provides additional insights:
+## Developing this repository
 
-```typescript
-// Memory usage is automatically logged:
-// Current memory usage: 0.08 MB
+This repo uses **pnpm** (see `packageManager` in `package.json`). Consumers can still install the published package with npm, yarn, or pnpm.
+
+```bash
+corepack enable
+pnpm install --frozen-lockfile
+pnpm test
+pnpm run build
 ```
+
+- Tests: Vitest 5 (`vitest.config.mts`). Requires Node.js `>= 22.12`.
+- Coverage: `pnpm run test:coverage` writes `coverage/lcov.info` for Codecov.
+- Release prep (maintainers): `pnpm exec tsx scripts/prepare-semantic-release.ts --patch` (or `--minor` / `--major`). Semantic-release assigns the version in CI.
+
+## Performance and Detection System
 
 ### Performance Benchmarks
 
@@ -340,10 +347,10 @@ Extensively optimized for both speed and memory efficiency:
 - Email validation: <1ms for complex IDN domains
 
 **Memory Management**:
-- Initial load: ~0.10MB heap usage
-- Batch operations: ~0.00004MB per 1000 operations
+- Initial load: ~0.17MB heap usage (measured with `pnpm run benchmark:memory`)
+- Batch operations: ~0.00009MB heap per 1000 sync lookups
 - Maximum load: < 25MB under heavy concurrent operations
-- Cache efficiency: >99% hit rate
+- Cache efficiency: DNS result cache (TTL + max 256 entries) plus in-process detector reuse
 - Garbage collection: Automatic optimization
 
 **Real-World Performance**:
@@ -355,10 +362,10 @@ Extensively optimized for both speed and memory efficiency:
 To run benchmarks:
 ```bash
 # Memory usage benchmark
-npm run benchmark:memory
+pnpm run benchmark:memory
 
 # DNS performance benchmark
-npm run benchmark:dns
+pnpm run benchmark:dns
 
 # Both scripts are available in the scripts/ directory
 # and can be modified for custom performance testing
@@ -370,10 +377,10 @@ There is an optional test suite that performs real DNS lookups for all domains i
 
 ```bash
 # Run all tests including live DNS verification
-npm run test:live-dns
+pnpm run test:live-dns
 
 # Run only the live DNS test
-npm run test:live-dns -- __tests__/provider-live-dns.test.ts
+pnpm run test:live-dns -- __tests__/provider-live-dns.test.ts
 ```
 
 **Note**: The live DNS test performs actual network requests and may take a few seconds to complete. Some performance tests may fail when live DNS is enabled due to network latency.
@@ -381,14 +388,14 @@ npm run test:live-dns -- __tests__/provider-live-dns.test.ts
 Optional strict mode (also validates configured MX/TXT patterns):
 
 ```bash
-RUN_LIVE_DNS_STRICT=1 npm run test:live-dns -- __tests__/provider-live-dns.test.ts
+RUN_LIVE_DNS_STRICT=1 pnpm run test:live-dns -- __tests__/provider-live-dns.test.ts
 ```
 
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines on adding new email providers.
 
-**Quality Assurance**: This project maintains high standards with 431 comprehensive tests (430 standard + 1 live DNS) and ~91.5% statement coverage.
+**Quality Assurance**: This project maintains 439 passing tests plus 1 skipped live-DNS test (~89% statement coverage with Vitest v8).
 
 **Security**: Login URLs are HTTPS-only and host-allowlisted. Provider JSON integrity is verified in the build pipeline; published packages use npm provenance. See [Security Policy](docs/SECURITY.md).
 

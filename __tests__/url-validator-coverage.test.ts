@@ -12,9 +12,11 @@ import {
 } from '../src/url-validator';
 
 // Mock the provider loader
-jest.mock('../src/provider-loader', () => ({
-  ...jest.requireActual('../src/provider-loader'),
-  loadProviders: jest.fn().mockImplementation(() => ({
+vi.mock('../src/provider-loader', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/provider-loader')>();
+  return {
+    ...actual,
+    loadProviders: vi.fn().mockImplementation(() => ({
     success: true,
     providers: [
       {
@@ -39,7 +41,8 @@ jest.mock('../src/provider-loader', () => ({
       issues: []
     }
   }))
-}));
+  };
+});
 
 import { loadProviders } from '../src/provider-loader';
 

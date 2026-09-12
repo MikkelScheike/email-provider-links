@@ -1,106 +1,97 @@
 name: CI/CD Pipeline
 
 on:
-  # Only trigger push events on main
   push:
     branches:
       - main
-  # Trigger on all PRs
   pull_request:
     branches:
       - main
-  # Manual trigger from GitHub UI
   workflow_dispatch:
 
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x, 24.10.x, 25.2.1]
-    
+        node-version: [22.x, 24.10.x, 25.2.1]
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
-      
+      uses: actions/checkout@v5
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+
     - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: ${{ matrix.node-version }}
-
-    - name: Setup Node.js cache
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+        cache: pnpm
 
     - name: Install dependencies
-      run: npm ci
-      
-    - name: 🔄 Auto-sync versions
-      run: |
-        echo "Syncing package.json version with git tags..."
-        npm run sync-versions
-      
+      run: pnpm install --frozen-lockfile
+
+    - name: Auto-sync versions
+      run: pnpm run sync-versions
+
     - name: Security audit
-      run: npm audit --audit-level=critical
-      
+      run: pnpm audit --audit-level=critical
+
     - name: Run tests
-      run: npm test
-      
-    - name: 🔒 CRITICAL SECURITY CHECK
+      run: pnpm test
+
+    - name: CRITICAL SECURITY CHECK
       run: |
-        echo "🚨 Running critical security verification..."
-        echo "This will FAIL if providers file has been tampered with!"
-        # Skip hash verification during semantic-release process
+        echo "Running critical security verification..."
         if [[ "$GITHUB_ACTOR" == "semantic-release-bot" ]]; then
-          echo "ℹ️  Skipping hash verification during semantic-release"
+          echo "Skipping hash verification during semantic-release"
         else
-          npm test -- --testNamePattern="CRITICAL.*production providers file must have correct hash" --verbose
-          echo "✅ Security check passed - providers file integrity verified"
+          pnpm exec vitest run -t "CRITICAL.*production providers file must have correct hash"
+          echo "Security check passed - providers file integrity verified"
         fi
-      
+
     - name: Run build
-      run: npm run build
+      run: pnpm run build
 
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
-      
+      uses: actions/checkout@v5
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: '25.2.1'
-        cache: 'npm'
+        cache: pnpm
 
     - name: Install dependencies
-      run: npm ci
-      
+      run: pnpm install --frozen-lockfile
+
     - name: Run tests with coverage
-      run: npm run test:coverage
-      
+      run: pnpm run test:coverage
+
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       if: success()
       with:
-        file: ./coverage/lcov.info
+        files: ./coverage/lcov.info
         flags: unittests
         name: codecov-umbrella
 
-  # Security gate - runs after all parallel jobs complete
   codeql:
     name: CodeQL Security Analysis
     runs-on: ubuntu-latest
     timeout-minutes: 360
-    needs: [test, coverage]  # Wait for all parallel jobs to complete
+    needs: [test, coverage]
     permissions:
       security-events: write
       packages: read
@@ -112,32 +103,33 @@ jobs:
         language: [ 'javascript-typescript' ]
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: '25.2.1'
-        cache: 'npm'
+        cache: pnpm
     - name: Install dependencies
-      run: npm ci
+      run: pnpm install --frozen-lockfile
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
         queries: +security-and-quality
     - name: Build project
-      run: npm run build
+      run: pnpm run build
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{ matrix.language }}"
         upload-database: true
 
-  # Final step - only runs after CodeQL security analysis passes
   publish:
     name: Publish to NPM
     runs-on: ubuntu-latest
-    needs: [codeql]  # Only depends on CodeQL (which depends on test + coverage)
+    needs: [codeql]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: npm
     permissions:
@@ -146,34 +138,35 @@ jobs:
       pull-requests: write
       packages: write
       id-token: write
-    
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
-        # Fetch all history for semantic versioning
         fetch-depth: 0
         token: ${{ secrets.GITHUB_TOKEN }}
-        
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: '25.2.1'
         registry-url: 'https://registry.npmjs.org'
-        cache: 'npm'
+        cache: pnpm
 
     - name: Install dependencies
-      run: npm ci
-      
+      run: pnpm install --frozen-lockfile
+
     - name: Build package
-      run: npm run build
-      
+      run: pnpm run build
+
     - name: Silence npm always-auth warning
       run: npm config delete always-auth || true
-      
+
     - name: Semantic Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NPM_CONFIG_PROVENANCE: true
-      run: npx semantic-release
-
+      run: pnpm exec semantic-release

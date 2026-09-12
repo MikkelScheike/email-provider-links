@@ -24,7 +24,7 @@ const KNOWN_GOOD_HASHES = {
   'emailproviders.json': '1caf91936ee4bf328764e1fbe385983ad717275b78240fc0dda9fd89362416a7',
 
   // You can add hashes for other critical files
-  'package.json': '79552a59447dd66f5164bcc9712e2b3bbd83ee2cd99eaf373e07c8a7d1646fa5',
+  'package.json': '70d20d8b6d8fbc141f32ed64ea5ccdd281d68c6b942e62cb56833bd827f75549',
 };
 
 export interface HashVerificationResult {
@@ -236,35 +236,7 @@ export function handleHashMismatch(
 ): void {
   if (result.isValid) return;
 
-  const { throwOnMismatch = false, logLevel = 'error', onMismatch } = options;
-
-  const securityAlert = [
-    '🚨🚨🚨 CRITICAL SECURITY ALERT 🚨🚨🚨',
-    `File: ${result.file}`,
-    `Reason: ${result.reason}`,
-    `Expected Hash: ${result.expectedHash}`,
-    `Actual Hash: ${result.actualHash}`,
-    '',
-    '⚠️  POTENTIAL SECURITY BREACH DETECTED:',
-    '- File may have been tampered with',
-    '- Unauthorized modifications detected',
-    '- Supply chain attack possible',
-    '',
-    '🔍 IMMEDIATE ACTIONS REQUIRED:',
-    '1. Stop using this package immediately',
-    '2. Investigate the source of file changes',
-    '3. Check git history for unauthorized commits',
-    '4. Verify file integrity from trusted source',
-    '5. Report security incident if confirmed',
-    '',
-    '📧 Report security issues: https://github.com/mikkelscheike/email-provider-links/security'
-  ].join('\n');
-
-  if (logLevel === 'error') {
-    console.error(securityAlert);
-  } else if (logLevel === 'warn') {
-    console.warn(securityAlert);
-  }
+  const { throwOnMismatch = false, onMismatch } = options;
 
   // Call custom handler if provided
   if (onMismatch) {

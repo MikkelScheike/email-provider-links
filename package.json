@@ -4,6 +4,13 @@
   "description": "TypeScript library for email provider detection with 140 providers (259 domains), concurrent DNS resolution, alias normalization, and HTTPS login URL validation for login and password reset flows",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
   "files": [
     "dist/**/*.js",
     "dist/**/*.d.ts",
@@ -13,12 +20,12 @@
   "scripts": {
     "clean": "node -e \"try{require('fs').rmSync('dist',{recursive:true,force:true});}catch(e){}\"",
     "verify-hashes": "node --import tsx scripts/verify-hashes.ts",
-    "build": "npm run clean && npm run verify-hashes && tsc && node --import tsx scripts/prepare-providers-dist.ts",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:live-dns": "RUN_LIVE_DNS=1 jest",
-    "prepublishOnly": "npm run verify-hashes && npm run build",
+    "build": "pnpm run clean && pnpm run verify-hashes && tsc && node --import tsx scripts/prepare-providers-dist.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:live-dns": "RUN_LIVE_DNS=1 vitest run",
+    "prepublishOnly": "pnpm run verify-hashes && pnpm run build",
     "dev": "node --import tsx src/index.ts",
     "sync-versions": "node scripts/sync-versions.js",
     "pretest": "node scripts/sync-versions.js",
@@ -55,37 +62,26 @@
     "url": "https://github.com/mikkelscheike/email-provider-links/issues"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.12.0"
   },
+  "packageManager": "pnpm@12.4.1",
   "publishConfig": {
     "access": "public",
     "provenance": true
   },
-  "overrides": {
-    "glob": "^10.4.5",
-    "npm": {
-      "tar": "^7.5.22"
-    },
-    "tar": "^7.5.22",
-    "test-exclude": "^7.0.1",
-    "undici": "^6.28.0"
-  },
   "devDependencies": {
-    "@jest/globals": "^30.4.1",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^12.0.9",
     "@semantic-release/npm": "^13.1.5",
     "@semantic-release/release-notes-generator": "^14.1.1",
-    "@types/jest": "^30.0.0",
     "@types/node": "^25.0.3",
+    "@vitest/coverage-v8": "^5.0.0",
     "conventional-changelog-conventionalcommits": "^9.1.0",
-    "jest": "^30.4.2",
-    "npm": "^11.14.1",
-    "semantic-release": "^25.0.8",
-    "ts-jest": "^29.4.12",
-    "tsx": "^4.23.1",
-    "typescript": "^6.0.3"
+    "semantic-release": "^25.0.9",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
   }
 }

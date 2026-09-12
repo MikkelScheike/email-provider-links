@@ -5,11 +5,11 @@
  * email provider data with security checks.
  */
 
-import { validateEmailProviderUrl, auditProviderSecurityWithAllowlist } from './url-validator';
+import { auditProviderSecurityWithAllowlist } from './url-validator';
 import { normalize } from 'path';
 import { verifyProvidersIntegrity, generateSecurityHashes, type HashVerificationResult } from './hash-verifier';
 import { getErrorMessage, isFileNotFoundError, isJsonError } from './error-utils';
-import { MemoryConstants } from './constants';
+import { isTestEnvironment } from './constants';
 import {
   convertProviderToEmailProviderShared,
   readProvidersDataFile,
@@ -110,14 +110,6 @@ export function loadProviders(
 
   if (shouldVerifyHash && !hashResult.isValid) {
     issues.push(`Hash verification failed: ${hashResult.reason}`);
-
-    if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
-      console.error('SECURITY WARNING: Hash verification failed!');
-      console.error('File:', hashResult.file);
-      console.error('Reason:', hashResult.reason);
-      console.error('Expected:', hashResult.expectedHash);
-      console.error('Actual:', hashResult.actualHash);
-    }
   }
 
   // Step 2: Load and parse JSON (single read; reuse its fileSize)
@@ -126,13 +118,6 @@ export function loadProviders(
     const { data, fileSize: loadedSize } = readProvidersDataFile(filePath);
     fileSize = loadedSize;
     providers = data.providers.map(convertProviderToEmailProviderShared);
-
-    // Log memory usage in development mode
-    if (process.env.NODE_ENV === 'development' && !process.env.JEST_WORKER_ID) {
-      const memUsage = process.memoryUsage();
-      const memUsageMB = (memUsage.heapUsed / MemoryConstants.BYTES_PER_KB / MemoryConstants.KB_PER_MB).toFixed(2);
-      console.log(`Current memory usage: ${memUsageMB} MB`);
-    }
   } catch (error: unknown) {
     // Use standardized error handling utilities
     const errorMessage = getErrorMessage(error);
@@ -201,20 +186,15 @@ export function loadProviders(
 
   if (providersWithInvalidUrls.length > 0) {
     issues.push(`${providersWithInvalidUrls.length} providers have invalid URLs`);
-    // Suppress logging during tests to avoid console noise
-    if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
-      console.warn('URL validation issues found:');
-      for (const invalid of providersWithInvalidUrls) {
-        console.warn(`- ${invalid.provider}: ${invalid.validation.reason}`);
-      }
-    }
   }
 
-  // Step 5: Filter out invalid providers in production (reuse allowlist)
+  // Step 5: Filter out invalid providers (reuse audit results — no second URL pass)
+  const invalidLoginKeys = new Set(
+    providersWithInvalidUrls.map(invalid => `${invalid.provider}\0${invalid.url}`)
+  );
   const secureProviders = providers.filter(provider => {
-    if (!provider.loginUrl) return true; // Allow providers without login URLs
-    const validation = validateEmailProviderUrl(provider.loginUrl, allowedDomains);
-    return validation.isValid;
+    if (!provider.loginUrl) return true;
+    return !invalidLoginKeys.has(`${provider.companyProvider}\0${provider.loginUrl}`);
   });
 
   if (secureProviders.length < providers.length) {
@@ -236,7 +216,7 @@ export function loadProviders(
   // Hash mismatches in tests are often due to environment differences (Node version, line endings, etc.)
   // rather than actual security issues. The security level will still be marked as CRITICAL to report the issue.
   // However, for custom test files with intentionally wrong hashes, we should still fail to respect test expectations.
-  const isTestEnv = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
+  const isTestEnv = isTestEnvironment();
   const allowLoadingOnHashFailure = isTestEnv && isDefaultProvidersFile && secureProviders.length > 0;
   const failClosed = securityLevel === 'CRITICAL' && !allowLoadingOnHashFailure;
 
@@ -369,15 +349,6 @@ export function loadProvidersDebug() {
     domainCount: domainMap.size,
     fileSize: 0 // Would need to track this during load
   };
-
-  // Debug output
-  console.log('=== Provider Loading Debug ===');
-  console.log(`Providers loaded: ${result.providers.length}`);
-  console.log(`Security level: ${result.securityReport.securityLevel}`);
-  console.log(`Load time: ${loadingStats.loadTime.toFixed(2)}ms`);
-  console.log(`Domain map time: ${loadingStats.domainMapTime.toFixed(2)}ms`);
-  console.log(`Total domains: ${loadingStats.domainCount}`);
-  console.log('=============================');
 
   // Return enhanced result with debug info - ensure new objects each time
   return {

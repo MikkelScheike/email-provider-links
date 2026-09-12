@@ -238,61 +238,61 @@ describe('Email Provider API Tests', () => {
 
   describe('Advanced error handling and edge cases', () => {
     beforeEach(() => {
-      jest.resetModules();
-      jest.restoreAllMocks();
+      vi.resetModules();
+      vi.restoreAllMocks();
     });
 
     it('should handle rate limiting errors', async () => {
       // Reset the modules to ensure clean mock state
-      jest.resetModules();
+      vi.resetModules();
       
       // Mock the dependency to simulate rate limiting
-      jest.doMock('../src/concurrent-dns', () => ({
-        detectProviderConcurrent: jest.fn().mockRejectedValueOnce(
+      vi.doMock('../src/concurrent-dns.js', () => ({
+        detectProviderConcurrent: vi.fn().mockRejectedValueOnce(
           new Error('Rate limit exceeded. Try again in 60 seconds')
         )
       }));
       
       // Re-import the function after mocking
-      const { getEmailProvider } = require('../src/index');
+      const { getEmailProvider } = await import('../src/index');
       
       const result = await getEmailProvider('user@microsoft.com');
       expect(result.error?.type).toBe('RATE_LIMITED');
       expect(result.error?.retryAfter).toBe(60);
       
       // Clear mock
-      jest.dontMock('../src/concurrent-dns');
+      vi.doUnmock('../src/concurrent-dns.js');
     });
 
     it('should handle DNS timeout errors', async () => {
       // Reset the modules to ensure clean mock state
-      jest.resetModules();
+      vi.resetModules();
       
       // Mock the dependency to simulate timeout
-      jest.doMock('../src/concurrent-dns', () => ({
-        detectProviderConcurrent: jest.fn().mockRejectedValueOnce(
+      vi.doMock('../src/concurrent-dns.js', () => ({
+        detectProviderConcurrent: vi.fn().mockRejectedValueOnce(
           new Error('timeout')
         )
       }));
       
       // Re-import the function after mocking
-      const { getEmailProvider } = require('../src/index');
+      const { getEmailProvider } = await import('../src/index');
       
       const result = await getEmailProvider('user@microsoft.com', 2000);
       expect(result.error?.type).toBe('DNS_TIMEOUT');
       expect(result.error?.message).toContain('2000ms');
       
       // Clear mock
-      jest.dontMock('../src/concurrent-dns');
+      vi.doUnmock('../src/concurrent-dns.js');
     });
 
     it('should handle proxy service detection', async () => {
       // Reset the modules to ensure clean mock state
-      jest.resetModules();
+      vi.resetModules();
       
       // Mock the dependencies
-      jest.doMock('../src/concurrent-dns', () => ({
-        detectProviderConcurrent: jest.fn().mockResolvedValueOnce({
+      vi.doMock('../src/concurrent-dns.js', () => ({
+        detectProviderConcurrent: vi.fn().mockResolvedValueOnce({
           provider: null,
           proxyService: 'Cloudflare',
           detectionMethod: 'proxy_detected',
@@ -302,36 +302,36 @@ describe('Email Provider API Tests', () => {
       }));
       
       // Re-import the function after mocking
-      const { getEmailProvider } = require('../src/index');
+      const { getEmailProvider } = await import('../src/index');
       
       const result = await getEmailProvider('user@microsoft.com', { extended: true });
       expect(result.proxyService).toBe('Cloudflare');
       expect(result.detectionMethod).toBe('proxy_detected');
       
       // Clear mock
-      jest.dontMock('../src/concurrent-dns');
+      vi.doUnmock('../src/concurrent-dns.js');
     });
 
     it('should handle network errors gracefully', async () => {
       // Reset the modules to ensure clean mock state
-      jest.resetModules();
+      vi.resetModules();
       
       // Mock the dependencies
-      jest.doMock('../src/concurrent-dns', () => ({
-        detectProviderConcurrent: jest.fn().mockRejectedValueOnce(
+      vi.doMock('../src/concurrent-dns.js', () => ({
+        detectProviderConcurrent: vi.fn().mockRejectedValueOnce(
           new Error('Network error')
         )
       }));
       
       // Re-import the function after mocking
-      const { getEmailProvider } = require('../src/index');
+      const { getEmailProvider } = await import('../src/index');
       
       const result = await getEmailProvider('user@microsoft.com');
       expect(result.error?.type).toBe('NETWORK_ERROR');
       expect(result.error?.message).toBe('Network error');
       
       // Clear mock
-      jest.dontMock('../src/concurrent-dns');
+      vi.doUnmock('../src/concurrent-dns.js');
     });
 
     it('should handle various invalid email formats', () => {

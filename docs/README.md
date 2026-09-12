@@ -1,10 +1,10 @@
 # Documentation
 
-This directory contains comprehensive documentation for the Email Provider Links package.
+This directory contains documentation for the Email Provider Links package.
 
 ## Files
 
-- **[`CHANGELOG.md`](../CHANGELOG.md)** - Complete version history and release notes (in root directory)
+- **[`CHANGELOG.md`](../CHANGELOG.md)** - Version history and release notes (repository root)
 - **`CONTRIBUTING.md`** - Guidelines for contributing, including security requirements
 - **`SECURITY.md`** - Security policy, vulnerability reporting, and security features
 
@@ -14,39 +14,34 @@ This directory contains comprehensive documentation for the Email Provider Links
 - [Security Policy](SECURITY.md) - Understanding security features and reporting vulnerabilities
 - [Changelog](../CHANGELOG.md) - Version history and migration guides
 
-### For Contributors  
+### For Contributors
 - [Contributing Guide](CONTRIBUTING.md) - How to add providers and contribute safely
 - [Security Requirements](CONTRIBUTING.md#security-guidelines) - Security checklist for new providers
 
+This package is a **zero-runtime-dependency** TypeScript library. This repository uses **pnpm** and **Vitest 5** for install/CI; consumers may still install from npm with any client.
+
 ## Security Documentation
 
-This package implements enterprise-grade security features. Key security docs:
+### [Security Policy](SECURITY.md)
+- HTTPS-only login URLs and host allowlisting
+- Vulnerability reporting process
+- Build-time provider JSON integrity (SHA-256)
 
-### 🛡️ [Security Policy](SECURITY.md)
-- Multi-layer protection details
-- Vulnerability reporting process  
-- Security audit results
-- Integration guidelines for security teams
-
-### 🤝 [Contributing Guidelines](CONTRIBUTING.md)  
+### [Contributing Guidelines](CONTRIBUTING.md)
 - Security requirements for new providers
 - Testing and validation procedures
 - Pull request security checklist
 
-### 📋 [Changelog](../CHANGELOG.md)
-- Detailed security feature history
-- Migration guides for version updates
+### [Changelog](../CHANGELOG.md)
+- Feature history
+- Migration notes
 - Breaking change notifications
 
-## Security Features Overview
+## Current coverage snapshot
 
-- **HTTPS-Only Enforcement** - All provider URLs validated
-- **Domain Allowlisting** - Only verified providers allowed
-- **Malicious Pattern Detection** - Blocks common attack vectors
-- **File Integrity Verification** - SHA-256 hash validation
-- **DNS Rate Limiting** - Built-in protection against abuse
-- **Comprehensive Testing** - 431 tests (430 standard + 1 live DNS) with 94.65% code coverage
-- **93 Email Providers** - Supporting 207 domains worldwide
+- **140 email providers** supporting **259 domains**
+- **439 passing tests** plus 1 skipped live-DNS test (~89% statement coverage with Vitest v8)
+- Quiet runtime: detection and provider load do not write to the console
+- Packed size ~43 kB (compiled JS + minified providers JSON)
 
 For complete security details, see [SECURITY.md](SECURITY.md).
-

@@ -1,24 +1,23 @@
-import { jest } from '@jest/globals';
 import { createHash } from 'crypto';
 import { readFileSync } from 'fs';
 import * as hashVerifier from '../src/hash-verifier';
 
 // Mock fs and path modules
-jest.mock('fs', () => ({
-  readFileSync: jest.fn()
+vi.mock('fs', () => ({
+  readFileSync: vi.fn()
 }));
 
-jest.mock('path', () => ({
+vi.mock('path', () => ({
   join: (...args: string[]) => args.join('/')
 }));
 
 describe('Hash Verification System', () => {
   // Reset mocks before each test
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
-    jest.spyOn(console, 'log').mockImplementation(() => {});
+    vi.clearAllMocks();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 
   describe('calculateHash', () => {
@@ -41,7 +40,7 @@ describe('Hash Verification System', () => {
     it('should calculate correct file hash', () => {
       const testContent = 'test-file-content';
       const testPath = '/test/file.json';
-      (readFileSync as jest.Mock).mockReturnValue(testContent);
+      (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(testContent);
       
       const expectedHash = createHash('sha256').update(testContent).digest('hex');
       expect(hashVerifier.calculateFileHash(testPath)).toBe(expectedHash);
@@ -50,7 +49,7 @@ describe('Hash Verification System', () => {
 
     it('should throw error when file read fails', () => {
       const testPath = '/nonexistent/file.json';
-      (readFileSync as jest.Mock).mockImplementation(() => {
+      (readFileSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
         throw new Error('File not found');
       });
       
@@ -64,7 +63,7 @@ describe('Hash Verification System', () => {
       const testPath = 'emailproviders.json';
       const testHash = createHash('sha256').update(testContent).digest('hex');
       
-      (readFileSync as jest.Mock).mockReturnValue(testContent);
+      (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(testContent);
       
       const result = hashVerifier.verifyProvidersIntegrity(testPath, testHash);
       expect(result.isValid).toBe(true);
@@ -77,7 +76,7 @@ describe('Hash Verification System', () => {
       const testPath = 'emailproviders.json';
       const expectedHash = 'wrong-hash';
       
-      (readFileSync as jest.Mock).mockReturnValue(testContent);
+      (readFileSync as ReturnType<typeof vi.fn>).mockReturnValue(testContent);
       
       const result = hashVerifier.verifyProvidersIntegrity(testPath, expectedHash);
       expect(result.isValid).toBe(false);
@@ -116,14 +115,14 @@ describe('Hash Verification System', () => {
       file: 'test.json'
     };
 
-    it('should handle error logging correctly', () => {
+    it('should not log on error logLevel', () => {
       hashVerifier.handleHashMismatch(mockResult, { logLevel: 'error' });
-      expect(console.error).toHaveBeenCalled();
+      expect(console.error).not.toHaveBeenCalled();
     });
 
-    it('should handle warning logging correctly', () => {
+    it('should not log on warning logLevel', () => {
       hashVerifier.handleHashMismatch(mockResult, { logLevel: 'warn' });
-      expect(console.warn).toHaveBeenCalled();
+      expect(console.warn).not.toHaveBeenCalled();
     });
 
     it('should throw error when throwOnMismatch is true', () => {
@@ -133,7 +132,7 @@ describe('Hash Verification System', () => {
     });
 
     it('should call custom onMismatch handler', () => {
-      const onMismatch = jest.fn();
+      const onMismatch = vi.fn();
       hashVerifier.handleHashMismatch(mockResult, { onMismatch });
       expect(onMismatch).toHaveBeenCalledWith(mockResult);
     });

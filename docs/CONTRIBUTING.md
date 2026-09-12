@@ -29,37 +29,35 @@ All new email providers must meet these security criteria:
    - Check if it supports custom domains
 
 2. **Add to Provider Database**
-   Edit `providers/emailproviders.json`:
+   Edit `providers/emailproviders.json` using the compressed schema (`id`, `mx`/`txt`, `type`):
    ```json
    {
+     "id": "provider",
      "companyProvider": "Provider Name",
      "loginUrl": "https://mail.provider.com/login",
      "domains": ["provider.com", "provider.net"],
-     "customDomainDetection": {
-       "mxPatterns": ["mx.provider.com"],
-       "txtPatterns": ["v=spf1 include:spf.provider.com"]
-     }
+     "mx": ["mx.provider.com"],
+     "txt": ["spf:spf.provider.com"],
+     "type": "public_provider"
    }
    ```
 
 3. **Update Security Hashes**
    ```bash
-   npx tsx scripts/recalculate-hashes.ts
-   # Copy the output to src/hash-verifier.ts
+   pnpm run update-hashes
    ```
 
 4. **Run Security Tests**
    ```bash
-   npm test -- __tests__/security.test.ts
+   pnpm test -- __tests__/security.test.ts
    ```
 
 5. **Optional: Run Live DNS Verification**
    ```bash
-   # Easy way using the test script
-   npm run test:live-dns -- __tests__/provider-live-dns.test.ts
-   
-   # Or using environment variable directly
-   RUN_LIVE_DNS=1 npm test -- __tests__/provider-live-dns.test.ts
+   pnpm run test:live-dns -- __tests__/provider-live-dns.test.ts
+
+   # Or using the environment variable directly
+   RUN_LIVE_DNS=1 pnpm test -- __tests__/provider-live-dns.test.ts
    ```
 
 6. **Create Pull Request**
@@ -87,23 +85,25 @@ All new email providers must meet these security criteria:
 
 ## 🧪 Testing
 
+This repository uses **pnpm** and **Vitest 5**. Install with `pnpm install --frozen-lockfile` (enable Corepack if needed). Node.js `>= 22.12` is required.
+
 ### Running Tests
 
 ```bash
-# All tests (430 tests, 19 test suites)
-npm test
+# All tests
+pnpm test
 
-# All tests including live DNS verification (431 tests, 20 test suites)
-npm run test:live-dns
+# All tests including live DNS verification
+pnpm run test:live-dns
 
 # Security tests only
-npm test -- __tests__/security.test.ts
+pnpm test -- __tests__/security.test.ts
 
 # Live DNS test only
-npm run test:live-dns -- __tests__/provider-live-dns.test.ts
+pnpm run test:live-dns -- __tests__/provider-live-dns.test.ts
 
-# With coverage
-npm test -- --coverage
+# With coverage (writes coverage/lcov.info)
+pnpm run test:coverage
 ```
 
 ## 📋 Pull Request Process
@@ -144,17 +144,17 @@ Brief description of changes
 
 ### Quick Release (Recommended)
 
-Use the automated release preparation script:
+Use the automated release preparation script. Semantic-release assigns the version in CI; do not pass a version number.
 
 ```bash
 # Major version (breaking changes)
-npx tsx scripts/prepare-release.ts 3.0.0 --major
+pnpm exec tsx scripts/prepare-semantic-release.ts --major
 
-# Minor version (new features)  
-npx tsx scripts/prepare-release.ts 2.1.0 --minor
+# Minor version (new features)
+pnpm exec tsx scripts/prepare-semantic-release.ts --minor
 
 # Patch version (bug fixes)
-npx tsx scripts/prepare-release.ts 2.0.1 --patch
+pnpm exec tsx scripts/prepare-semantic-release.ts --patch
 ```
 
 The script handles:
@@ -178,8 +178,8 @@ The script handles:
 
 3. **Testing & Build**
    ```bash
-   npm test
-   npm run build
+   pnpm test
+   pnpm run build
    ```
 
 4. **Create Release Commit**

@@ -19,6 +19,7 @@ import {
 } from '../src/concurrent-dns';
 
 import { getSupportedProviders } from '../src/index';
+import { loadProviders } from '../src/provider-loader';
 
 describe('Edge Cases - Input Validation', () => {
   describe('getEmailProvider edge cases', () => {
@@ -139,7 +140,7 @@ describe('Edge Cases - Input Validation', () => {
     it('should catch and handle internal errors gracefully', () => {
       // Mock a scenario where provider loading throws an error
       const originalError = console.error;
-      console.error = jest.fn(); // Suppress error output during test
+      console.error = vi.fn(); // Suppress error output during test
       
       try {
         // This tests the catch block in getEmailProviderSync
@@ -261,10 +262,6 @@ describe('Edge Cases - Input Validation', () => {
   });
 });
 
-describe('Edge Cases - Error Handling', () => {
-  // Error handling tests removed as they required complex mocking
-});
-
 describe('Provider conversion edge cases', () => {
   describe('customDomainDetection field', () => {
     it('should not include customDomainDetection for providers with direct domain matches', async () => {
@@ -285,7 +282,6 @@ describe('Provider conversion edge cases', () => {
 
     it('should include customDomainDetection for business-only providers', async () => {
       // Load providers directly to check one we know is business-only
-      const { loadProviders } = require('../src/provider-loader');
       const { providers } = loadProviders();
       const businessProvider = providers.find(p => 
         !p.domains?.length && // No direct domains

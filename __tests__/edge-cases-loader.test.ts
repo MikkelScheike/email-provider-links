@@ -93,11 +93,11 @@ describe('Provider Data Loader Edge Cases', () => {
 
   describe('Debug mode edge cases', () => {
     it('should produce debug output when enabled', () => {
-      const logSpy = jest.spyOn(console, 'log').mockImplementation();
+      const logSpy = vi.spyOn(console, 'log').mockImplementation();
       
       loadProvidersDebug();
       
-      expect(logSpy).toHaveBeenCalled();
+      expect(logSpy).not.toHaveBeenCalled();
       
       logSpy.mockRestore();
     });

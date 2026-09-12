@@ -198,17 +198,18 @@ class SemanticReleaseManager {
 
     try {
       // Disable version sync temporarily to avoid conflicts
-      const output = execSync('npm test', { 
+      const output = execSync('pnpm test', { 
         encoding: 'utf-8',
         env: { ...process.env, SKIP_VERSION_SYNC: '1' }
       });
       
-      // Extract test results
       const lines = output.split('\n');
-      const testSummary = lines.find(line => line.includes('Test Suites:'));
+      const testSummary = lines.find(line =>
+        line.includes('Test Files') || line.includes('Tests  ')
+      );
       
       if (testSummary) {
-        console.log(`✅ ${testSummary}`);
+        console.log(`✅ ${testSummary.trim()}`);
       }
       
       console.log('✅ All tests passed');
@@ -227,7 +228,7 @@ class SemanticReleaseManager {
     console.log('-'.repeat(40));
 
     try {
-      execSync('npm run build', { 
+      execSync('pnpm run build', { 
         encoding: 'utf-8', 
         stdio: 'pipe',
         env: { ...process.env, SKIP_VERSION_SYNC: '1' }
@@ -255,7 +256,7 @@ class SemanticReleaseManager {
     // Stage hash updates plus any other prepared working-tree changes
     // (e.g. package.json / lockfile bumps). No manual version edits —
     // semantic-release owns the version number.
-    execSync('git add -u');
+    execSync('git add -A');
 
     // Check if there are changes to commit
     try {
@@ -359,12 +360,12 @@ async function main() {
     console.log(`
 📦 EMAIL PROVIDER LINKS - SEMANTIC RELEASE PREPARATION SCRIPT
 
-Usage: npx tsx scripts/prepare-semantic-release.ts [options]
+Usage: pnpm exec tsx scripts/prepare-semantic-release.ts [options]
 
 Examples:
-  npx tsx scripts/prepare-semantic-release.ts --patch   # Bug fixes
-  npx tsx scripts/prepare-semantic-release.ts --minor   # New features
-  npx tsx scripts/prepare-semantic-release.ts --major   # Breaking changes
+  pnpm exec tsx scripts/prepare-semantic-release.ts --patch   # Bug fixes
+  pnpm exec tsx scripts/prepare-semantic-release.ts --minor   # New features
+  pnpm exec tsx scripts/prepare-semantic-release.ts --major   # Breaking changes
 
 Options:
   --major     Major version (breaking changes)

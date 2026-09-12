@@ -10,7 +10,8 @@ import {
   hostnameMatchesPattern,
   createConcurrentDNSDetector,
   resetDnsRateLimiter,
-  setDnsRateLimit
+  setDnsRateLimit,
+  detectProviderConcurrent
 } from '../src/concurrent-dns';
 
 describe('Quality review regressions', () => {
@@ -78,9 +79,7 @@ describe('Quality review regressions', () => {
 
   describe('DNS result caching', () => {
     it('returns cached results for repeated domain lookups', async () => {
-      const { detectProviderConcurrent } = require('../src/concurrent-dns');
       const providers: never[] = [];
-
       const first = await detectProviderConcurrent('cache-test.example', providers, { timeout: 50 });
       const second = await detectProviderConcurrent('cache-test.example', providers, { timeout: 50 });
 

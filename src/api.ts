@@ -33,7 +33,7 @@ function getDomainMapFromProviders(providers: EmailProvider[]): Map<string, Emai
 }
 
 /** Lazy-load DNS engine so sync-only consumers avoid parsing concurrent-dns. */
-function detectProviderConcurrentLazy(
+async function detectProviderConcurrentLazy(
   domain: string,
   providers: EmailProvider[],
   config: {
@@ -42,9 +42,7 @@ function detectProviderConcurrentLazy(
     collectDebugInfo?: boolean;
   }
 ): Promise<ConcurrentDNSResult> {
-  // CJS lazy require keeps cold import light and stays compatible with Jest mocks.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { detectProviderConcurrent } = require('./concurrent-dns') as typeof import('./concurrent-dns');
+  const { detectProviderConcurrent } = await import('./concurrent-dns.js');
   return detectProviderConcurrent(domain, providers, config);
 }
 
@@ -65,9 +63,6 @@ function lookupKnownProvider(domain: string): {
   try {
     const result = loadProviders();
     if (!result.success) {
-      if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
-        console.error('Provider lookup blocked due to validation failure');
-      }
       return {
         ok: false,
         error: {
@@ -79,10 +74,7 @@ function lookupKnownProvider(domain: string): {
 
     const domainMap = result.domainMap ?? getDomainMapFromProviders(result.providers);
     return { ok: true, provider: domainMap.get(domain) || null };
-  } catch (error) {
-    if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
-      console.error('Provider lookup failed:', error);
-    }
+  } catch {
     return {
       ok: false,
       error: {

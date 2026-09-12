@@ -1,6 +1,3 @@
-import { jest } from '@jest/globals';
-
-// Store original console methods
 const originalConsole = {
   log: console.log,
   warn: console.warn,
@@ -10,16 +7,14 @@ const originalConsole = {
 };
 
 export function mockConsole() {
-  // Mock all console methods
-  console.log = jest.fn();
-  console.warn = jest.fn();
-  console.error = jest.fn();
-  console.info = jest.fn();
-  console.debug = jest.fn();
+  console.log = vi.fn();
+  console.warn = vi.fn();
+  console.error = vi.fn();
+  console.info = vi.fn();
+  console.debug = vi.fn();
 }
 
 export function restoreConsole() {
-  // Restore original console methods
   console.log = originalConsole.log;
   console.warn = originalConsole.warn;
   console.error = originalConsole.error;
@@ -29,10 +24,10 @@ export function restoreConsole() {
 
 export function getConsoleMocks() {
   return {
-    log: console.log as jest.Mock,
-    warn: console.warn as jest.Mock,
-    error: console.error as jest.Mock,
-    info: console.info as jest.Mock,
-    debug: console.debug as jest.Mock
+    log: console.log as ReturnType<typeof vi.fn>,
+    warn: console.warn as ReturnType<typeof vi.fn>,
+    error: console.error as ReturnType<typeof vi.fn>,
+    info: console.info as ReturnType<typeof vi.fn>,
+    debug: console.debug as ReturnType<typeof vi.fn>
   };
 }

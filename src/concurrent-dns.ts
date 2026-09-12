@@ -8,7 +8,7 @@
 import { promisify } from 'util';
 import { resolveMx, resolveTxt } from 'dns';
 import { EmailProvider } from './api';
-import { DnsConstants } from './constants';
+import { DnsConstants, isTestEnvironment } from './constants';
 
 // Convert Node.js callback-style DNS functions to Promise-based
 const resolveMxAsync = promisify(resolveMx);
@@ -26,6 +26,29 @@ export function hostnameMatchesPattern(hostname: string, pattern: string): boole
   const pat = pattern.toLowerCase().replace(/\.+$/, '');
   if (!host || !pat) return false;
   return host === pat || host.endsWith('.' + pat);
+}
+
+/** All DNS labels of a hostname from most-specific to TLD (for MX suffix lookup). */
+function hostnameSuffixes(hostname: string): string[] {
+  const host = hostname.toLowerCase().replace(/\.+$/, '');
+  if (!host) return [];
+  const parts = host.split('.');
+  const suffixes: string[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    suffixes.push(parts.slice(i).join('.'));
+  }
+  return suffixes;
+}
+
+function addToMxIndex(index: Map<string, EmailProvider[]>, pattern: string, provider: EmailProvider): void {
+  const key = pattern.toLowerCase().replace(/\.+$/, '');
+  if (!key) return;
+  const list = index.get(key);
+  if (list) {
+    list.push(provider);
+  } else {
+    index.set(key, [provider]);
+  }
 }
 
 /**
@@ -53,7 +76,7 @@ class DnsRateLimiter {
    */
   acquire(): void {
     const forceInTests = process.env.FORCE_DNS_RATE_LIMIT === '1';
-    if (!forceInTests && (process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID)) {
+    if (!forceInTests && isTestEnvironment()) {
       return;
     }
 
@@ -77,6 +100,7 @@ const dnsRateLimiter = new DnsRateLimiter();
 /** Reset rate limiter state (for tests). */
 export function resetDnsRateLimiter(): void {
   dnsRateLimiter.reset();
+  dnsResultCacheMax = DNS_RESULT_CACHE_MAX_DEFAULT;
   clearDnsResultCache();
 }
 
@@ -187,6 +211,8 @@ export class ConcurrentDNSDetector {
   }
   private config: ConcurrentDNSConfig;
   private providers: EmailProvider[];
+  private mxIndex: Map<string, EmailProvider[]>;
+  private proxyMxIndex: Map<string, EmailProvider[]>;
 
   constructor(providers: EmailProvider[], config: Partial<ConcurrentDNSConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
@@ -194,6 +220,39 @@ export class ConcurrentDNSDetector {
       p.customDomainDetection && 
       (p.customDomainDetection.mxPatterns || p.customDomainDetection.txtPatterns)
     );
+    this.mxIndex = new Map();
+    this.proxyMxIndex = new Map();
+    for (const provider of this.providers) {
+      for (const pattern of provider.customDomainDetection?.mxPatterns ?? []) {
+        addToMxIndex(this.mxIndex, pattern, provider);
+        if (provider.type === 'proxy_service') {
+          addToMxIndex(this.proxyMxIndex, pattern, provider);
+        }
+      }
+    }
+  }
+
+  private providersForMxQuery(query: DNSQueryResult): EmailProvider[] {
+    const seen = new Set<EmailProvider>();
+    const candidates: EmailProvider[] = [];
+    if (!query.records) return candidates;
+
+    for (const record of query.records) {
+      if (typeof record !== 'object' || record === null) continue;
+      const exchange = (record as MXRecordLike).exchange || '';
+      for (const suffix of hostnameSuffixes(exchange)) {
+        const matches = this.mxIndex.get(suffix);
+        if (!matches) continue;
+        for (const provider of matches) {
+          if (!seen.has(provider)) {
+            seen.add(provider);
+            candidates.push(provider);
+          }
+        }
+      }
+    }
+
+    return candidates;
   }
 
   /**
@@ -282,9 +341,8 @@ export class ConcurrentDNSDetector {
             result.detectionMethod = bestMatch.method;
             result.confidence = bestMatch.confidence * 0.9; // Slightly lower confidence for fallback
           }
-        } catch (fallbackError) {
-          // Both parallel and sequential failed
-          console.warn('DNS detection failed:', fallbackError);
+        } catch {
+          // Both parallel and sequential failed; stay silent for library consumers
         }
       }
     }
@@ -459,7 +517,8 @@ export class ConcurrentDNSDetector {
     for (const query of queries) {
       if (!query.success || !query.records) continue;
 
-      for (const provider of this.providers) {
+      const candidates = query.type === 'mx' ? this.providersForMxQuery(query) : this.providers;
+      for (const provider of candidates) {
         const match = this.matchProvider(provider, query);
         if (match) {
           matches.push(match);
@@ -546,7 +605,7 @@ export class ConcurrentDNSDetector {
   private hasMXMatch(mxResult: DNSQueryResult): boolean {
     if (!mxResult.success || !mxResult.records) return false;
 
-    for (const provider of this.providers) {
+    for (const provider of this.providersForMxQuery(mxResult)) {
       const match = this.matchProvider(provider, mxResult);
       if (match) return true;
     }
@@ -564,9 +623,13 @@ export class ConcurrentDNSDetector {
     for (const record of mxQuery.records) {
       if (typeof record !== 'object' || record === null) continue;
       const exchange = (record as MXRecordLike).exchange?.toLowerCase() || '';
-      for (const provider of this.providers) {
-        if (provider.type === 'proxy_service' && provider.customDomainDetection?.mxPatterns) {
-          for (const pattern of provider.customDomainDetection.mxPatterns) {
+      for (const suffix of hostnameSuffixes(exchange)) {
+        const matches = this.proxyMxIndex.get(suffix);
+        if (!matches) continue;
+        for (const provider of matches) {
+          const patterns = provider.customDomainDetection?.mxPatterns;
+          if (!patterns) continue;
+          for (const pattern of patterns) {
             if (hostnameMatchesPattern(exchange, pattern)) {
               return provider.companyProvider;
             }
@@ -650,10 +713,58 @@ export function createConcurrentDNSDetector(
  * Results are cached per domain for a short TTL to avoid repeated lookups.
  */
 const DNS_RESULT_CACHE_TTL_MS = 5 * 60 * 1000;
+const DNS_RESULT_CACHE_MAX_DEFAULT = 256;
+let dnsResultCacheMax = DNS_RESULT_CACHE_MAX_DEFAULT;
 const dnsResultCache = new Map<string, { expires: number; result: ConcurrentDNSResult }>();
+
+let cachedDetectorProviders: EmailProvider[] | null = null;
+let cachedDetectorKey = '';
+let cachedDetector: ConcurrentDNSDetector | null = null;
 
 export function clearDnsResultCache(): void {
   dnsResultCache.clear();
+  cachedDetectorProviders = null;
+  cachedDetectorKey = '';
+  cachedDetector = null;
+}
+
+/** Test-only: shrink the DNS result cache so eviction can be asserted cheaply. */
+export function setDnsResultCacheMaxForTests(max: number): void {
+  dnsResultCacheMax = max > 0 ? max : DNS_RESULT_CACHE_MAX_DEFAULT;
+}
+
+function detectorConfigKey(config?: Partial<ConcurrentDNSConfig>): string {
+  return `${config?.timeout ?? DEFAULT_CONFIG.timeout}|${config?.enableParallel !== false}|${!!config?.collectDebugInfo}|${config?.prioritizeMX !== false}|${config?.fallbackToSequential !== false}`;
+}
+
+function getCachedDetector(
+  providers: EmailProvider[],
+  config?: Partial<ConcurrentDNSConfig>
+): ConcurrentDNSDetector {
+  const configKey = detectorConfigKey(config);
+  if (cachedDetector && cachedDetectorProviders === providers && cachedDetectorKey === configKey) {
+    return cachedDetector;
+  }
+  cachedDetector = createConcurrentDNSDetector(providers, config);
+  cachedDetectorProviders = providers;
+  cachedDetectorKey = configKey;
+  return cachedDetector;
+}
+
+function pruneDnsResultCache(now: number): void {
+  if (dnsResultCache.size < dnsResultCacheMax) {
+    return;
+  }
+  for (const [key, entry] of dnsResultCache) {
+    if (entry.expires <= now) {
+      dnsResultCache.delete(key);
+    }
+  }
+  while (dnsResultCache.size >= dnsResultCacheMax) {
+    const oldest = dnsResultCache.keys().next().value;
+    if (oldest === undefined) break;
+    dnsResultCache.delete(oldest);
+  }
 }
 
 export async function detectProviderConcurrent(
@@ -663,15 +774,17 @@ export async function detectProviderConcurrent(
 ): Promise<ConcurrentDNSResult> {
   const normalizedDomain = domain.toLowerCase().trim().replace(/\.+$/, '');
   const cacheKey = `${normalizedDomain}|${config?.timeout ?? DEFAULT_CONFIG.timeout}|${config?.enableParallel !== false}|${!!config?.collectDebugInfo}`;
+  const now = Date.now();
   const cached = dnsResultCache.get(cacheKey);
-  if (cached && cached.expires > Date.now()) {
+  if (cached && cached.expires > now) {
     return cached.result;
   }
 
-  const detector = createConcurrentDNSDetector(providers, config);
+  const detector = getCachedDetector(providers, config);
   const result = await detector.detectProvider(normalizedDomain);
+  pruneDnsResultCache(now);
   dnsResultCache.set(cacheKey, {
-    expires: Date.now() + DNS_RESULT_CACHE_TTL_MS,
+    expires: now + DNS_RESULT_CACHE_TTL_MS,
     result
   });
   return result;

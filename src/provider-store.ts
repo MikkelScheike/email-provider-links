@@ -23,9 +23,6 @@ export function isBuiltinProvidersPath(filePath: string): boolean {
 }
 
 export function convertProviderToEmailProviderShared(compressedProvider: Provider): EmailProvider {
-  if (!compressedProvider.type) {
-    console.warn(`Missing type for provider ${compressedProvider.id}`);
-  }
   const provider: EmailProvider = {
     companyProvider: compressedProvider.companyProvider,
     loginUrl: compressedProvider.loginUrl || null,

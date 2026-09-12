@@ -1,13 +1,14 @@
 import { loadProviders, clearCache } from '../src/provider-loader';
-import { readFileSync, writeFileSync, unlinkSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync, existsSync } from 'fs';
 import { join } from 'path';
+import { calculateHash } from '../src/hash-verifier';
 
 // Mock getAllowedDomains to allow provider URLs
-jest.mock('../src/url-validator', () => {
-  const actual = jest.requireActual('../src/url-validator');
+vi.mock('../src/url-validator', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/url-validator')>();
   return {
     ...actual,
-    getAllowedDomains: jest.fn(() => new Set(['mail.google.com', 'gmail.com', 'tutanota.com', 'fastmail.com', 'outlook.com', 'yahoo.com', 'protonmail.com', 'icloud.com']))
+    getAllowedDomains: vi.fn(() => new Set(['mail.google.com', 'gmail.com', 'tutanota.com', 'fastmail.com', 'outlook.com', 'yahoo.com', 'protonmail.com', 'icloud.com']))
   };
 });
 
@@ -24,7 +25,7 @@ describe('Secure Provider Loading', () => {
   afterEach(() => {
     // Clean up and restore original state
     clearCache();
-    if (require('fs').existsSync(tempFilePath)) {
+    if (existsSync(tempFilePath)) {
       unlinkSync(tempFilePath);
     }
   });
@@ -50,7 +51,6 @@ describe('Secure Provider Loading', () => {
     writeFileSync(tempFilePath, modifiedContent);
 
     // Explicit expected hash of the original content forces verification
-    const { calculateHash } = require('../src/hash-verifier');
     const originalHash = calculateHash(originalContent.replace(/\r\n/g, '\n'));
     const result = loadProviders(tempFilePath, originalHash);
 

@@ -2,13 +2,19 @@
 
 ## [Unreleased]
 
-### ✨ Enhanced Features
-- **Automatic Email Normalization**: `getEmailProvider()`, `getEmailProviderSync()`, and `getEmailProviderFast()` now automatically normalize emails in their results using provider-specific alias rules. The `email` field in the result is always the canonical form (e.g., `user+tag@gmail.com` → `user@gmail.com`).
-- **Integrated Alias Detection**: Alias detection is now seamlessly integrated into the main API functions, eliminating the need to call `normalizeEmail()` separately when using provider detection.
+### Tooling and CI
+- Switched this repository to **pnpm** (`packageManager: pnpm@12.4.1`, `pnpm-lock.yaml`). Consumers may still install the published package with npm, yarn, or pnpm.
+- Replaced Jest/ts-jest with **Vitest 5** (`vitest.config.mts`). Tests run on Node.js 22 / 24 / 25.
+- Upgraded **TypeScript 7** and tsx; dropped the direct `npm` CLI devDependency.
+- Package metadata: `exports` map and `sideEffects: false`. Packed size ~43 kB.
+- **BREAKING:** `engines.node` is `>=22.12.0`. Node.js 18 and 20 are no longer supported.
 
-### 🔧 Code Quality Improvements
-- **Removed Code Duplication**: Consolidated `normalizeEmail()` and `emailsMatch()` implementations to use a single source of truth in `alias-detection.ts`.
-- **Cleaner Architecture**: Main API functions now properly use alias-detection module instead of duplicating logic.
+### Runtime
+- Detection and provider load no longer write to the console. Errors stay on the result object.
+- Faster first load (single URL-audit pass) and custom-domain DNS (cached detector, MX suffix index, bounded result cache).
+
+### Tests
+- 439 passing tests, 1 skipped live-DNS test; coverage via `@vitest/coverage-v8` (~89% statements / ~90% lines).
 
 ## [4.0.0] - 2025-07-18
 

@@ -16,10 +16,13 @@ This package treats provider login URLs as sensitive redirect targets. Protectio
    Rejects IP/localhost hosts, common URL shorteners, path traversal encodings, and obvious script/data schemes in URL strings.
 
 4. **Build-time provider integrity**  
-   `npm run build` / `verify-hashes` checks a SHA-256 of `providers/emailproviders.json` against a known-good hash. This catches accidental local edits and CI drift. It is not a substitute for verifying the npm package itself.
+   `pnpm run build` / `verify-hashes` checks a SHA-256 of `providers/emailproviders.json` against a known-good hash. This catches accidental local edits and CI drift. It is not a substitute for verifying the npm package itself.
 
 5. **Optional runtime hash check**  
    Runtime skips SHA-256 by default (build/publish already verified the source file). Pass an expected hash to `loadProviders(path, expectedHash)` or set `EMAIL_PROVIDER_LINKS_VERIFY_HASH=1` to enforce checks at load time. Failed checks fail closed (empty provider set).
+
+6. **No diagnostic logging on the lookup path**  
+   `getEmailProvider` / loader / DNS detection do not print hashes, memory stats, or URLs to stdout/stderr. Errors are returned on the result object (`error`, `securityReport`).
 
 ## What it does not claim
 

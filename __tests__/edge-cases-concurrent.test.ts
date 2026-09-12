@@ -7,7 +7,7 @@
 
 // Mock Node's dns module to avoid native handle leaks in open-handle detection
 // This keeps tests deterministic and prevents lingering c-ares sockets
-jest.mock('dns', () => {
+vi.mock('dns', () => {
   const mockResolveMx = (domain: string, cb: (err: any, addresses: any[]) => void) => {
     process.nextTick(() => {
 const invalidLike = !domain || domain.startsWith('.') || domain.endsWith('.') || domain.includes('..') || !domain.includes('.');
@@ -44,7 +44,9 @@ const invalidLike = !domain || domain.startsWith('.') || domain.endsWith('.') ||
 /* global describe, it, expect */
 import {
   ConcurrentDNSDetector,
-  detectProviderConcurrent
+  detectProviderConcurrent,
+  resetDnsRateLimiter,
+  setDnsResultCacheMaxForTests
 } from '../src/concurrent-dns';
 
 import { getSupportedProviders } from '../src/index';
@@ -437,6 +439,23 @@ describe('Concurrent DNS Edge Cases', () => {
         // Most invalid domains should return null provider
         expect(result.provider).toBeNull();
       }
+    });
+
+    it('evicts oldest DNS result cache entries when over capacity', async () => {
+      resetDnsRateLimiter();
+      setDnsResultCacheMaxForTests(2);
+      const emptyProviders: never[] = [];
+      const first = await detectProviderConcurrent('cache-bound-0.example', emptyProviders, {
+        timeout: 50
+      });
+      await detectProviderConcurrent('cache-bound-1.example', emptyProviders, { timeout: 50 });
+      await detectProviderConcurrent('cache-bound-2.example', emptyProviders, { timeout: 50 });
+
+      const again = await detectProviderConcurrent('cache-bound-0.example', emptyProviders, {
+        timeout: 50
+      });
+      expect(again).not.toBe(first);
+      resetDnsRateLimiter();
     });
   });
 });

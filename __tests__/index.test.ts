@@ -11,6 +11,7 @@ import {
   normalizeEmail
 } from '../src/index';
 import { clearCache, loadProviders } from '../src/provider-loader';
+import * as providerLoader from '../src/provider-loader';
 
 describe('Email Provider Links', () => {
   beforeEach(() => {
@@ -128,21 +129,20 @@ describe('Email Provider Links', () => {
       clearCache();
     });
     afterEach(() => {
-      jest.restoreAllMocks();
-      jest.resetModules();
+      vi.restoreAllMocks();
+      vi.resetModules();
       clearCache();
     });
     it('should handle getSupportedProviders errors gracefully', () => {
-      const { loadProviders } = require('../src/provider-loader');
-      const originalLoadProviders = loadProviders;
-      jest.spyOn(require('../src/provider-loader'), 'loadProviders').mockImplementation(() => {
+      const originalLoadProviders = providerLoader.loadProviders;
+      vi.spyOn(providerLoader, 'loadProviders').mockImplementation(() => {
         throw new Error('Simulated error');
       });
 
       const providers = getSupportedProviders();
       expect(providers).toEqual([]);
 
-      jest.spyOn(require('../src/provider-loader'), 'loadProviders').mockImplementation(originalLoadProviders);
+      vi.spyOn(providerLoader, 'loadProviders').mockImplementation(originalLoadProviders);
     });
 
     it('should handle getLibraryStats errors gracefully', () => {
@@ -182,7 +182,7 @@ describe('Email Provider Links', () => {
       clearCache();
     });
     afterEach(() => {
-      jest.restoreAllMocks();
+      vi.restoreAllMocks();
       clearCache();
     });
     it('should handle various email formats in batch', () => {
@@ -214,7 +214,7 @@ describe('Email Provider Links', () => {
 
     it('should handle errors in normalization', () => {
       const originalNormalizeEmail = normalizeEmail;
-      (global as any).normalizeEmail = jest.fn().mockImplementation(() => {
+      (global as any).normalizeEmail = vi.fn().mockImplementation(() => {
         throw new Error('Simulated normalization error');
       });
 
@@ -363,8 +363,9 @@ describe('Email Provider Links', () => {
   });
 
   describe('Re-exported functions', () => {
-    it('should re-export the public API correctly', () => {
-      const index = require('../src/index').default;
+    it('should re-export the public API correctly', async () => {
+      const indexModule = await import('../src/index');
+      const index = indexModule.default;
       
       // Test default export object
       expect(typeof index.getEmailProvider).toBe('function');
@@ -387,7 +388,7 @@ describe('Email Provider Links', () => {
         Config,
         loadProviders,
         detectProviderConcurrent
-      } = require('../src/index');
+      } = indexModule;
 
       expect(typeof getEmailProvider).toBe('function');
       expect(typeof getEmailProviderFast).toBe('function');

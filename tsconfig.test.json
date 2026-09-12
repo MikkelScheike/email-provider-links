@@ -1,33 +1,26 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    /* Override for testing environment */
     "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "node10",
     "rootDir": ".",
-    "types": ["node", "jest"],
+    "types": ["node", "vitest/globals"],
     "allowJs": true,
     "checkJs": false,
     "noEmit": true,
-    "ignoreDeprecations": "6.0",
-    
-    /* Relaxed rules for tests */
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "exactOptionalPropertyTypes": false,
-    
-    /* Path mapping for Jest */
-    "baseUrl": ".",
-    "paths": {
-      "@jest/globals": ["./node_modules/@jest/globals/build/index.d.ts"]
-    }
+    "baseUrl": "."
   },
   "include": [
     "src/**/*",
     "__tests__/**/*",
     "examples/**/*",
-    "scripts/**/*"
+    "scripts/**/*",
+    "test-utils/**/*",
+    "vitest.config.mts"
   ],
   "exclude": [
     "node_modules",
