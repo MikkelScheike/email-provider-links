@@ -10,7 +10,7 @@ These notes summarize changes since v5.2.2. Semantic-release will assign the ver
 
 ## Tooling
 - Repository package manager is **pnpm** (`pnpm-lock.yaml`). Publish still targets the npm registry.
-- Tests use **Vitest 5** instead of Jest/ts-jest. CI runs the suite on Node 22 / 24 / 25 (no 18/20 smoke jobs).
+- Tests use **Vitest 5** instead of Jest/ts-jest. CI runs the suite on Node 22 / 24 / 26 (no 18/20/25 jobs).
 - TypeScript **7**, tsx 4.23.13. Direct `npm` CLI devDependency removed.
 
 ## Performance (same public API)

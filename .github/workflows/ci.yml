@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [22.x, 24.10.x, 25.2.1]
+        node-version: [22.x, 24.x, 26.x]
 
     steps:
     - name: Checkout code
@@ -74,7 +74,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v5
       with:
-        node-version: '25.2.1'
+        node-version: '26.x'
         cache: pnpm
 
     - name: Install dependencies
@@ -113,7 +113,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v5
       with:
-        node-version: '25.2.1'
+        node-version: '26.x'
         cache: pnpm
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
@@ -156,7 +156,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v5
       with:
-        node-version: '25.2.1'
+        node-version: '26.x'
         registry-url: 'https://registry.npmjs.org'
         cache: pnpm
 

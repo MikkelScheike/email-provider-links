@@ -39,13 +39,13 @@ npm install @mikkelscheike/email-provider-links
 
 ## Requirements
 
-- **Node.js**: `>=22.12.0` (Vitest 5 and this package). CI runs the full suite on 22.x, 24.x, and 25.x.
+- **Node.js**: `>=22.12.0` (Vitest 5 and this package). CI runs the full suite on 22.x, 24.x, and 26.x.
 - **TypeScript**: `>=4.0.0` (optional, but recommended)
 - **Zero runtime dependencies** - No external packages required
 
-### Node.js 24/25 Support
+### Node.js 24/26 Support
 
-Tested on Node.js 22.x, 24.x, and **25.x**. Node.js 18 and 20 are not supported (both are end-of-life).
+Tested on Node.js 22.x (Maintenance LTS), 24.x (Active LTS), and **26.x** (Current). Node.js 18, 20, and 25 are not supported.
 
 ## Supported Providers
 

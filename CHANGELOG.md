@@ -4,7 +4,7 @@
 
 ### Tooling and CI
 - Switched this repository to **pnpm** (`packageManager: pnpm@12.4.1`, `pnpm-lock.yaml`). Consumers may still install the published package with npm, yarn, or pnpm.
-- Replaced Jest/ts-jest with **Vitest 5** (`vitest.config.mts`). Tests run on Node.js 22 / 24 / 25.
+- Replaced Jest/ts-jest with **Vitest 5** (`vitest.config.mts`). Tests run on Node.js 22 / 24 / 26.
 - Upgraded **TypeScript 7** and tsx; dropped the direct `npm` CLI devDependency.
 - Package metadata: `exports` map and `sideEffects: false`. Packed size ~43 kB.
 - **BREAKING:** `engines.node` is `>=22.12.0`. Node.js 18 and 20 are no longer supported.
