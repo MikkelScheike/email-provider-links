@@ -1,6 +1,7 @@
 # Email Provider Links
 
 [![npm version](https://img.shields.io/npm/v/%40mikkelscheike%2Femail-provider-links)](https://www.npmjs.com/package/@mikkelscheike/email-provider-links)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/@mikkelscheike/email-provider-links)](https://socket.dev/npm/package/@mikkelscheike/email-provider-links)
 
 > **Generate direct login links for any email address across 140+ providers (Gmail, Outlook, Yahoo, etc.) to streamline user authentication flows.**
 
