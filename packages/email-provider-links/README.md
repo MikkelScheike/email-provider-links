@@ -1,36 +1,17 @@
-# Email Provider Links
+# @mikkelscheike/email-provider-links
 
 [![npm version](https://img.shields.io/npm/v/%40mikkelscheike%2Femail-provider-links)](https://www.npmjs.com/package/@mikkelscheike/email-provider-links)
 [![Socket Badge](https://badge.socket.dev/npm/package/@mikkelscheike/email-provider-links/6.0.0)](https://badge.socket.dev/npm/package/@mikkelscheike/email-provider-links/6.0.0)
 
-> **Generate direct login links for any email address across 140+ providers (Gmail, Outlook, Yahoo, etc.) to streamline user authentication flows.**
+Node package for email provider login URLs. It covers 140 providers (259 domains), alias normalization, and DNS detection for business domains. Try it in the [live demo](https://demo.mikkelscheike.com). The project overview and the React Native package are in the [repository README](../../README.md).
 
-A TypeScript library providing login URLs for **140 email providers** (259 domains) with concurrent DNS detection for business domains, email alias normalization, and HTTPS login-URL validation.
+- **140 providers, 259 domains**, including Gmail, Outlook, Yahoo, ProtonMail, and iCloud
+- **Business domains** such as Google Workspace and Microsoft 365, detected with DNS
+- **Alias normalization** for dots, plus addressing, and other provider rules
+- **Zero runtime dependencies**, about 43KB packed
+- **HTTPS-only login URLs** with host allowlisting
 
-React Native apps use [`@mikkelscheike/email-provider-links-react-native`](https://github.com/MikkelScheike/email-provider-links/tree/main/packages/email-provider-links-react-native), which does known-domain lookup on device. DNS detection stays in this Node package.
-
-## 🚀 Try it out
-
-**[Live Demo](https://demo.mikkelscheike.com)** - Test the library with any email address and see it in action!
-
-## ✨ Core Features
-
-- 🚀 **Fast & Lightweight**: Zero runtime dependencies, ~43KB packed
-- 📧 **140 Email Providers**: Gmail, Outlook, Yahoo, ProtonMail, iCloud, and many more
-- 🌐 **259 Domains Supported**: Broad international coverage
-- 🌍 **Full IDN Support**: International domain names with Punycode
-- ✅ **Email Validation**: International email validation with detailed error reporting
-- 🏢 **Business Domain Detection**: DNS-based detection for custom domains (Google Workspace, Microsoft 365, etc.)
-- 🔒 **URL Safety**: HTTPS-only login URLs with host allowlisting and malicious pattern checks
-- 🛡️ **Build Integrity**: SHA-256 hash gate on provider data in CI/build (npm provenance for publishes)
-- 📝 **Type Safe**: Full TypeScript support with overloads for simplified vs extended responses
-- ⚡ **Performance Oriented**: Smart DNS fallback with configurable timeouts
-- 🚦 **DNS Rate Limiting**: Process-wide limiter (default 10 detections / minute)
-- 🔄 **Automatic Email Normalization**: Provider-specific alias rules applied in detection results
-- 🔄 **Email Alias Detection**: Normalize Gmail dots, plus addressing, and provider-specific aliases
-- 📦 **Batch Processing**: Efficiently process multiple emails with deduplication
-- 🤫 **Quiet runtime**: Detection and provider load do not write to stdout/stderr; errors are on the result object
-- 🧪 **Thoroughly Tested**: 439 tests plus 1 skipped live-DNS test (~89% statement coverage with Vitest v8)
+React Native apps should use [`@mikkelscheike/email-provider-links-react-native`](https://www.npmjs.com/package/@mikkelscheike/email-provider-links-react-native). That package does the known-domain lookup on device and does not run DNS.
 
 ## Installation
 
@@ -321,22 +302,15 @@ console.log(domain); // 'example.com'
 
 `getEmailProvider`, `getEmailProviderSync`, `getEmailProviderFast`, and provider loading do **not** print to the console. Failures are returned on the result (`error`) or `securityReport`. Maintainer CLI scripts (`pnpm run verify-hashes`, `pnpm run update-hashes`) still log on purpose.
 
-## Developing this repository
+## Developing
 
-This repo is a pnpm workspace (`packageManager` is in the root `package.json`). This package lives in `packages/email-provider-links`. Consumers can still install the published package with npm, yarn, or pnpm.
+Workspace install, tests, and builds are documented in the [repository README](../../README.md#developing). From this directory, maintainers prepare a release with:
 
 ```bash
-corepack enable
-pnpm install --frozen-lockfile
-pnpm test
-pnpm run build
+pnpm exec tsx scripts/prepare-semantic-release.ts --patch
 ```
 
-Run those commands from the repository root. `pnpm test` and `pnpm run build` delegate to this package and the React Native package.
-
-- Tests: Vitest 5 (`vitest.config.mts`). Requires Node.js `>= 22.12`.
-- Coverage: `pnpm run test:coverage` writes `coverage/lcov.info` for Codecov.
-- Release prep (maintainers): `pnpm exec tsx scripts/prepare-semantic-release.ts --patch` (or `--minor` / `--major`). Semantic-release assigns the version in CI.
+Use `--minor` or `--major` instead of `--patch` when that matches the change. Semantic-release assigns the version in CI.
 
 ## Performance and Detection System
 
@@ -410,7 +384,7 @@ For security concerns or to report vulnerabilities, see our [Security Policy](do
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](../../LICENSE) for details.
 
 ---
 
