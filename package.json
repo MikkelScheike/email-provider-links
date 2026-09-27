@@ -13,7 +13,7 @@
     "update-hashes": "pnpm --filter @mikkelscheike/email-provider-links run update-hashes",
     "benchmark:memory": "pnpm --filter @mikkelscheike/email-provider-links run benchmark:memory",
     "benchmark:dns": "pnpm --filter @mikkelscheike/email-provider-links run benchmark:dns",
-    "release": "semantic-release",
+    "release": "semantic-release --extends ./release.node.json",
     "release:react-native": "semantic-release --extends ./release.react-native.json"
   },
   "devDependencies": {
