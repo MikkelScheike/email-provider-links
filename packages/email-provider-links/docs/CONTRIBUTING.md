@@ -2,6 +2,8 @@
 
 Thank you for your interest in contributing! This guide will help you contribute effectively while maintaining our security standards.
 
+The Node library lives in `packages/email-provider-links`. Provider data, hashes, and the commands below are relative to that package. From the repository root, `pnpm test` and `pnpm run update-hashes` delegate here. The React Native package is `packages/email-provider-links-react-native`.
+
 ## 🤝 Ways to Contribute
 
 - 📧 **Add new email providers**

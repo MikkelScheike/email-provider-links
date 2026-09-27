@@ -30,7 +30,7 @@ class SemanticReleaseManager {
   private projectRoot: string;
   
   constructor() {
-    this.projectRoot = process.cwd();
+    this.projectRoot = join(__dirname, '..');
   }
 
   private hasGit(): boolean {

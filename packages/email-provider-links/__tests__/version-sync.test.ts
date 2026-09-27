@@ -7,7 +7,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
 
-const projectRoot = process.cwd();
+const projectRoot = join(__dirname, '..');
 
 function getCurrentPackageVersion() {
   try {
@@ -22,7 +22,7 @@ function getCurrentPackageVersion() {
 
 function getLatestGitTag(): string | null {
   try {
-    const tag = execSync('git describe --tags --abbrev=0', {
+    const tag = execSync('git describe --tags --abbrev=0 --match v[0-9]*', {
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe']
     }).trim();

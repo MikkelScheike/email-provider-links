@@ -11,6 +11,9 @@ node_modules/
 # Build output
 dist/
 
+# Generated React Native provider snapshot
+packages/email-provider-links-react-native/src/data/
+
 # Test coverage
 coverage/
 

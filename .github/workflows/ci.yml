@@ -42,6 +42,9 @@ jobs:
     - name: Security audit
       run: pnpm audit --audit-level=critical
 
+    - name: Typecheck
+      run: pnpm run typecheck
+
     - name: Run tests
       run: pnpm test
 
@@ -51,7 +54,7 @@ jobs:
         if [[ "$GITHUB_ACTOR" == "semantic-release-bot" ]]; then
           echo "Skipping hash verification during semantic-release"
         else
-          pnpm exec vitest run -t "CRITICAL.*production providers file must have correct hash"
+          pnpm --filter @mikkelscheike/email-provider-links exec vitest run -t "CRITICAL.*production providers file must have correct hash"
           echo "Security check passed - providers file integrity verified"
         fi
 
@@ -87,7 +90,7 @@ jobs:
       uses: codecov/codecov-action@v5
       if: success()
       with:
-        files: ./coverage/lcov.info
+        files: ./packages/email-provider-links/coverage/lcov.info
         flags: unittests
         name: codecov-umbrella
 
@@ -174,3 +177,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         NPM_CONFIG_PROVENANCE: true
       run: pnpm exec semantic-release
+
+    - name: Semantic Release (React Native)
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NPM_CONFIG_PROVENANCE: true
+      run: pnpm exec semantic-release --extends ./release.react-native.json

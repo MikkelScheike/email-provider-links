@@ -13,7 +13,7 @@ const path = require('path');
 
 function getLatestGitTag() {
   try {
-    const tag = execSync('git describe --tags --abbrev=0', {
+    const tag = execSync('git describe --tags --abbrev=0 --match v[0-9]*', {
       encoding: 'utf8',
       stdio: ['pipe', 'pipe', 'pipe']
     }).trim();
@@ -66,7 +66,7 @@ function syncVersions() {
     if (updated) {
       // Auto-commit the version sync
       try {
-        execSync('git add package.json', { stdio: 'pipe' });
+        execSync(`git add "${path.join(__dirname, '..', 'package.json')}"`, { stdio: 'pipe' });
         execSync(`git commit -m "chore: sync package.json version to ${latestTag} (auto-sync)"`, { stdio: 'pipe' });
         console.log(`🚀 Auto-committed version sync to ${latestTag}`);
       } catch (error) {

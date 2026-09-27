@@ -16,7 +16,7 @@ class HashUpdater {
     private projectRoot: string;
 
     constructor() {
-        this.projectRoot = process.cwd();
+        this.projectRoot = join(__dirname, "..");
     }
 
     /** Update security hashes after semantic-release version bump */

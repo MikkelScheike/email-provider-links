@@ -1,0 +1,52 @@
+{
+  "branches": ["main"],
+  "tagFormat": "email-provider-links-react-native-v${version}",
+  "plugins": [
+    [
+      "./scripts/semantic-release-filter-commits.cjs",
+      {
+        "pathPrefixes": [
+          "packages/email-provider-links-react-native/",
+          "packages/email-provider-links/providers/"
+        ]
+      }
+    ],
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          { "type": "docs", "release": "patch" },
+          { "type": "refactor", "release": "patch" },
+          { "type": "style", "release": "patch" },
+          { "type": "security", "release": "patch" }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits"
+      }
+    ],
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": true,
+        "pkgRoot": "packages/email-provider-links-react-native",
+        "tarballDir": "packages/email-provider-links-react-native/dist"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "packages/email-provider-links-react-native/package.json",
+          "pnpm-lock.yaml"
+        ],
+        "message": "chore(release): react-native ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ],
+    "@semantic-release/github"
+  ]
+}

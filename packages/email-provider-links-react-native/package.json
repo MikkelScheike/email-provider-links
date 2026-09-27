@@ -1,0 +1,71 @@
+{
+  "name": "@mikkelscheike/email-provider-links-react-native",
+  "version": "1.0.0",
+  "description": "React Native component and hook for known-domain email provider login links",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "react-native": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "react-native": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "!dist/**/*.map"
+  ],
+  "scripts": {
+    "copy-providers": "node scripts/copy-providers.mjs",
+    "prebuild": "node scripts/copy-providers.mjs",
+    "build": "tsc",
+    "pretypecheck": "node scripts/copy-providers.mjs",
+    "typecheck": "tsc --noEmit",
+    "pretest": "node scripts/copy-providers.mjs",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "react-native",
+    "email",
+    "provider",
+    "login",
+    "gmail",
+    "outlook"
+  ],
+  "author": "Mikkel Scheike",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MikkelScheike/email-provider-links",
+    "directory": "packages/email-provider-links-react-native"
+  },
+  "homepage": "https://github.com/mikkelscheike/email-provider-links#readme",
+  "bugs": {
+    "url": "https://github.com/mikkelscheike/email-provider-links/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "dependencies": {
+    "punycode": "^2.3.1"
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0",
+    "react-native": ">=0.73.0"
+  },
+  "devDependencies": {
+    "@types/punycode": "^2.1.4",
+    "@types/react": "^19.2.2",
+    "@types/react-test-renderer": "^19.1.0",
+    "react": "^19.1.1",
+    "react-native": "^0.81.4",
+    "react-test-renderer": "^19.1.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0"
+  }
+}

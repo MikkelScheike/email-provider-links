@@ -1,73 +1,20 @@
 {
-  "name": "@mikkelscheike/email-provider-links",
-  "version": "6.0.0",
-  "description": "TypeScript library for email provider detection with 140 providers (259 domains), concurrent DNS resolution, alias normalization, and HTTPS login URL validation for login and password reset flows",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
-  "sideEffects": false,
-  "files": [
-    "dist/**/*.js",
-    "dist/**/*.d.ts",
-    "dist/providers/emailproviders.json",
-    "!dist/**/*.map"
-  ],
-  "scripts": {
-    "clean": "node -e \"try{require('fs').rmSync('dist',{recursive:true,force:true});}catch(e){}\"",
-    "verify-hashes": "node --import tsx scripts/verify-hashes.ts",
-    "build": "pnpm run clean && pnpm run verify-hashes && tsc && node --import tsx scripts/prepare-providers-dist.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "test:live-dns": "RUN_LIVE_DNS=1 vitest run",
-    "prepublishOnly": "pnpm run verify-hashes && pnpm run build",
-    "dev": "node --import tsx src/index.ts",
-    "sync-versions": "node scripts/sync-versions.js",
-    "pretest": "node scripts/sync-versions.js",
-    "prebuild": "node scripts/sync-versions.js",
-    "update-hashes": "node --import tsx scripts/update-hashes.ts",
-    "benchmark:memory": "node --expose-gc --import tsx scripts/benchmark-memory.ts",
-    "benchmark:dns": "node --import tsx scripts/benchmark-concurrent-dns.ts"
-  },
-  "keywords": [
-    "email",
-    "provider",
-    "login",
-    "password-reset",
-    "gmail",
-    "outlook",
-    "yahoo",
-    "alias-detection",
-    "email-normalization",
-    "plus-addressing",
-    "fraud-prevention",
-    "deduplication",
-    "typescript",
-    "npm",
-    "utility"
-  ],
-  "author": "Mikkel Scheike",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/MikkelScheike/email-provider-links"
-  },
-  "homepage": "https://github.com/mikkelscheike/email-provider-links#readme",
-  "bugs": {
-    "url": "https://github.com/mikkelscheike/email-provider-links/issues"
-  },
-  "engines": {
-    "node": ">=22.12.0"
-  },
+  "name": "email-provider-links-workspace",
+  "private": true,
+  "description": "Workspace for the email provider links Node library and React Native package",
   "packageManager": "pnpm@12.4.1",
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
+  "scripts": {
+    "build": "pnpm --filter @mikkelscheike/email-provider-links run build && pnpm --filter @mikkelscheike/email-provider-links-react-native run build",
+    "test": "pnpm --filter @mikkelscheike/email-provider-links run test && pnpm --filter @mikkelscheike/email-provider-links run build && pnpm --filter @mikkelscheike/email-provider-links-react-native run test",
+    "test:coverage": "pnpm --filter @mikkelscheike/email-provider-links run test:coverage",
+    "test:live-dns": "pnpm --filter @mikkelscheike/email-provider-links run test:live-dns",
+    "typecheck": "pnpm --filter @mikkelscheike/email-provider-links run typecheck && pnpm --filter @mikkelscheike/email-provider-links-react-native run typecheck",
+    "sync-versions": "pnpm --filter @mikkelscheike/email-provider-links run sync-versions",
+    "update-hashes": "pnpm --filter @mikkelscheike/email-provider-links run update-hashes",
+    "benchmark:memory": "pnpm --filter @mikkelscheike/email-provider-links run benchmark:memory",
+    "benchmark:dns": "pnpm --filter @mikkelscheike/email-provider-links run benchmark:dns",
+    "release": "semantic-release",
+    "release:react-native": "semantic-release --extends ./release.react-native.json"
   },
   "devDependencies": {
     "@semantic-release/commit-analyzer": "^13.0.1",
@@ -76,12 +23,7 @@
     "@semantic-release/github": "^12.0.9",
     "@semantic-release/npm": "^13.1.5",
     "@semantic-release/release-notes-generator": "^14.1.1",
-    "@types/node": "^25.0.3",
-    "@vitest/coverage-v8": "^5.0.0",
     "conventional-changelog-conventionalcommits": "^9.1.0",
-    "semantic-release": "^25.0.9",
-    "tsx": "^4.23.13",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.0"
+    "semantic-release": "^25.0.9"
   }
 }

@@ -1,6 +1,12 @@
 {
   "branches": ["main"],
   "plugins": [
+    [
+      "./scripts/semantic-release-filter-commits.cjs",
+      {
+        "pathPrefix": "packages/email-provider-links/"
+      }
+    ],
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     [
@@ -13,14 +19,18 @@
       "@semantic-release/npm",
       {
         "npmPublish": true,
-        "tarballDir": "dist",
-        "pkgRoot": "."
+        "tarballDir": "packages/email-provider-links/dist",
+        "pkgRoot": "packages/email-provider-links"
       }
     ],
     [
       "@semantic-release/git",
       {
-        "assets": ["package.json", "pnpm-lock.yaml", "src/hash-verifier.ts"],
+        "assets": [
+          "packages/email-provider-links/package.json",
+          "pnpm-lock.yaml",
+          "packages/email-provider-links/src/hash-verifier.ts"
+        ],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }
     ],
@@ -29,7 +39,7 @@
       "config": {
         "assets": [
           {
-            "path": "email-provider-links-*.tgz",
+            "path": "packages/email-provider-links/dist/*.tgz",
             "label": "NPM Package"
           }
         ]
@@ -56,4 +66,3 @@
     }
   ]
 }
-

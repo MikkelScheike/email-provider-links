@@ -1,0 +1,7 @@
+__tests__/
+scripts/
+src/
+vitest.config.ts
+vitest.config.mts
+tsconfig.json
+*.tsbuildinfo
