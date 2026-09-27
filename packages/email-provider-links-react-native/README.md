@@ -25,6 +25,8 @@ Peer dependencies:
 - `react` `>=18.2.0`
 - `react-native` `>=0.73.0`
 
+This repository tests the package with React Native 0.87.
+
 ## Open a login link
 
 `EmailProviderLink` renders a pressable. The default label is `Open Gmail` (or whichever provider matched). Pressing it calls `Linking.openURL`.
