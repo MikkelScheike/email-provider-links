@@ -102,7 +102,7 @@ Run those commands from the repository root. They cover both packages.
 
 - Tests: Vitest 5. Coverage: `pnpm run test:coverage` writes `packages/email-provider-links/coverage/lcov.info`.
 - Contributing: [CONTRIBUTING.md](packages/email-provider-links/docs/CONTRIBUTING.md)
-- Security: [SECURITY.md](packages/email-provider-links/docs/SECURITY.md)
+- Security: [SECURITY.md](SECURITY.md)
 
 ## License
 

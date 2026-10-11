@@ -376,11 +376,11 @@ We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidel
 
 **Quality Assurance**: This project maintains 439 passing tests plus 1 skipped live-DNS test (~89% statement coverage with Vitest v8).
 
-**Security**: Login URLs are HTTPS-only and host-allowlisted. Provider JSON integrity is verified in the build pipeline; published packages use npm provenance. See [Security Policy](docs/SECURITY.md).
+**Security**: Login URLs are HTTPS-only and host-allowlisted. Provider JSON integrity is verified in the build pipeline; published packages use npm provenance. See [Security Policy](../../SECURITY.md).
 
 ## Security
 
-For security concerns or to report vulnerabilities, see our [Security Policy](docs/SECURITY.md).
+For security concerns or to report vulnerabilities, see our [Security Policy](../../SECURITY.md).
 
 ## License
 
