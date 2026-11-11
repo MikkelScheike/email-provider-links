@@ -5,8 +5,8 @@ allowBuilds:
   esbuild: true
 
 overrides:
+  conventional-changelog-writer: "^9.3.0"
   glob: "^10.4.5"
-  handlebars: "^4.7.10"
   shell-quote: "^1.11.0"
   source-map-js: "^1.2.2"
   tar: "^7.5.22"
